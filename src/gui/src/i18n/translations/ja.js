@@ -222,6 +222,13 @@ const ja = {
         publish: "公開",
         publish_as_website: 'ウェブサイトとして公開',        
         puter_description: `Puterは、すべてのファイル、アプリ、およびゲームを一か所に安全に保管し、いつでもどこからでもアクセスできるプライバシー重視の個人用クラウドです。`,
+        // ja (Japanese / 日本語)
+        remove: "削除",
+        'account.avatar.removeButton': '削除',
+        'account.avatar.removeConfirm': "プロフィール画像を削除してもよろしいですか？これによりデフォルトのアバターに戻ります。",
+        'account.avatar.removedToast': 'プロフィール画像を削除しました。',
+        'confirm_remove_profile_picture': "プロフィール画像を削除してもよろしいですか？これによりデフォルトのアバターに戻ります。",
+        'confirm_remove_profile_picture_title': 'プロフィール画像を削除しますか？',
         reading_file: "読み込み中 %strong%",
         recent: "最近",
         recommended: "おすすめ",

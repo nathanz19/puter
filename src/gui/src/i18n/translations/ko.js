@@ -246,6 +246,13 @@ const ko = {
     publish_as_website: "웹사이트로 게시",
     publish_as_serverless_worker: "서버리스 워커로 게시",
     puter_description: `Puter는 모든 파일, 앱, 게임을 하나의 안전한 공간에 보관하고 언제 어디서나 접속할 수 있으며 개인 정보 보호를 우선시하는 개인 클라우드입니다. `,
+    // ko (Korean / 한국어)
+    remove: "삭제",
+    'account.avatar.removeButton': '삭제',
+    'account.avatar.removeConfirm': "프로필 사진을 삭제하시겠습니까? 기본 아바타로 복원됩니다.",
+    'account.avatar.removedToast': '프로필 사진이 삭제되었습니다.',
+    'confirm_remove_profile_picture': "프로필 사진을 삭제하시겠습니까? 기본 아바타로 복원됩니다.",
+    'confirm_remove_profile_picture_title': '프로필 사진 삭제?',
     reading: "%strong% 읽는 중",
     writing: "%strong% 작성 중",
     recent: "최근",

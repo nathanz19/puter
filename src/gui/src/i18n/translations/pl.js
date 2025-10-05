@@ -221,6 +221,13 @@ const pl = {
         publish: "Opublikuj",
         publish_as_website: 'Opublikuj jako stronę',
         puter_description: `Puter to zachowująca twoją prywatność osobista chmura, służąca do przechowywania wszystkich twoich plików, aplikacji i gier w jednym, bezpiecznym miejscu, dostępnym z dowolnego miejsca w dowolnej chwili.`,
+        // pl (Polish / Polski)
+        remove: "Usuń",
+        'account.avatar.removeButton': 'Usuń',
+        'account.avatar.removeConfirm': "Czy na pewno chcesz usunąć zdjęcie profilowe? To przywróci domyślny awatar.",
+        'account.avatar.removedToast': 'Zdjęcie profilowe usunięte.',
+        'confirm_remove_profile_picture': "Czy na pewno chcesz usunąć zdjęcie profilowe? To przywróci domyślny awatar.",
+        'confirm_remove_profile_picture_title': 'Usuń zdjęcie profilowe?',
         reading_file: "Odczyt %strong%",
         recent: "Ostatnie",
         recommended: "Polecane",

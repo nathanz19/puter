@@ -241,6 +241,13 @@ const ig = {
     publish: "Bipụta",
     publish_as_website: "Bipụta dị ka webụsaịtị",
     puter_description: `Puter bụ igwe ojii nzuzo nke mbụ iji dobe faịlụ gị, ngwa na egwuregwu gị n'otu ebe echekwara, enwere ike ịnweta ya ebe ọ bụla n'oge ọ bụla..`,
+    // ig (Igbo)
+    remove: "Wepụ",
+    'account.avatar.removeButton': 'Wepụ',
+    'account.avatar.removeConfirm': "Ị jụrụ ma ịchọrọ wepụ foto profaịlụ gị? Nke a ga-eweghachi avatar ndabara gị.",
+    'account.avatar.removedToast': 'E wepụrụ foto profaịlụ.',
+    'confirm_remove_profile_picture': "Ị jụrụ ma ịchọrọ wepụ foto profaịlụ gị? Nke a ga-eweghachi avatar ndabara gị.",
+    'confirm_remove_profile_picture_title': 'Wepụ foto profaịlụ?',
     reading_file: "ọgụgụ %strong%",
     recent: "Na nso nso a",
     recommended: "nwere ike ikwu",

@@ -221,6 +221,13 @@ const zhtw = {
         publish: "發布",
         publish_as_website: '發布為網站',
         puter_description: `Puter 是一個以隱私為先的個人雲端，可將您所有的檔案、應用程式和遊戲保存在一個安全的地方，隨時隨地都能存取。`,
+        // zhtw (Traditional Chinese / 繁體中文)
+        remove: "刪除",
+        'account.avatar.removeButton': '刪除',
+        'account.avatar.removeConfirm': "您確定要刪除您的大頭貼嗎？這將恢復為預設頭像。",
+        'account.avatar.removedToast': '大頭貼已刪除。',
+        'confirm_remove_profile_picture': "您確定要刪除您的大頭貼嗎？這將恢復為預設頭像。",
+        'confirm_remove_profile_picture_title': '刪除大頭貼？',
         reading_file: "正在讀取 %strong%",
         recent: "最近",
         recommended: "推薦",

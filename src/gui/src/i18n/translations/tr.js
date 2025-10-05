@@ -221,6 +221,13 @@ const tr = {
         publish: "Yayınla",
         publish_as_website: "Web sitesi olarak yayınla",
         puter_description: "Puter, tüm dosyalarınızı, uygulamalarınızı ve oyunlarınızı tek bir güvenli yerde tutmak için gizliliğe öncelik veren kişisel bir buluttur ve her yerden her zaman erişilebilir.",
+        // tr (Turkish / Türkçe)
+        remove: "Kaldır",
+        'account.avatar.removeButton': 'Kaldır',
+        'account.avatar.removeConfirm': "Profil resminizi kaldırmak istediğinizden emin misiniz? Bu işlem varsayılan avatarınızı geri yükleyecektir.",
+        'account.avatar.removedToast': 'Profil resmi kaldırıldı.',
+        'confirm_remove_profile_picture': "Profil resminizi kaldırmak istediğinizden emin misiniz? Bu işlem varsayılan avatarınızı geri yükleyecektir.",
+        'confirm_remove_profile_picture_title': 'Profil resmini kaldır?',
         reading_file: "%strong% okunuyor",
         recent: "En son",
         recommended: "Önerilen",

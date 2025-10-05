@@ -244,6 +244,13 @@ const ru = {
     public: 'Общий доступ',
     publish_as_website: 'Опубликовать как сайт',
     puter_description: `Puter — это персональное облако, обеспечивающее конфиденциальность, позволяющее хранить все ваши файлы, приложения и игры в одном безопасном месте, доступном из любого места в любое время.`,
+    // ru (Russian / Русский)
+    remove: "Удалить",
+    'account.avatar.removeButton': 'Удалить',
+    'account.avatar.removeConfirm': "Вы уверены, что хотите удалить фото профиля? Это восстановит аватар по умолчанию.",
+    'account.avatar.removedToast': 'Фото профиля удалено.',
+    'confirm_remove_profile_picture': "Вы уверены, что хотите удалить фото профиля? Это восстановит аватар по умолчанию.",
+    'confirm_remove_profile_picture_title': 'Удалить фото профиля?',
     reading_file: 'Чтение %strong%',
     recent: 'Недавнее',
     recommended: 'Рекоммендации',

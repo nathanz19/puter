@@ -232,6 +232,13 @@ const nb = {
         publish: "Publiser",
         publish_as_website: "Publiser som nettsted",
         puter_description: "Puter er en personvernfokusert personlig sky der du kan samle alle filene, appene og spillene dine på ett sikkert sted, tilgjengelig fra hvor som helst, når som helst.",
+        // nb (Norwegian Bokmål)
+        remove: "Fjern",
+        'account.avatar.removeButton': 'Fjern',
+        'account.avatar.removeConfirm': "Er du sikker på at du vil fjerne profilbildet ditt? Dette vil gjenopprette standard-avataren.",
+        'account.avatar.removedToast': 'Profilbildet er fjernet.',
+        'confirm_remove_profile_picture': "Er du sikker på at du vil fjerne profilbildet ditt? Dette vil gjenopprette standard-avataren.",
+        'confirm_remove_profile_picture_title': 'Fjerne profilbilde?',
         reading: "Leser %strong%",
         writing: "Skriver %strong%",
         recent: "Nylig",

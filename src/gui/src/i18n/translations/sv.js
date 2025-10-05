@@ -222,6 +222,13 @@ const sv = {
         publish: "Publicera",
         publish_as_website: "Publicera som webbplats",
         puter_description: "Puter är ett integritetsvänligt personligt moln för alla dina filer, appar och spel på ett säkert ställe, tillgängligt varsomhelst och närsomhelst.",
+        // sv (Swedish / Svenska)
+        remove: "Ta bort",
+        'account.avatar.removeButton': 'Ta bort',
+        'account.avatar.removeConfirm': "Är du säker på att du vill ta bort din profilbild? Detta återställer din standardavatar.",
+        'account.avatar.removedToast': 'Profilbild borttagen.',
+        'confirm_remove_profile_picture': "Är du säker på att du vill ta bort din profilbild? Detta återställer din standardavatar.",
+        'confirm_remove_profile_picture_title': 'Ta bort profilbild?',
         reading_file: "Läser in %strong%",
         recent: "Senaste",
         recommended: "Rekommenderat",

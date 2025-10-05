@@ -239,6 +239,12 @@ const ar = {
     publish_as_website: "نشر كموقع إلكتروني",
     puter_description:
       ".هو سحابة شخصية تركز على الخصوصية للحفاظ على جميع ملفاتك، تطبيقاتك، وألعابك في مكان آمن واحد، متاحة من أي مكان وفي أي وقت Puter",
+    remove: "حذف",
+    'account.avatar.removeButton': 'حذف',
+    'account.avatar.removeConfirm': "هل أنت متأكد من أنك تريد حذف صورة الملف الشخصي؟ سيُعاد الأفاتار الافتراضي.",
+    'account.avatar.removedToast': 'تم حذف صورة الملف الشخصي.',
+    'confirm_remove_profile_picture': "هل أنت متأكد من أنك تريد حذف صورة الملف الشخصي؟ سيُعاد الأفاتار الافتراضي.",
+    'confirm_remove_profile_picture_title': 'حذف صورة الملف الشخصي؟',
     reading_file: "%strong% جارٍ قراءة",
     recent: "الأخيرة",
     recommended: "مُوصى به",

@@ -22,6 +22,13 @@ const br = {
     english_name: 'Portuguese (Brazil)',
     code: 'br',
     dictionary: {
+        // br (Português do Brasil)
+        remove: "Remover",
+        'account.avatar.removeButton': 'Remover',
+        'account.avatar.removeConfirm': "Tem certeza de que deseja remover sua foto de perfil? Isso restaurará seu avatar padrão.",
+        'account.avatar.removedToast': 'Foto de perfil removida.',
+        'confirm_remove_profile_picture': "Tem certeza de que deseja remover sua foto de perfil? Isso restaurará seu avatar padrão.",
+        'confirm_remove_profile_picture_title': 'Remover foto de perfil?',
         about: 'Sobre',
         account: 'Conta',
         account_password: 'Verificar Senha da Conta',

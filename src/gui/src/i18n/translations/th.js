@@ -219,6 +219,13 @@ const th = {
         publish: "เผยแพร่",
         publish_as_website: "เผยแพร่เป็นเว็บไซต์",
         puter_description: `Puter is a privacy-first personal cloud to keep all your files, apps, and games in one secure place, accessible from anywhere at any time.`,
+        // th (Thai / ไทย)
+        remove: "ลบ",
+        'account.avatar.removeButton': 'ลบ',
+        'account.avatar.removeConfirm': "คุณแน่ใจหรือไม่ว่าต้องการลบรูปโปรไฟล์ของคุณ? จะคืนค่าเป็นอวาตาร์เริ่มต้นของคุณ",
+        'account.avatar.removedToast': 'ลบรูปโปรไฟล์แล้ว',
+        'confirm_remove_profile_picture': "คุณแน่ใจหรือไม่ว่าต้องการลบรูปโปรไฟล์ของคุณ? จะคืนค่าเป็นอวาตาร์เริ่มต้นของคุณ",
+        'confirm_remove_profile_picture_title': 'ลบรูปโปรไฟล์?',
         reading_file: "กำลังอ่าน %strong%",
         recent: "ล่าสุด",
         recommended: "แนะนำ",

@@ -284,6 +284,13 @@ const nn = {
     public: 'Offentleg',
     puter_description:
       'Puter er ein personleg skyteknologi med fokus på personvern, der du kan lagre alle filene, appane og spela dine på ein sikker stad, tilgjengeleg frå overalt til ei kvar tid.',
+    // nn (Norwegian Nynorsk)
+    remove: "Fjern",
+    'account.avatar.removeButton': 'Fjern',
+    'account.avatar.removeConfirm': "Er du sikker på at du vil fjerne profilbiletet ditt? Dette vil gjenopprette standardavatar.",
+    'account.avatar.removedToast': 'Profilbiletet er fjerna.',
+    'confirm_remove_profile_picture': "Er du sicher på at du vil fjerne profilbiletet ditt? Dette vil gjenopprette standardavatar.",
+    'confirm_remove_profile_picture_title': 'Fjerne profilbilde?',
     reading: 'Leser %strong%',
     writing: 'Skriv %strong%',
     recommended: 'Anbefalt',

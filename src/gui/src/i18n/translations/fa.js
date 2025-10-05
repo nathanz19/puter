@@ -246,6 +246,12 @@ const fa = {
     publish_as_website: "انتشار به عنوان وبسایت",
     puter_description:
       "پیوتر یک کلاود با اولویت حفظ حریم خصوصی است که همه فایل‌ها، برنامه‌ها و بازی‌های شما را در یک فضای امن نگه می‌دارد که از هر جا و هر زمان قابل دسترسی است",
+    remove: "حذف",
+    'account.avatar.removeButton': 'حذف',
+    'account.avatar.removeConfirm': "آیا مطمئن هستید که می‌خواهید عکس پروفایل خود را حذف کنید؟ این کار آواتار پیش‌فرض شما را بازمی‌گرداند.",
+    'account.avatar.removedToast': 'عکس پروفایل حذف شد.',
+    'confirm_remove_profile_picture': "آیا مطمئن هستید که می‌خواهید عکس پروفایل خود را حذف کنید؟ این کار آواتار پیش‌فرض شما را بازمی‌گرداند.",
+    'confirm_remove_profile_picture_title': 'حذف عکس پروفایل؟',
     reading: "%strong%درحال خواندن",
     writing: "%strong%درحال نوشتن",
     recent: "اخیر",

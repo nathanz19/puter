@@ -227,6 +227,13 @@ const ur = {
     publish: "شائع کریں",
     publish_as_website: "ویب سائٹ کے طور پر شائع کریں",
     puter_description: `Puter ایک رازداری کا پہلا ذاتی کلاؤڈ ہے جو آپ کی تمام فائلوں، ایپس اور گیمز کو ایک محفوظ جگہ پر رکھتا ہے، کسی بھی وقت کہیں سے بھی قابل رسائی ہے۔`,
+    // ur (Urdu / اردو)
+    remove: "حذف کریں",
+    'account.avatar.removeButton': 'حذف کریں',
+    'account.avatar.removeConfirm': "کیا آپ واقعی اپنی پروفائل تصویر حذف کرنا چاہتے ہیں؟ اس سے آپ کا ڈیفالٹ اوتار بحال ہوگا۔",
+    'account.avatar.removedToast': 'پروفائل تصویر حذف کر دی گئی۔',
+    'confirm_remove_profile_picture': "کیا آپ واقعی اپنی پروفائل تصویر حذف کرنا چاہتے ہیں؟ اس سے آپ کا ڈیفالٹ اوتار بحال ہوگا۔",
+    'confirm_remove_profile_picture_title': 'پروفائل تصویر حذف کریں؟',
     reading_file: "پڑھنا %strong%",
     recent: "حال ہی میں",
     recommended: "تجویز کردہ",

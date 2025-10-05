@@ -224,6 +224,13 @@ const ua = {
         publish: "Опублікувати",
         publish_as_website: "Опублікувати як сайт",
         puter_description: "Puter — це персональна хмара, яка забезпечує конфіденційність, дозволяючи зберігати всі ваші файли, додатки та ігри в одному безпечному місці, доступному з будь-якого місця в будь-який час.",
+        // ua (Ukrainian / Українська)
+        remove: "Видалити",
+        'account.avatar.removeButton': 'Видалити',
+        'account.avatar.removeConfirm': "Ви впевнені, що хочете видалити фото профілю? Це відновить стандартний аватар.",
+        'account.avatar.removedToast': 'Фото профілю видалено.',
+        'confirm_remove_profile_picture': "Ви впевнені, що хочете видалити фото профілю? Це відновить стандартний аватар.",
+        'confirm_remove_profile_picture_title': 'Видалити фото профілю?',
         reading: "Читання %strong%",
         reading_file: "Читання файлу",
         recent: "Недавній",

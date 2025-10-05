@@ -214,6 +214,13 @@ const fr = {
         pick_name_for_website: "Choisissez un nom pour votre site internet :",
         pick_name_for_worker: "Choisissez un nom pour votre worker :",
         picture: "Image",
+        // Avatar removal translations
+        remove: "Supprimer",
+        'account.avatar.removeButton': 'Supprimer',
+        'account.avatar.removeConfirm': "Êtes-vous sûr de vouloir supprimer votre photo de profil ? Cela restaurera votre avatar par défaut.",
+        'account.avatar.removedToast': 'Photo de profil supprimée.',
+        'confirm_remove_profile_picture': "Êtes-vous sûr de vouloir supprimer votre photo de profil ? Cela restaurera votre avatar par défaut.",
+        'confirm_remove_profile_picture_title': 'Supprimer la photo de profil ?',
         pictures: 'Images',
         plural_suffix: 's',
         powered_by_puter_js: `Propulsé par {{link=docs}}Puter.js{{/link}}`,

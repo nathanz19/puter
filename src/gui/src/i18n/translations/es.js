@@ -234,6 +234,13 @@ const es = {
     personalization: 'Personalización',
     pick_name_for_website: 'Escoge un nombre para tu página web:',
     picture: 'Imagen',
+    // Avatar removal translations
+    remove: "Eliminar",
+    'account.avatar.removeButton': 'Quitar',
+    'account.avatar.removeConfirm': '¿Estás seguro de que quieres quitar tu foto de perfil? Esto restaurará tu avatar por defecto.',
+    'account.avatar.removedToast': 'Foto de perfil eliminada.',
+    'confirm_remove_profile_picture': '¿Estás seguro de que quieres quitar tu foto de perfil? Esto restaurará tu avatar por defecto.',
+    'confirm_remove_profile_picture_title': '¿Quitar foto de perfil?',
     pictures: 'Imagenes',
     plural_suffix: 's',
     powered_by_puter_js: `Creado por {{link=docs}}Puter.js{{/link}}`,

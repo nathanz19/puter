@@ -222,6 +222,13 @@ const vi = {
         publish: "Xuất bản",
         publish_as_website: 'Xuất bản như trang web',
         puter_description: `Puter là một đám mây cá nhân đặt quyền riêng tư lên hàng đầu để lưu trữ tất cả các tệp, ứng dụng và trò chơi của bạn trong một nơi an toàn, có thể truy cập từ mọi nơi vào bất kỳ lúc nào.`,
+        // vi (Vietnamese / Tiếng Việt)
+        remove: "Xóa",
+        'account.avatar.removeButton': 'Xóa',
+        'account.avatar.removeConfirm': "Bạn có chắc chắn muốn xóa ảnh hồ sơ của mình không? Việc này sẽ khôi phục ảnh đại diện mặc định.",
+        'account.avatar.removedToast': 'Ảnh hồ sơ đã bị xóa.',
+        'confirm_remove_profile_picture': "Bạn có chắc chắn muốn xóa ảnh hồ sơ của mình không? Việc này sẽ khôi phục ảnh đại diện mặc định.",
+        'confirm_remove_profile_picture_title': 'Xóa ảnh hồ sơ?',
         reading_file: "Đang đọc %strong%",
         recent: "Gần đây",
         recommended: "Được đề xuất",

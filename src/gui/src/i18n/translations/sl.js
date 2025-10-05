@@ -233,6 +233,13 @@ const sl = {
         publish_as_website: 'Objavi kot spletno stran',
         publish_as_serverless_worker: 'Objavi kot Worker',
         puter_description: `Puter je osebni oblak, ki na prvo mesto postavlja zasebnost in varno hrani vse vaše datoteke, aplikacije in igre, do katerih lahko dostopate od koder koli in kadar koli.`,
+        // sl (Slovenian / Slovenščina)
+        remove: "Odstrani",
+        'account.avatar.removeButton': 'Odstrani',
+        'account.avatar.removeConfirm': "Ste prepričani, da želite odstraniti svojo profilno sliko? To bo povrnilo privzeti avatar.",
+        'account.avatar.removedToast': 'Profilna slika odstranjena.',
+        'confirm_remove_profile_picture': "Ste prepričani, da želite odstraniti svojo profilno sliko? To bo povrnilo privzeti avatar.",
+        'confirm_remove_profile_picture_title': 'Odstraniti profilno sliko?',
         reading: "Branje %strong%",
         writing: "Pisanje %strong%",
         recent: "Nedavno",

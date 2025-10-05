@@ -222,6 +222,13 @@ const ro = {
         publish: "Publică",
         publish_as_website: 'Publică, ca site web',
         puter_description: "Puter este un cloud personal care pune pe primul loc confidențialitatea pentru păstrarea tuturor fișierelor dumneavoastră, a app-urilor, a jocurilor într-un loc sigur și accesibil de oriunde oricând.",
+        // ro (Romanian / Română)
+        remove: "Eliminare",
+        'account.avatar.removeButton': 'Eliminare',
+        'account.avatar.removeConfirm': "Sigur vrei să elimini poza de profil? Aceasta va restabili avatarul implicit.",
+        'account.avatar.removedToast': 'Poză de profil eliminată.',
+        'confirm_remove_profile_picture': "Sigur vrei să elimini poza de profil? Aceasta va restabili avatarul implicit.",
+        'confirm_remove_profile_picture_title': 'Eliminare poză profil?',
         reading_file: "Citind %strong%",
         recent: "Recente",
         recommended: "Recomandat",

@@ -222,6 +222,13 @@ const zh = {
         publish: "发布",
         publish_as_website: '发布为网站',
         puter_description: `Puter 是一个隐私优先的个人云，可将您的所有文件、应用程序和游戏保存在一个安全的地方，方便随时随地访问。`,
+        // zh (Chinese / 中文)
+        remove: "删除",
+        'account.avatar.removeButton': '删除',
+        'account.avatar.removeConfirm': "您确定要删除您的头像吗？这将恢复为默认头像。",
+        'account.avatar.removedToast': '头像已删除。',
+        'confirm_remove_profile_picture': "您确定要删除您的头像吗？这将恢复为默认头像。",
+        'confirm_remove_profile_picture_title': '删除头像？',
         reading_file: "正在读取 %strong%",
         recent: "最近",
         recommended: "推荐",

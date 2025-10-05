@@ -217,6 +217,13 @@ const hu = {
         publish: "Közzététel",
         publish_as_website: "Közzététel weboldalként",
         puter_description: "A Puter egy adatvédelmi elsőként kezelt személyes felhő, amelyben minden fájlodat, alkalmazásodat és játékodat egy biztonságos helyen tárolhatod, bárhonnan, bármikor elérhetően.",
+        // hu (Hungarian / Magyar)
+        remove: "Eltávolítás",
+        'account.avatar.removeButton': 'Eltávolítás',
+        'account.avatar.removeConfirm': "Biztos benne, hogy el akarja távolítani a profilképet? Ezzel visszaáll az alapértelmezett avatar.",
+        'account.avatar.removedToast': 'Profilkép törölve.',
+        'confirm_remove_profile_picture': "Biztos benne, hogy el akarja távolítani a profilképet? Ezzel visszaáll az alapértelmezett avatar.",
+        'confirm_remove_profile_picture_title': 'Profilkép eltávolítása?',
         reading_file: "Fájl olvasása: %strong%",
         recent: "Legutóbbi",
         recommended: "Ajánlott",

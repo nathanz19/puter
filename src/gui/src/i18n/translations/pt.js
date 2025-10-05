@@ -223,6 +223,13 @@ const pt = {
         publish: "Publicar",
         publish_as_website: 'Publicar como Site',
         puter_description: `Puter é uma nuvem pessoal que prioriza a privacidade e que mantém todos os teus ficheiros, aplicativos e jogos num local seguro, acessível de qualquer lugar e a qualquer hora.`,
+        // pt (Portuguese / Português)
+        remove: "Remover",
+        'account.avatar.removeButton': 'Remover',
+        'account.avatar.removeConfirm': "Você tem certeza de que deseja remover sua foto de perfil? Isso restaurará seu avatar padrão.",
+        'account.avatar.removedToast': 'Foto de perfil removida.',
+        'confirm_remove_profile_picture': "Você tem certeza de que deseja remover sua foto de perfil? Isso restaurará seu avatar padrão.",
+        'confirm_remove_profile_picture_title': 'Remover foto de perfil?',
         reading: 'A ler %strong%', 
         writing: 'A escrever %strong%',
         reading_file: "A ler %strong%",

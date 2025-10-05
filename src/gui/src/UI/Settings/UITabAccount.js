@@ -21,6 +21,7 @@ import UIWindowChangePassword from '../UIWindowChangePassword.js';
 import UIWindowChangeEmail from './UIWindowChangeEmail.js';
 import UIWindowChangeUsername from '../UIWindowChangeUsername.js';
 import UIWindowConfirmUserDeletion from './UIWindowConfirmUserDeletion.js';
+import UIWindowConfirmRemoveAvatar from './UIWindowConfirmRemoveAvatar.js';
 import UIWindowManageSessions from '../UIWindowManageSessions.js';
 import UIWindow from '../UIWindow.js';
 
@@ -35,6 +36,8 @@ export default {
         h += `<div style="overflow: visible; display: flex; margin-bottom: 20px; flex-direction: column; align-items: center;">`;
             h += `<div class="profile-picture change-profile-picture" style="background-image: url('${html_encode(window.user?.profile?.picture ?? window.icons['profile.svg'])}');">`;
             h += `</div>`;
+            // small remove button (next step will add confirmation/conditional show)
+            h += `<button class="button remove-profile-picture" style="margin-top:8px;" aria-label="${i18n('account.avatar.removeButton') || i18n('remove') || 'Remove'}">${i18n('remove') || i18n('account.avatar.removeButton') || 'Remove'}</button>`;
         h += `</div>`;
 
         // change password button
@@ -138,6 +141,28 @@ export default {
                 is_openFileDialog: true,
                 selectable_body: false,
             });    
+        })
+        $el_window.find('.remove-profile-picture').on('click', async function (e) {
+            // ask for confirmation before removing
+            UIWindowConfirmRemoveAvatar({
+                window_options:{
+                    parent_uuid: $el_window.attr('data-element_uuid'),
+                    disable_parent_window: true,
+                    parent_center: true,
+                },
+                onConfirm: function(){
+                    // clear profile picture UI
+                    $el_window.find('.profile-picture').css('background-image', 'url(' + html_encode(window.icons['profile.svg']) + ')');
+                    $('.profile-image').css('background-image', 'url(' + html_encode(window.icons['profile.svg']) + ')');
+                    $('.profile-image').removeClass('profile-image-has-picture');
+                    // update profile to remove picture
+                    try{
+                        update_profile(window.user.username, {picture: null});
+                    }catch(err){
+                        console.error('Failed to update profile to remove picture', err);
+                    }
+                }
+            });
         })
         $el_window.on('file_opened', async function(e){
             let selected_file = Array.isArray(e.detail) ? e.detail[0] : e.detail;

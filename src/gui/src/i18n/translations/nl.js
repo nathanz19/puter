@@ -222,6 +222,13 @@ const nl = {
 		publish: 'Publiceren',
 		publish_as_website: 'Publiceer als website',
 		puter_description: `Puter is een privacy-first persoonlijke cloud om al je bestanden, apps en games op één veilige plek te bewaren, overal en altijd toegankelijk.`,
+		// nl (Dutch / Nederlands)
+		remove: "Verwijderen",
+		'account.avatar.removeButton': 'Verwijderen',
+		'account.avatar.removeConfirm': "Weet u zeker dat u uw profielfoto wilt verwijderen? Dit zal uw standaardavatar herstellen.",
+		'account.avatar.removedToast': 'Profielfoto verwijderd.',
+		'confirm_remove_profile_picture': "Weet u zeker dat u uw profielfoto wilt verwijderen? Dit zal uw standaardavatar herstellen.",
+		'confirm_remove_profile_picture_title': 'Profielfoto verwijderen?',
 		reading_file: 'Lezen %strong%',
 		recent: 'Recent',
 		recommended: 'Aanbevolen',

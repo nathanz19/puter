@@ -244,6 +244,13 @@ const it = {
     publish: "Pubblica",
     publish_as_website: "Pubblica come sito web",
     puter_description: `Puter è un cloud personale che mette la privacy al primo posto, per conservare tutti i tuoi file, app e giochi in un unico luogo sicuro, accessibile da qualsiasi luogo e in qualsiasi momento.`,
+    // it (Italian / Italiano)
+    remove: "Rimuovi",
+    'account.avatar.removeButton': 'Rimuovi',
+    'account.avatar.removeConfirm': "Sei sicuro di voler rimuovere la foto del profilo? Questo ripristinerà il tuo avatar predefinito.",
+    'account.avatar.removedToast': 'Foto del profilo rimossa.',
+    'confirm_remove_profile_picture': "Sei sicuro di voler rimuovere la foto del profilo? Questo ripristinerà il tuo avatar predefinito.",
+    'confirm_remove_profile_picture_title': 'Rimuovi foto del profilo?',
     reading_file: "Leggendo %strong%",
     recent: "Recenti",
     recommended: "Consigliati",

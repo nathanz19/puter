@@ -249,6 +249,13 @@ const my = {
         publish_as_website: 'Terbitkan sebagai laman web',
         publish_as_serverless_worker: 'Terbitkan sebagai Worker',
         puter_description: 'Puter ialah storan awan peribadi yang mendahulukan privasi untuk menyimpan semua fail, aplikasi dan permainan anda di satu tempat yang selamat, boleh diakses dari mana sahaja dan pada bila-bila masa.',
+        // my (Bahasa Melayu)
+        remove: "Padam",
+        'account.avatar.removeButton': 'Padam',
+        'account.avatar.removeConfirm': "Adakah anda pasti mahu memadam gambar profil anda? Ini akan memulihkan avatar lalai anda.",
+        'account.avatar.removedToast': 'Gambar profil dipadam.',
+        'confirm_remove_profile_picture': "Adakah anda pasti mahu memadam gambar profil anda? Ini akan memulihkan avatar lalai anda.",
+        'confirm_remove_profile_picture_title': 'Padam gambar profil?',
         reading: 'Membaca %strong%',
         writing: 'Menulis %strong%',
         recent: 'Terkini',
