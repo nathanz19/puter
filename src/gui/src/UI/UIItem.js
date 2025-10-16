@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -25,6 +25,7 @@ import UIPopover from './UIPopover.js';
 import UIWindowEmailConfirmationRequired from './UIWindowEmailConfirmationRequired.js';
 import UIContextMenu from './UIContextMenu.js'
 import UIAlert from './UIAlert.js'
+import UIWindowPublishWorker from './UIWindowPublishWorker.js';
 import path from "../lib/path.js"
 import truncate_filename from '../helpers/truncate_filename.js';
 import launch_app from "../helpers/launch_app.js"
@@ -141,7 +142,7 @@ function UIItem(options){
                             background-color: #ffffff;
                             padding: 2px;" src="${html_encode(window.icons['shared.svg'])}" 
                         data-item-id="${item_id}"
-                        title="A user has shared this item with you.">`;
+                        title="${i18n('item_shared_with_you')}">`;
             // owner-shared badge
             h += `<img  class="item-badge item-is-shared" 
                         style="background-color: #ffffff; padding: 2px; ${!is_shared_with_me && options.is_shared ? 'display:block;' : ''}" 
@@ -149,18 +150,20 @@ function UIItem(options){
                         data-item-id="${item_id}"
                         data-item-uid="${options.uid}"
                         data-item-path="${html_encode(options.path)}"
-                        title="You have shared this item with at least one other user."
+                        title="${i18n('item_shared_by_you')}"
                     >`;
             // shortcut badge
             h += `<img  class="item-badge item-shortcut" 
                         style="background-color: #ffffff; padding: 2px; ${options.is_shortcut !== 0 ? 'display:block;' : ''}" 
                         src="${html_encode(window.icons['shortcut.svg'])}" 
                         data-item-id="${item_id}"
-                        title="Shortcut"
+                        title="${i18n('item_shortcut')}"
                     >`;
 
         h += `</div>`;
 
+        // divider
+        h += `<div class="item-divider"></div>`;
         // name
         h += `<pre class="item-name" data-item-id="${item_id}" title="${html_encode(options.name)}">${options.is_trash ? i18n('trash') : html_encode(truncate_filename(options.name))}</pre>`
         // name editor
@@ -278,8 +281,21 @@ function UIItem(options){
             // reset longer hover timeout and last window dragged over
             longer_hover_timeout = null;
             last_window_dragged_over = null;
+
+            window.an_item_is_being_dragged = true;
+            $('.toolbar').css('pointer-events', 'none');
         },
         drag: function(event, ui) {     
+            // Constrain item within desktop bounds
+            const minLeft = -50;
+            const maxLeft = window.desktop_width - 50;
+            const minTop = window.toolbar_height;
+            const maxTop = window.desktop_height + window.toolbar_height;
+            
+            // Apply constraints to ui.position
+            ui.position.left = Math.max(minLeft, Math.min(maxLeft, ui.position.left));
+            ui.position.top = Math.max(minTop, Math.min(maxTop, ui.position.top));
+            
             // Only show drag helpers if the item has been moved more than 5px
             if( Math.abs(ui.originalPosition.top - ui.offset.top) > 5
             ||
@@ -300,9 +316,13 @@ function UIItem(options){
 
             // Move other selected items
             for(let i=0; i < item_count - 1; i++){
+                // Apply same constraints to cloned items with their offset
+                const cloneLeft = Math.max(minLeft, Math.min(maxLeft, ui.position.left + 3 * (i+1)));
+                const cloneTop = Math.max(minTop, Math.min(maxTop, ui.position.top + 3 * (i+1)));
+                
                 $(other_selected_items[i]).css({
-                    'left': ui.position.left + 3 * (i+1),
-                    'top': ui.position.top + 3 * (i+1),
+                    'left': cloneLeft,
+                    'top': cloneTop,
                     'z-index': 999 - (i),
                     'opacity': 0.5 - i*0.1,
                 })
@@ -372,6 +392,8 @@ function UIItem(options){
             // reset longer hover timeout and last window dragged over
             clearTimeout(longer_hover_timeout);
             last_window_dragged_over = null;
+            window.an_item_is_being_dragged = false;
+            $('.toolbar').css('pointer-events', 'auto');
         }
     });
 
@@ -784,7 +806,7 @@ function UIItem(options){
             }
             if(!are_trashed){
                 menu_items.push({
-                    html: 'Share With…',
+                    html: i18n('Share With…'),
                     onClick: async function(){
                         if(window.user.is_temp && 
                             !await UIWindowSaveAccount({
@@ -903,7 +925,7 @@ function UIItem(options){
                                 const element = $selected_items[index];
                                 await window.delete_item(element);
                             }
-                            const trash = await puter.fs.stat(window.trash_path);
+                            const trash = await puter.fs.stat({path: window.trash_path, consistency: 'eventual'});
 
                             // update other clients
                             if(window.socket){
@@ -924,6 +946,7 @@ function UIItem(options){
             if(!are_trashed && window.feature_flags.create_shortcut){
                 menu_items.push({
                     html: i18n('create_shortcut'),
+                    html: is_shared_with_me ? i18n('create_desktop_shortcut_s') : i18n('create_shortcut_s'),
                     onClick: async function(){
                         $selected_items.each(function() {
                             let base_dir = path.dirname($(this).attr('data-path'));
@@ -931,6 +954,7 @@ function UIItem(options){
                             if($(this).attr('data-path') && $(this).closest('.item-container').attr('data-path') === window.desktop_path){
                                 base_dir = window.desktop_path;
                             }
+                            if ( is_shared_with_me ) base_dir = window.desktop_path;
                             // create shortcut
                             window.create_shortcut(
                                 path.basename($(this).attr('data-path')), 
@@ -1048,7 +1072,7 @@ function UIItem(options){
                     }
                 }else{                    
                     items.push({
-                        html: 'No suitable apps found',
+                        html: i18n('no_suitable_apps_found'),
                         disabled: true,
                     });
                 }
@@ -1088,7 +1112,7 @@ function UIItem(options){
             // -------------------------------------------
             if(!is_trashed && !is_trash){
                 menu_items.push({
-                    html: 'Share With…',
+                    html: i18n('Share With…'),
                     onClick: async function(){
                         if(window.user.is_temp && 
                             !await UIWindowSaveAccount({
@@ -1135,6 +1159,30 @@ function UIItem(options){
                 });
 
             }
+            //-------------------------------------------
+            // Publish as Worker
+            // -------------------------------------------
+            if(!is_trashed && !is_trash && !options.is_dir && $(el_item).attr('data-name').toLowerCase().endsWith('.js')){
+                menu_items.push({
+                    html: i18n('publish_as_serverless_worker'),
+                    onClick: async function(){
+                        if(window.user.is_temp && 
+                            !await UIWindowSaveAccount({
+                                send_confirmation_code: true,
+                                message: 'Please create an account to proceed.',
+                                window_options: {
+                                    backdrop: true,
+                                    close_on_backdrop_click: false,
+                                }                                
+                            }))
+                            return;
+                        else if(!window.user.email_confirmed && !await UIWindowEmailConfirmationRequired())
+                            return;
+
+                        UIWindowPublishWorker(options.uid, $(el_item).attr('data-name'), $(el_item).attr('data-path'));
+                    }
+                });
+            }
             // -------------------------------------------
             // Deploy As App
             // -------------------------------------------
@@ -1156,7 +1204,6 @@ function UIItem(options){
 
                 menu_items.push('-');
             }
-
             // -------------------------------------------
             // Empty Trash
             // -------------------------------------------
@@ -1273,13 +1320,15 @@ function UIItem(options){
             // -------------------------------------------
             if(!is_trashed && window.feature_flags.create_shortcut){
                 menu_items.push({
-                    html: i18n('create_shortcut'),
+                    html: is_shared_with_me ? i18n('create_desktop_shortcut') : i18n('create_shortcut'),
                     onClick: async function(){
                         let base_dir = path.dirname($(el_item).attr('data-path'));
                         // Trash on Desktop is a special case
                         if($(el_item).attr('data-path') && $(el_item).closest('.item-container').attr('data-path') === window.desktop_path){
                             base_dir = window.desktop_path;
                         }
+
+                        if ( is_shared_with_me ) base_dir = window.desktop_path;
 
                         window.create_shortcut(
                             path.basename($(el_item).attr('data-path')), 
@@ -1326,7 +1375,7 @@ function UIItem(options){
                         if((alert_resp) === 'Delete'){
                             await window.delete_item(el_item);
                             // check if trash is empty
-                            const trash = await puter.fs.stat(window.trash_path);
+                            const trash = await puter.fs.stat({path: window.trash_path, consistency: 'eventual'});
                             // update other clients
                             if(window.socket){
                                 window.socket.emit('trash.is_empty', {is_empty: trash.is_empty});
@@ -1401,8 +1450,8 @@ function UIItem(options){
         if(val !== ''){
             const w = $('.item-name-shadow').width();
             const h = $('.item-name-shadow').height();
-            $(el_item_name_editor).width(w + 4)
-            $(el_item_name_editor).height(h + 2)
+            $(el_item_name_editor).width(w)
+            $(el_item_name_editor).height(h)
         }
     })
 
@@ -1431,7 +1480,6 @@ $(document).on('click', '.item-has-website-url-badge', async function(e){
 })
 
 $(document).on('mousedown', '.item-has-website-url-badge', async function(e){
-    console.log('mousedown')
     e.stopPropagation();
     e.preventDefault();
     return false;   
@@ -1442,9 +1490,8 @@ $(document).on('contextmenu', '.item-has-website-url-badge', async function(e){
     e.preventDefault();
     
     // close other context menus
-    const $ctxmenus = $(".context-menu");
-    $ctxmenus.fadeOut(200, function(){
-        $ctxmenus.remove();
+    $(".context-menu").fadeOut(200, function(){
+        $(this).remove();
     });
 
     UIContextMenu({
@@ -1483,6 +1530,7 @@ $(document).on('click', '.item-has-website-badge', async function(e){
         returnSubdomains: true,
         returnPermissions: false,
         returnVersions: false,
+        consistency: 'eventual',
         success: function (fsentry){
             if(fsentry.subdomains)
                 window.open(fsentry.subdomains[0].address, '_blank');
@@ -1496,6 +1544,7 @@ $(document).on('long-hover', '.item-has-website-badge', function(e){
         returnSubdomains: true,
         returnPermissions: false,
         returnVersions: false,
+        consistency: 'eventual',
         success: function (fsentry){
             var box = e.target.getBoundingClientRect();
 
@@ -1514,7 +1563,7 @@ $(document).on('long-hover', '.item-has-website-badge', function(e){
         
             if(fsentry.subdomains){
                 let h = `<div class="allow-user-select website-badge-popover-content">`;
-                h += `<div class="website-badge-popover-title">Associated website${ fsentry.subdomains.length > 1 ? 's':''}</div>`;
+                h += `<div class="website-badge-popover-title">${i18n(fsentry.subdomains.length > 1 ? 'item_associated_websites_plural' : 'item_associated_websites')}</div>`;
                 fsentry.subdomains.forEach(subdomain => {
                     h += `
                     <a class="website-badge-popover-link" href="${subdomain.address}" style="font-size:13px;" target="_blank">${subdomain.address.replace('https://', '')}</a>

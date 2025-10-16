@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"openai-completion","model":"gpt-4o"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -42,8 +42,6 @@ class AlarmService extends BaseService {
     * This method initializes the AlarmService by setting up its internal data structures and initializing any required dependencies.
     *
     * It reads in the known errors from a JSON5 file and sets them as the known_errors property of the AlarmService instance.
-    *
-    * It also registers commands with the provided commands service.
     */
     async _construct () {
         this.alarms = {};

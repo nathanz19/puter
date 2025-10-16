@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * Ez a fájl a Puter része.
  *
@@ -157,10 +157,6 @@ const hu = {
         log_out: "Kijelentkezés",
         looks_good: "Jól néz ki!",
         manage_sessions: "Munkamenetek kezelése",
-        menubar_style: "Menü stílusa",
-        menubar_style_desktop: "Asztal",
-        menubar_style_system: "Rendszer",
-        menubar_style_window: "Ablak",
         modified: "Módosítva",
         move: "Mozgatás",
         moving_file: "Mozgatás: %%",
@@ -221,6 +217,13 @@ const hu = {
         publish: "Közzététel",
         publish_as_website: "Közzététel weboldalként",
         puter_description: "A Puter egy adatvédelmi elsőként kezelt személyes felhő, amelyben minden fájlodat, alkalmazásodat és játékodat egy biztonságos helyen tárolhatod, bárhonnan, bármikor elérhetően.",
+        // hu (Hungarian / Magyar)
+        remove: "Eltávolítás",
+        'account.avatar.removeButton': 'Eltávolítás',
+        'account.avatar.removeConfirm': "Biztos benne, hogy el akarja távolítani a profilképet? Ezzel visszaáll az alapértelmezett avatar.",
+        'account.avatar.removedToast': 'Profilkép törölve.',
+        'confirm_remove_profile_picture': "Biztos benne, hogy el akarja távolítani a profilképet? Ezzel visszaáll az alapértelmezett avatar.",
+        'confirm_remove_profile_picture_title': 'Profilkép eltávolítása?',
         reading_file: "Fájl olvasása: %strong%",
         recent: "Legutóbbi",
         recommended: "Ajánlott",
@@ -366,6 +369,7 @@ const hu = {
         "billing.subscription_cancelled_description": "Az aktuális számlázási időszak végéig továbbra is hozzáférsz az előfizetésedhez.", // In English: "You will still have access to your subscription until the end of this billing period."
         "billing.offering.free": "Ingyenes", // In English: "Free"
         "billing.offering.pro": "Professzionális", // In English: "Professional"
+        "billing.offering.professional": "Professzionális", // In English: "Professional"
         "billing.offering.business": "Üzleti", // In English: "Business"
         "billing.cloud_storage": "Felhő Tárhely", // In English: "Cloud Storage"
         "billing.ai_access": "AI hozzáférés", // In English: "AI Access"
@@ -397,6 +401,83 @@ const hu = {
         "billing.expanded": "Bővített", // In English: "Expanded"
         "billing.accelerated": "Gyorsított", // In English: "Accelerated"
         "billing.enjoy_msg": "Élvezd a %% Felhőtárhelyet és további előnyöket.", // In English: "Enjoy %% of Cloud Storage plus other benefits."
+        "choose_publishing_option": "Válassza ki, hogyan szeretné közzétenni a webhelyét", // English: "Choose how you want to publish your website"
+        "create_desktop_shortcut": "Parancsikon létrehozása (Asztal)", // English: "Create Shortcut (Desktop)"
+        "create_desktop_shortcut_s": "Parancsikonok létrehozása (Asztal)", // English: "Create Shortcuts (Desktop)"
+        "create_shortcut_s": "Parancsikonok létrehozása", // English: "Create Shortcuts"
+        "minimize": "Minimalizálás", // English: "Minimize"
+        "reload_app": "Alkalmazás újratöltése", // English: "Reload App"
+        "new_window": "Új ablak", // English: "New Window"
+        "open_trash": "Szemetes megnyitása", // English: "Open Trash"
+        "pick_name_for_worker": "Válasszon nevet a munkásnak", // English: "Pick a name for your worker"
+        "publish_as_serverless_worker": "Munkás közzététele", // English: "Publish as Worker"
+        "toolbar.enter_fullscreen": "Teljes képernyő", // English: "Enter Full Screen"
+        "toolbar.github": "GitHub", // English: "GitHub"
+        "toolbar.refer": "Ajánlás", // English: "Refer"
+        "toolbar.save_account": "Fiók mentése", // English: "Save Account"
+        "toolbar.search": "Keresés", // English: "Search"
+        "toolbar.qrcode": "QR-kód", // English: "QR Code"
+        "used_of": "{{used}} használt a {{available}}-ból", // English: "{{used}} used of {{available}}"
+        "worker": "Munkás", // English: "Worker"
+        "billing.offering.basic": "Alap", // English: "Basic"
+        "too_many_attempts": "Túl sok próbálkozás. Kérjük, próbálja meg később.", // English: "Too many attempts. Please try again later."
+        "server_timeout": "A szerver túl sokáig válaszolt. Kérjük, próbálja meg újra.", // English: "The server took too long to respond. Please try again."
+        "signup_error": "Hiba történt a regisztráció során. Kérjük, próbálja újra.", // English: "An error occurred during signup. Please try again."
+        "welcome_title": "Üdvözöljük a Személyes Internet Számítógépén", // English: "Welcome to your Personal Internet Computer"
+        "welcome_description": "Tároljon fájlokat, játsszon játékokat, fedezzen fel nagyszerű alkalmazásokat és még sok mást! Mindez egy helyen, bárhonnan és bármikor elérhető.", // English: "Store files, play games, find awesome apps, and much more! All in one place, accessible from anywhere at any time."
+        "welcome_get_started": "Kezdés", // English: "Get Started"
+        "welcome_terms": "Feltételek", // English: "Terms"
+        "welcome_privacy": "Adatvédelem", // English: "Privacy"
+        "welcome_developers": "Fejlesztők", // English: "Developers"
+        "welcome_open_source": "Nyílt forráskód", // English: "Open Source"
+        "welcome_instant_login_title": "Azonnali bejelentkezés!", // English: "Instant Login!"
+        "alert_error_title": "Hiba!", // English: "Error!"
+        "alert_warning_title": "Figyelmeztetés!", // English: "Warning!"
+        "alert_info_title": "Információ", // English: "Info"
+        "alert_success_title": "Siker!", // English: "Success!"
+        "alert_confirm_title": "Biztos benne?", // English: "Are you sure?"
+        "alert_yes": "Igen", // English: "Yes"
+        "alert_no": "Nem", // English: "No"
+        "alert_retry": "Újrapróbálkozás", // English: "Retry"
+        "alert_cancel": "Mégse", // English: "Cancel"
+        "signup_confirm_password": "Jelszó megerősítése", // English: "Confirm Password"
+        "login_email_username_required": "E-mail vagy felhasználónév megadása kötelező", // English: "Email or username is required"
+        "login_password_required": "Jelszó megadása kötelező", // English: "Password is required"
+        "window_title_open": "Megnyitás", // English: "Open"
+        "window_title_change_password": "Jelszó módosítása", // English: "Change Password"
+        "window_title_select_font": "Betű kiválasztása…", // English: "Select font…"
+        "window_title_session_list": "Munkamenet lista!", // English: "Session List!"
+        "window_title_set_new_password": "Új jelszó beállítása", // English: "Set New Password"
+        "window_title_instant_login": "Azonnali bejelentkezés!", // English: "Instant Login!"
+        "window_title_publish_website": "Webhely közzététele", // English: "Publish Website"
+        "window_title_publish_worker": "Munkás közzététele", // English: "Publish Worker"
+        "window_title_authenticating": "Hitelesítés...", // English: "Authenticating..."
+        "window_title_refer_friend": "Barát ajánlása!", // English: "Refer a friend!"
+        "desktop_show_desktop": "Asztal megjelenítése", // English: "Show Desktop"
+        "desktop_show_open_windows": "Megnyitott ablakok megjelenítése", // English: "Show Open Windows"
+        "desktop_exit_full_screen": "Kilépés teljes képernyőből", // English: "Exit Full Screen"
+        "desktop_enter_full_screen": "Teljes képernyő", // English: "Enter Full Screen"
+        "desktop_position": "Pozíció", // English: "Position"
+        "desktop_position_left": "Bal", // English: "Left"
+        "desktop_position_bottom": "Alul", // English: "Bottom"
+        "desktop_position_right": "Jobb", // English: "Right"
+        "item_shared_with_you": "Egy felhasználó megosztotta Önnel ezt az elemet.", // English: "A user has shared this item with you."
+        "item_shared_by_you": "Legalább egy másik felhasználóval megosztotta ezt az elemet.", // English: "You have shared this item with at least one other user."
+        "item_shortcut": "Parancsikon", // English: "Shortcut"
+        "item_associated_websites": "Kapcsolódó webhely", // English: "Associated website"
+        "item_associated_websites_plural": "Kapcsolódó webhelyek", // English: "Associated websites"
+        "no_suitable_apps_found": "Nem találhatók megfelelő alkalmazások", // English: "No suitable apps found"
+        "window_click_to_go_back": "Kattintson a visszalépéshez.", // English: "Click to go back."
+        "window_click_to_go_forward": "Kattintson a továbblépéshez.", // English: "Click to go forward."
+        "window_click_to_go_up": "Kattintson a szülőmappa megnyitásához.", // English: "Click to go one directory up."
+        "window_title_public": "Nyilvános", // English: "Public"
+        "window_title_videos": "Videók", // English: "Videos"
+        "window_title_pictures": "Képek", // English: "Pictures"
+        "window_title_puter": "Puter", // English: "Puter"
+        "window_folder_empty": "Ez a mappa üres", // English: "This folder is empty"
+        "manage_your_subdomains": "Aldomainjeinek kezelése", // English: "Manage Your Subdomains"
+        "open_containing_folder": "A tartalmazó mappa megnyitása", // English: "Open Containing Folder"
+
     }
 };
 

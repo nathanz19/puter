@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"mistral","model":"mistral-large-latest"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  * 
  * This file is part of Puter.
  * 
@@ -20,24 +20,6 @@
 
 const BaseService = require("../BaseService");
 
-/*
- * Copyright (C) 2024 Puter Technologies Inc.
- *
- * This file is part of Puter.
- *
- * Puter is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published
- * by the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
 /**
 * @class InformationProvider
 * @classdesc The InformationProvider class facilitates the registration of strategies for providing information based on given inputs. It allows services to register methods for obtaining information and optimizes the process by determining the most efficient methods for retrieving the required information.
@@ -135,31 +117,6 @@ class InformationObtainer {
  *         // code to obtain fsentry from path
  *     });
  */
-/**
-* The `InformationService` class is a core component of the information management system.
-* It facilitates the registration and management of information providers and obtainers,
-* allowing various services to provide methods for obtaining information and other services
-* to retrieve that information efficiently. This class optimizes the process by determining
-* the most efficient strategies for obtaining the required information.
-*
-* @class InformationService
-* @extends BaseService
-*
-* @example Obtain an fsentry given a path:
-*
-*    const infosvc = services.get('information');
-*    const fsentry = await infosvc
-*      .with('fs.fsentry:path').obtain('fs.fsentry')
-*      .exec(path);
-*
-* @example Register a method for obtaining an fsentry given a path:
-*
-*    const infosvc = services.get('information');
-*    infosvc.given('fs.fsentry:path').provide('fs.fsentry')
-*      .addStrategy(async path => {
-*         // code to obtain fsentry from path
-*     });
-*/
 class InformationService extends BaseService {
     /**
     * @class

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -178,10 +178,6 @@ const ru = {
     log_out: 'Выйти',
     looks_good: 'Выглядит здорово!',
     manage_sessions: 'Управление Сеансами',
-    menubar_style: 'Стиль меню',
-    menubar_style_desktop: 'Рабочий стол',
-    menubar_style_system: 'Система',
-    menubar_style_window: 'Окно',
     modified: 'Изменено',
     move: 'Переместить',
     moving_file: 'Перемещаю %%',
@@ -248,6 +244,13 @@ const ru = {
     public: 'Общий доступ',
     publish_as_website: 'Опубликовать как сайт',
     puter_description: `Puter — это персональное облако, обеспечивающее конфиденциальность, позволяющее хранить все ваши файлы, приложения и игры в одном безопасном месте, доступном из любого места в любое время.`,
+    // ru (Russian / Русский)
+    remove: "Удалить",
+    'account.avatar.removeButton': 'Удалить',
+    'account.avatar.removeConfirm': "Вы уверены, что хотите удалить фото профиля? Это восстановит аватар по умолчанию.",
+    'account.avatar.removedToast': 'Фото профиля удалено.',
+    'confirm_remove_profile_picture': "Вы уверены, что хотите удалить фото профиля? Это восстановит аватар по умолчанию.",
+    'confirm_remove_profile_picture_title': 'Удалить фото профиля?',
     reading_file: 'Чтение %strong%',
     recent: 'Недавнее',
     recommended: 'Рекоммендации',
@@ -414,6 +417,7 @@ const ru = {
     "billing.subscription_cancelled_description": 'Вы можете пользоваться подпиской до конца оплаченного периода', // In English: "You will still have access to your subscription until the end of this billing period."
     "billing.offering.free": 'Бесплатно', // In English: "Free"
     "billing.offering.pro": 'Профессиональная', // In English: "Professional"
+    "billing.offering.professional": 'Профессиональная', // In English: "Professional"
     "billing.offering.business": 'Бизнес', // In English: "Business"
     "billing.cloud_storage": 'Облачное хранилище', // In English: "Cloud Storage"
     "billing.ai_access": 'Доступ к ИИ', // In English: "AI Access"
@@ -445,6 +449,83 @@ const ru = {
     "billing.expanded": 'Расширенный', // In English: "Expanded"
     "billing.accelerated": 'Ускоренный', // In English: "Accelerated"
     "billing.enjoy_msg": 'Пользуйтесь %% Облачным Хранилищем и остальными выгодами', // In English: "Enjoy %% of Cloud Storage plus other benefits."
+    "choose_publishing_option": 'Выберите способ публикации вашего веб-сайта:', // In English: "Choose how you want to publish your website:"
+    "create_desktop_shortcut": 'Создать ярлык (на рабочем столе)', // In English: "Create Shortcut (Desktop)"
+    "create_desktop_shortcut_s": 'Создать ярлыки (на рабочем столе)', // In English: "Create Shortcuts (Desktop)"
+    "create_shortcut_s": 'Создать ярлыки', // In English: "Create Shortcuts"
+    "minimize": 'Свернуть', // In English: "Minimize"
+    "reload_app": 'Перезагрузить приложение', // In English: "Reload App"
+    "new_window": 'Новое окно', // In English: "New Window"
+    "open_trash": 'Открыть корзину', // In English: "Open Trash"
+    "pick_name_for_worker": 'Выберите имя для вашего воркера:', // In English: "Pick a name for your worker:"
+    "publish_as_serverless_worker": 'опубликовать как воркера', // In English: "Publish as Worker"
+    "toolbar.enter_fullscreen": 'Перейти в полноэкранный режим', // In English: "Enter Full Screen"
+    "toolbar.github": 'GitHub', // In English: "GitHub"
+    "toolbar.refer": 'Рекомендовать', // In English: "Refer"
+    "toolbar.save_account": 'Сохранить аккаунт', // In English: "Save Account"
+    "toolbar.search": 'Поиск', // In English: "Search"
+    "toolbar.qrcode": 'QR-код', // In English: "QR Code"
+    "used_of": 'Использовано', // In English: "{{used}} used of {{available}}"
+    "worker": 'Воркер', // In English: "Worker"
+    "billing.offering.basic": 'Базовый', // In English: "Basic"
+    "too_many_attempts": 'Слишком много попыток. Попробуйте позже.', // In English: "Too many attempts. Please try again later."
+    "server_timeout": 'Слишком много попыток. Пожалуйста, попробуйте позже.', // In English: "The server took too long to respond. Please try again."
+    "signup_error": 'Сервер слишком долго не отвечал. Пожалуйста, попробуйте снова.', // In English: "An error occurred during signup. Please try again."
+    "welcome_title": 'Добро пожаловать в ваш персональный интернет-компьютер', // In English: "Welcome to your Personal Internet Computer"
+    "welcome_description": 'Храните файлы, играйте в игры, находите классные приложения и многое другое! Всё в одном месте, доступно из любой точки мира в любое время.', // In English: "Store files, play games, find awesome apps, and much more! All in one place, accessible from anywhere at any time."
+    "welcome_get_started": 'Начать', // In English: "Get Started"
+    "welcome_terms": 'Условия', // In English: "Terms"
+    "welcome_privacy": 'Конфиденциальность', // In English: "Privacy"
+    "welcome_developers": 'Разработчики', // In English: "Developers"
+    "welcome_open_source": 'Открытый исходный код', // In English: "Open Source"
+    "welcome_instant_login_title": 'Мгновенный вход!', // In English: "Instant Login!"
+    "alert_error_title": 'Ошибка!', // In English: "Error!"
+    "alert_warning_title": 'Предупреждение!', // In English: "Warning!"
+    "alert_info_title": 'Информация', // In English: "Info"
+    "alert_success_title": 'Успешно!', // In English: "Success!"
+    "alert_confirm_title": 'Вы уверены?', // In English: "Are you sure?"
+    "alert_yes": 'Да', // In English: "Yes"
+    "alert_no": 'Нет', // In English: "No"
+    "alert_retry": 'Повторить', // In English: "Retry"
+    "alert_cancel": 'Отмена', // In English: "Cancel"
+    "signup_confirm_password": 'Подтвердите пароль', // In English: "Confirm Password"
+    "login_email_username_required": 'Требуется электронная почта или имя пользователя', // In English: "Email or username is required"
+    "login_password_required": 'Требуется пароль', // In English: "Password is required"
+    "window_title_open": 'Открыть', // In English: "Open"
+    "window_title_change_password": 'Изменить пароль', // In English: "Change Password"
+    "window_title_select_font": 'Выберите шрифт...', // In English: "Select font…"
+    "window_title_session_list": 'Список сессий!', // In English: "Session List!"
+    "window_title_set_new_password": 'Установить новый пароль', // In English: "Set New Password"
+    "window_title_instant_login": 'Мгновенный вход!', // In English: "Instant Login!"
+    "window_title_publish_website": 'Опубликовать веб-сайт', // In English: "Publish Website"
+    "window_title_publish_worker": 'Опубликовать воркер', // In English: "Publish Worker"
+    "window_title_authenticating": 'Идёт проверка подлинности...', // In English: "Authenticating..."
+    "window_title_refer_friend": 'Пригласить друга!', // In English: "Refer a friend!"
+    "desktop_show_desktop": 'Показать рабочий стол', // In English: "Show Desktop"
+    "desktop_show_open_windows": 'Показать открытые окна', // In English: "Show Open Windows"
+    "desktop_exit_full_screen": 'Выйти из полноэкранного режима', // In English: "Exit Full Screen"
+    "desktop_enter_full_screen": 'Перейти в полноэкранный режим', // In English: "Enter Full Screen"
+    "desktop_position": 'Положение', // In English: "Position"
+    "desktop_position_left": 'Слева', // In English: "Left"
+    "desktop_position_bottom": 'Внизу', // In English: "Bottom"
+    "desktop_position_right": 'Справа', // In English: "Right"
+    "item_shared_with_you": 'Пользователь поделился с вами этим элементом.', // In English: "A user has shared this item with you."
+    "item_shared_by_you": 'Вы поделились этим элементом как минимум с одним другим пользователем.', // In English: "You have shared this item with at least one other user."
+    "item_shortcut": 'Ярлык', // In English: "Shortcut"
+    "item_associated_websites": 'Связанный веб-сайт', // In English: "Associated website"
+    "item_associated_websites_plural": 'Связанные веб-сайты', // In English: "Associated websites"
+    "no_suitable_apps_found": 'Подходящие приложения не найдены', // In English: "No suitable apps found"
+    "window_click_to_go_back": 'Нажмите, чтобы вернуться назад', // In English: "Click to go back."
+    "window_click_to_go_forward": 'Нажмите, чтобы перейти вперёд', // In English: "Click to go forward."
+    "window_click_to_go_up": 'Нажмите, чтобы перейти на один каталог вверх', // In English: "Click to go one directory up."
+    "window_title_public": 'Публичный', // In English: "Public"
+    "window_title_videos": 'Видео', // In English: "Videos"
+    "window_title_pictures": 'Изображения', // In English: "Pictures"
+    "window_title_puter": 'Путер', // In English: "Puter"
+    "window_folder_empty": 'Эта папка пуста', // In English: "This folder is empty"
+    "manage_your_subdomains": 'Управление вашими поддоменами', // In English: "Manage Your Subdomains"
+    "open_containing_folder": 'Открыть содержащую папку', // In English: "Open Containing Folder"
+
   },
 }
 

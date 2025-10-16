@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"openai-completion","model":"gpt-4o"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -130,7 +130,6 @@ class EdgeRateLimitService extends BaseService {
     /**
      * Initializes the EdgeRateLimitService by setting up a periodic cleanup interval.
      * This method sets an interval that calls the cleanup function every 5 minutes.
-     * It does not take any parameters and does not return any value.
      */
     async _init () {
         asyncSafeSetInterval(() => this.cleanup(), 5 * MINUTE);

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -36,12 +36,12 @@ const emoji = {
         change_language: "🔄🌐",
         change_password: "🔑🔄",
         change_username: "👤🔄",
-        close_all_windows: "❌🔄🖼️🖼️",
+        close_all_windows: "🖼️❌🖼️",
         close_all_windows_and_log_out: '❌🔄🖼️🖼️🔚',
         color: '🎨',
         confirm_account_for_free_referral_storage_c2a: '📧🆓👤📂📦🆓',
-        confirm_delete_multiple_items: '❓❌🗑️❓',
-        confirm_delete_single_item: '❓❌🗑️❓',
+        confirm_delete_multiple_items: '❓❌📂❓', // folder emoji indicates plurality
+        confirm_delete_single_item: '❓❌📄❓', // document emoji indicates singular
         confirm_open_apps_log_out: '❓📦🔄🔚',
         confirm_new_password: "🔑❓🔑",
         contact_us: "📞📧",
@@ -49,7 +49,7 @@ const emoji = {
         continue: "⏩",
         copy: '📋',
         copy_link: "🔗📋",
-        copying: "📋➡️",
+        copying: "📄📋➡️",
         cover: '📚👀',
         create_account: "👤🆕",
         create_free_account: "👤🆓",
@@ -75,7 +75,7 @@ const emoji = {
         feedback: "📝💬",
         feedback_c2a: "📝📤",
         feedback_sent_confirmation: "📧👍",
-        forgot_pass_c2a: "🔑❓ (╯°□°）╯︵ ┻━┻",
+        forgot_pass_c2a: "🔑❓📧",
         from: "📩",
         general: "⚙️",
         get_a_copy_of_on_puter: `📩🔄📂`,
@@ -90,18 +90,18 @@ const emoji = {
         keep_in_taskbar: '📌📁',
         loading: '🔄',
         log_in: "👤🔓",
-        log_into_another_account_anyway: '👤🔄',
-        log_out: '🔚',
+        log_into_another_account_anyway: '👤🔁',
+        log_out: '👤🔚',
         move: '➡️',
-        moving_file: "➡️ %%...",
+        moving_file: "📄➡️📂...",
         my_websites: "🌐👤",
         name: '📛',
-        name_cannot_be_empty: '📛❌',
-        name_cannot_contain_double_period: "📛❌",
-        name_cannot_contain_period: "📛❌",
-        name_cannot_contain_slash: "📛❌",
-        name_must_be_string: "📛❌",
-        name_too_long: `📛❌`,
+        name_cannot_be_empty: '📛⚠️',
+        name_cannot_contain_double_period: "📛⚫⚫❌",
+        name_cannot_contain_period: "📛⚫❌",
+        name_cannot_contain_slash: "📛⛔",
+        name_must_be_string: "📛🔤",
+        name_too_long: "📛📏",
         new: '🆕',
         new_folder: '🆕📂',
         new_password: "🆕🔑",
@@ -112,13 +112,13 @@ const emoji = {
         ok: '👌',
         open: "📂🔄",
         open_in_new_tab: "📂🔄🆕",
-        open_in_new_window: "📂🔄🖼️🆕",
+        open_in_new_window: "🖼️📂🆕",
         open_with: "📂🔄🔓",
         password: "🔑",
         password_changed: "🔑✅",
         passwords_do_not_match: '🔑❌🔑',
         paste: '📋➡️',
-        paste_into_folder: "📂📋➡️",
+        paste_into_folder: "📋➡️📂",
         pick_name_for_website: "🌐📛❓:",
         picture: "🖼️",
         powered_by_puter_js: `⚙️🔌🔗`,
@@ -130,7 +130,7 @@ const emoji = {
         publish_as_website: '🌐📰',
         plural_suffix: '🅰️',
         recent: "🔙",
-        recover_password: "🔑🔄📧",
+        recover_password: "📧🔑🔄", // Flow correction
         refer_friends_c2a: "👤📞📧👤",
         refer_friends_social_media_c2a: `📲👤🆓`,
         refresh: '🔄🔄',
@@ -143,10 +143,10 @@ const emoji = {
         resend_confirmation_code: "📧🔁",
         restore: "🔄🔙",
         save_account: '👤💾',
-        save_account_to_get_copy_link: "🆕👤📋🔗",
-        save_account_to_publish: '🆕👤📰',
+        save_account_to_get_copy_link: "💾👤🔗",
+        save_account_to_publish: '💾👤📰',
         save_session: '💾📂',
-        save_session_c2a: '🆕👤💾',
+        save_session_c2a: '💾👤🔄',
         scan_qr_c2a: '📲🔍',
         select: "👉",
         selected: '✅',
@@ -156,7 +156,7 @@ const emoji = {
         session_saved: "👤💾🔄",
         set_new_password: "🔑🆕",
         share_to: "🔁➡️",
-        show_all_windows: "🔄🆓🖼️🖼️",
+        show_all_windows: "🖼️🔓🖼️",
         show_hidden: '👁️🔄',
         sign_in_with_puter: "👤🆔",
         sign_up: "👤🆕",
@@ -178,14 +178,9 @@ const emoji = {
         username_changed: '👤✅',
         versions: "🔄📃",
         yes: '✅',
-        yes_release_it: '✅🆓',
-        you_have_been_referred_to_puter_by_a_friend: "👤🔁🆓",
+        yes_release_it: '✅⚡', // Action Oriented release
+        you_have_been_referred_to_puter_by_a_friend: "👤👫🔁🆓",
         zip: "📂🔒",
-
-		// ***********************************
-		// Missing translations
-		// ***********************************
-
     }
 };
  

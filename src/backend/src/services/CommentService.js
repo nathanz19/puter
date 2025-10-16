@@ -1,3 +1,22 @@
+/*
+ * Copyright (C) 2024-present Puter Technologies Inc.
+ * 
+ * This file is part of Puter.
+ * 
+ * Puter is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 // METADATA // {"ai-commented":{"service":"claude"}}
 const APIError = require("../api/APIError");
 const FSNodeParam = require("../api/filesystem/FSNodeParam");
@@ -17,13 +36,13 @@ const { DB_WRITE } = require("./database/consts");
 * @extends BaseService
 */
 class CommentService extends BaseService {
-    static MODULES = {
-        uuidv4: require('uuid').v4,
-    }
     /**
     * Static module dependencies used by the CommentService class
     * @property {Function} uuidv4 - UUID v4 generator function from the uuid package
     */
+    static MODULES = {
+        uuidv4: require('uuid').v4,
+    }
     _init () {
         const svc_database = this.services.get('database');
         this.db = svc_database.get(DB_WRITE, 'notification');

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -40,7 +40,7 @@ async function UIWindowQR(options){
     h += placeholder_qr.html;
 
     const el_window = await UIWindow({
-        title: 'Instant Login!',
+        title: i18n('window_title_instant_login'),
         app: 'instant-login',
         single_instance: true,
         icon: null,
@@ -61,8 +61,6 @@ async function UIWindowQR(options){
         dominant: true,
         show_in_taskbar: false,
         draggable_body: true,
-        onAppend: function(this_window){
-        },
         window_class: 'window-qr',
         body_css: {
             width: 'initial',

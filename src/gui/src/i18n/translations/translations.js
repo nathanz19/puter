@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -38,6 +38,7 @@ import ig from './ig.js';
 import ja from './ja.js';
 import ko from './ko.js';
 import ku from './ku.js';
+import my from './my.js';
 import nb from './nb.js';
 import nl from './nl.js';
 import nn from './nn.js';
@@ -45,6 +46,7 @@ import pl from './pl.js';
 import pt from './pt.js';
 import ro from './ro.js';
 import ru from './ru.js';
+import sl from './sl.js';
 import sv from './sv.js';
 import ta from './ta.js';
 import th from './th.js';
@@ -77,6 +79,7 @@ export default {
     ja,
     ko,
     ku,
+    my,
     nb,
     nl,
     nn,
@@ -84,6 +87,7 @@ export default {
     pt,
     ro,
     ru,
+    sl,
     sv,
     ta,
     th,

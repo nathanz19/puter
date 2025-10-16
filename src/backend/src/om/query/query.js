@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -47,6 +47,12 @@ class Or extends Predicate {
 class Eq extends Predicate {
     async check (entity) {
         return (await entity.get(this.key)) == this.value;
+    }
+}
+
+class StartsWith extends Predicate {
+    async check(entity) {
+        return (await entity.get(this.key)).startsWith(this.value);
     }
 }
 
@@ -122,4 +128,5 @@ module.exports = {
     Eq,
     IsNotNull,
     Like,
+    StartsWith
 };

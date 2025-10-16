@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -23,6 +23,9 @@ const eggspress = require('../api/eggspress');
 const { Context } = require('../util/context');
 const { DB_WRITE } = require('../services/database/consts');
 const { generate_identifier } = require('../util/identifier');
+const { is_temp_users_disabled: lazy_temp_users, 
+        is_user_signup_disabled: lazy_user_signup } = require("../helpers")
+const { requireCaptcha } = require('../modules/captcha/middleware/captcha-middleware');
 
 async function generate_random_username () {
     let username;
@@ -46,6 +49,7 @@ module.exports = eggspress(['/signup'], {
             res.status(400).send(`email username mismatch; please provide a password`);
         }
     },
+    mw: [requireCaptcha({ strictMode: true, eventType: 'signup' })], // Conditionally require captcha for signup
 }, async (req, res, next) => {
     // either api. subdomain or no subdomain
     if(require('../helpers').subdomain(req) !== 'api' && require('../helpers').subdomain(req) !== '')
@@ -78,6 +82,42 @@ module.exports = eggspress(['/signup'], {
     if(!req.body.is_temp && req.body.p102xyzname !== '')
         return res.send();
 
+
+    // cloudflare turnstile validation
+    //
+    // ref: https://developers.cloudflare.com/turnstile/get-started/server-side-validation/
+    if (config.services?.['cloudflare-turnstile']?.enabled) {
+        const formData = new FormData();
+        formData.append('secret', config.services?.['cloudflare-turnstile']?.secret_key);
+        formData.append('response', req.body['cf-turnstile-response']);
+        formData.append('remoteip', req.headers['x-forwarded-for'] || req.connection.remoteAddress);
+
+        const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+        if (!result.success)
+            return res.status(400).send('captcha verification failed');
+    }
+
+    // send event
+    let event = {
+        allow: true,
+        ip: req.headers?.['x-forwarded-for'] ||
+            req.connection?.remoteAddress,
+        user_agent: req.headers?.['user-agent'],
+        body: req.body,
+    };
+
+    const svc_event = Context.get('services').get('event');
+    await svc_event.emit('puter.signup', event)
+
+    if ( ! event.allow ) {
+        return res.status(400).send(event.error ?? 'You are not allowed to sign up.');
+    }
+
     // check if user is already logged in
     if ( req.body.is_temp && req.cookies[config.cookie_name] ) {
         const { user, token } = await svc_auth.check_session(
@@ -106,15 +146,30 @@ module.exports = eggspress(['/signup'], {
         }
     }
 
-    // temporary user
-    if(req.body.is_temp && !config.disable_temp_users){
-        req.body.username = await generate_random_username();
-        req.body.email = req.body.username + '@gmail.com';
-        req.body.password = 'sadasdfasdfsadfsa';
-    }else if(config.disable_temp_users){
-        return res.status(400).send('Temp users are disabled.');
+    const is_temp_users_disabled = await lazy_temp_users();
+    const is_user_signup_disabled = await lazy_user_signup();
+
+    if (is_temp_users_disabled && is_user_signup_disabled) {
+        return res.status(403).send('User signup and Temporary users are disabled.');
     }
 
+    if (!req.body.is_temp && is_user_signup_disabled) {
+        return res.status(403).send('User signup is disabled.');
+    } 
+
+    if (req.body.is_temp && is_temp_users_disabled) {
+        return res.status(403).send('Temporary users are disabled.');
+    }
+
+    if (req.body.is_temp && event.no_temp_user) {
+        return res.status(403).send('You must login or signup.');
+    }
+
+    // Create temp user data
+    req.body.username = req.body.username ?? await generate_random_username();
+    req.body.email = req.body.email ?? req.body.username + '@gmail.com';
+    req.body.password = req.body.password ?? 'sadasdfasdfsadfsa';
+    
     // send_confirmation_code
     req.body.send_confirmation_code = req.body.send_confirmation_code ?? true;
 
@@ -153,8 +208,8 @@ module.exports = eggspress(['/signup'], {
     const svc_cleanEmail = req.services.get('clean-email');
     const clean_email = svc_cleanEmail.clean(req.body.email);
     
-    if ( ! await svc_cleanEmail.validate(clean_email) ) {
-        return res.status(400).send('This email domain is not allowed');
+    if (!req.body.is_temp && ! await svc_cleanEmail.validate(clean_email) ) {
+        return res.status(400).send('This email does not seem to be valid.');
     }
 
     // duplicate username check
@@ -235,7 +290,7 @@ module.exports = eggspress(['/signup'], {
                 // referrer
                 req.body.referrer ?? null,
                 // email_confirm_code
-                email_confirm_code,
+                '' + email_confirm_code,
                 // email_confirm_token
                 email_confirm_token,
                 // free_storage
@@ -288,7 +343,7 @@ module.exports = eggspress(['/signup'], {
                 // uuid
                 user_uuid,
                 // email_confirm_code
-                email_confirm_code,
+                '' + email_confirm_code,
                 // email_confirm_token
                 email_confirm_token,
                 // email_confirmed

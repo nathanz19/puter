@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"claude"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -22,6 +22,9 @@ const Library = require("./definitions/Library");
 const { NotificationES } = require("./om/entitystorage/NotificationES");
 const { ProtectedAppES } = require("./om/entitystorage/ProtectedAppES");
 const { Context } = require('./util/context');
+const { LLOWrite } = require("./filesystem/ll_operations/ll_write");
+const { LLRead } = require("./filesystem/ll_operations/ll_read");
+const { RuntimeModule } = require("./extension/RuntimeModule.js");
 
 
 
@@ -41,7 +44,7 @@ class CoreModule extends AdvancedBase {
         const app = context.get('app');
         const useapi = context.get('useapi');
         const modapi = context.get('modapi');
-        await install({ services, app, useapi, modapi });
+        await install({ context, services, app, useapi, modapi });
     }
 
     /**
@@ -65,7 +68,7 @@ module.exports = CoreModule;
 /**
  * @footgun - real install method is defined above
  */
-const install = async ({ services, app, useapi, modapi }) => {
+const install = async ({ context, services, app, useapi, modapi }) => {
     const config = require('./config');
 
 
@@ -79,12 +82,35 @@ const install = async ({ services, app, useapi, modapi }) => {
         def('core.util.helpers', require('./helpers'));
         def('core.util.permission', require('./services/auth/PermissionService').PermissionUtil);
         def('puter.middlewares.auth', require('./middleware/auth2'));
+        def('puter.middlewares.configurable_auth', require('./middleware/configurable_auth'));
         def('puter.middlewares.anticsrf', require('./middleware/anticsrf'));
         
         def('core.APIError', require('./api/APIError'));
+        def('core.Context', Context);
         
         def('core', require('./services/auth/Actor'), { assign: true });
         def('core.config', config);
+        
+        // Note: this is an incomplete export; it was added for a proprietary
+        // extension. Contributors may wish to add definitions in the 'fs.'
+        // scope. Needing to add these individually is possibly a symptom of an
+        // anti-pattern; "export filesystem operations to extensions" is one
+        // statement in English, so maybe it should be one statement of code.
+        def('core.fs', {
+            LLOWrite,
+            LLRead,
+        });
+        def('core.fs.selectors', require('./filesystem/node/selectors'));
+        def('core.util.stream', require('./util/streamutil'));
+        def('web', require('./util/expressutil'));
+        def('core.validation', require('@heyputer/backend-core-0').validation);
+        
+        def('core.database', require('./services/database/consts.js'));
+        
+        // Extension compatibility
+        const runtimeModule = new RuntimeModule({ name: 'core' });
+        context.get('runtime-modules').register(runtimeModule);
+        runtimeModule.exports = useapi.use('core');
     });
     
     useapi.withuse(() => {
@@ -110,8 +136,8 @@ const install = async ({ services, app, useapi, modapi }) => {
     const { NAPIThumbnailService } = require('./services/thumbnails/NAPIThumbnailService');
     const { DevConsoleService } = require('./services/DevConsoleService');
     const { RateLimitService } = require('./services/sla/RateLimitService');
-    const { MonthlyUsageService } = require('./services/sla/MonthlyUsageService');
     const { AuthService } = require('./services/auth/AuthService');
+    const { PreAuthService } = require("./services/auth/PreAuthService");
     const { SLAService } = require('./services/sla/SLAService');
     const { PermissionService } = require('./services/auth/PermissionService');
     const { ACLService } = require('./services/auth/ACLService');
@@ -191,6 +217,9 @@ const install = async ({ services, app, useapi, modapi }) => {
         ]),
     });
 
+    const { EntriService } = require('./services/EntriService.js');
+    services.registerService("entri-service", EntriService)
+    
     const { InformationService } = require('./services/information/InformationService');
     services.registerService('information', InformationService)
     
@@ -221,8 +250,8 @@ const install = async ({ services, app, useapi, modapi }) => {
         ]),
     })
     services.registerService('rate-limit', RateLimitService);
-    services.registerService('monthly-usage', MonthlyUsageService);
     services.registerService('auth', AuthService);
+    // services.registerService('preauth', PreAuthService);
     services.registerService('permission', PermissionService);
     services.registerService('sla', SLAService);
     services.registerService('acl', ACLService);
@@ -293,6 +322,9 @@ const install = async ({ services, app, useapi, modapi }) => {
     const { DevTODService } = require('./services/DevTODService');
     services.registerService('__dev-tod', DevTODService);
 
+    const { CostService } = require("./services/drivers/CostService");
+    services.registerService('cost', CostService);
+
     const { DriverService } = require("./services/drivers/DriverService");
     services.registerService('driver', DriverService);
 
@@ -301,9 +333,6 @@ const install = async ({ services, app, useapi, modapi }) => {
     
     const { NotificationService } = require('./services/NotificationService');
     services.registerService('notification', NotificationService);
-
-    const { ProtectedAppService } = require('./services/ProtectedAppService');
-    services.registerService('__protected-app', ProtectedAppService);
 
     const { ShareService } = require('./services/ShareService');
     services.registerService('share', ShareService);
@@ -349,6 +378,9 @@ const install = async ({ services, app, useapi, modapi }) => {
 
     const { ReferralCodeService } = require('./services/ReferralCodeService');
     services.registerService('referral-code', ReferralCodeService);
+
+    const { VerifiedGroupService } = require('./services/VerifiedGroupService');
+    services.registerService('__verified-group', VerifiedGroupService);
     
     const { UserService } = require('./services/UserService');
     services.registerService('user', UserService);
@@ -356,16 +388,40 @@ const install = async ({ services, app, useapi, modapi }) => {
     const { WSPushService } = require('./services/WSPushService');
     services.registerService('__event-push-ws', WSPushService);
 
-    const { AppIconService } = require('./services/AppIconService');
-    services.registerService('app-icon', AppIconService);
+    const { SNSService } = require('./services/SNSService');
+    services.registerService('sns', SNSService);
+
+    const { PerformanceMonitor } = require('./monitor/PerformanceMonitor');
+    services.registerService('performance-monitor', PerformanceMonitor);
+    
+    const { WispService } = require('./services/WispService');
+    services.registerService('wisp', WispService);
+    // const { AWSSecretsPopulator } = require('./services/AWSSecretsPopulator.js');
+    // services.registerService('awsthing', AWSSecretsPopulator);
+    const { WebDavFS } = require('./services/WebDAV/WebDAVService.js');
+    services.registerService('dav', WebDavFS);
+
+    const { RequestMeasureService } = require('./services/RequestMeasureService');
+    services.registerService('request-measure', RequestMeasureService);
+
+    const { ThreadService } = require('./services/ThreadService');
+    services.registerService('thread', ThreadService);
+
+    const { ChatAPIService } = require('./services/ChatAPIService');
+    services.registerService('__chat-api', ChatAPIService);
+
+    const { WorkerService } = require('./services/worker/WorkerService');
+    services.registerService("worker-service", WorkerService)
+
+
+    const { PermissionShortcutService } = require('./services/auth/PermissionShortcutService');
+    services.registerService('permission-shortcut', PermissionShortcutService);
 }
 
 const install_legacy = async ({ services }) => {
-    const PerformanceMonitor = require('./monitor/PerformanceMonitor');
     const { OperationTraceService } = require('./services/OperationTraceService');
     const { ClientOperationService } = require('./services/ClientOperationService');
     const { EngPortalService } = require('./services/EngPortalService');
-    const { AppInformationService } = require('./services/AppInformationService');
     const { FileCacheService } = require('./services/file-cache/FileCacheService');
 
     // === Services which do not yet extend BaseService ===
@@ -373,11 +429,6 @@ const install_legacy = async ({ services }) => {
     services.registerService('operationTrace', OperationTraceService);
     services.registerService('file-cache', FileCacheService);
     services.registerService('client-operation', ClientOperationService);
-    services.registerService('app-information', AppInformationService);
     services.registerService('engineering-portal', EngPortalService);
-
-    // This singleton was made before services existed,
-    // so we have to pass that to it manually
-    PerformanceMonitor.provideServices(services);
 
 };

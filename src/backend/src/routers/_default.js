@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -341,7 +341,10 @@ router.all('*', async function(req, res, next) {
             // /app/
             else if(path.startsWith('/app/')){
                 app_name = path.replace('/app/', '');
-                const app = await get_app({name: app_name});
+                const app = await get_app({
+                    follow_old_names: true,
+                    name: app_name,
+                });
 
 
                 if(app){

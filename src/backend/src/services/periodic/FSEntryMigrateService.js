@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"claude"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -55,9 +55,8 @@ class Job {
         return false;
     }
     /**
-    * Checks if the job should stop based on its current state
-    * @returns {boolean} True if the job should stop, false if it can continue
-    * @private
+    * Sets the job state to YELLOW, which means it will stop as soon as possible
+    * (generally after the current batch of work being processed)
     */
     stop () {
         this.state = this.constructor.STATE_YELLOW;

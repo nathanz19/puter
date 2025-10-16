@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -49,7 +49,19 @@ export class CompositeCommandProvider {
 
         const results = [];
         for (const provider of this.providers) {
+            if ( ! provider.complete ) continue;
             results.push(...await provider.complete(...a));
+        }
+        return results;
+    }
+
+    async list() {
+        const results = [];
+        for (const provider of this.providers) {
+            if (typeof provider.list === 'function') {
+                const commands = await provider.list();
+                results.push(...commands); 
+            }
         }
         return results;
     }

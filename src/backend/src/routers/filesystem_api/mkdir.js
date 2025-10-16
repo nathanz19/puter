@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 "use strict"
-const config = require('../../config');
 const eggspress = require('../../api/eggspress');
 const FSNodeParam = require('../../api/filesystem/FSNodeParam');
 const { HLMkdir } = require('../../filesystem/hl_operations/hl_mkdir');

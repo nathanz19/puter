@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -33,7 +33,6 @@ import UIWindowRequestPermission from './UI/UIWindowRequestPermission.js';
 import UIWindowChangeUsername from './UI/UIWindowChangeUsername.js';
 import update_last_touch_coordinates from './helpers/update_last_touch_coordinates.js';
 import update_title_based_on_uploads from './helpers/update_title_based_on_uploads.js';
-import PuterDialog from './UI/PuterDialog.js';
 import { ThemeService } from './services/ThemeService.js';
 import { BroadcastService } from './services/BroadcastService.js';
 import { ProcessService } from './services/ProcessService.js';
@@ -152,9 +151,127 @@ if(jQuery){
     };
 }
 
+/**
+ * Shows a Turnstile challenge modal for first-time temp user creation
+ * @param {Object} options - Configuration options
+ * @param {Function} options.onSuccess - Callback when challenge is completed successfully
+ * @param {Function} options.onError - Callback when challenge fails
+ */
+window.showTurnstileChallenge = function(options) {
+    return new Promise((resolve) => {
+        const modalId = 'turnstile-challenge-modal';
+        const siteKey = window.gui_params?.turnstileSiteKey;
+        
+        if (!siteKey) {
+            options.onError('Turnstile site key not configured');
+            return resolve();
+        }
+
+        // Create modal HTML
+        let modalHtml = `
+            <div id="${modalId}" class="captcha-modal">
+                <div class="modal-content">
+                    <div class="modal-header" style="margin-bottom: 20px;">
+                        <img src="${window.icons['logo-white.svg']}" class="captcha-logo">
+                        <h2 class="captcha-title">Welcome to Puter!</h2>
+                    </div>
+                    
+                    <div class="captcha-container">
+                        <div id="captcha-widget-${modalId}" data-sitekey="${siteKey}"></div>
+                    </div>
+                    
+                    <div class="loading-state">
+                        <div class="loading-state-icon"></div>
+                        Setting up your account...
+                    </div>
+                    
+                    <div class="error-message"></div>
+                </div>
+            </div>
+        `;
+
+        // Add modal to DOM
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        const modal = document.getElementById(modalId);
+        const errorMessage = modal.querySelector('.error-message');
+        const loadingState = modal.querySelector('.loading-state');
+        const turnstileContainer = modal.querySelector('.captcha-container');
+        
+        // Initialize Turnstile widget
+        const initTurnstile = () => {
+            if (!window.turnstile) {
+                setTimeout(initTurnstile, 100);
+                return;
+            }
+
+            try {
+                window.turnstile.render(`#captcha-widget-${modalId}`, {
+                    sitekey: siteKey,
+                    callback: function(token) {
+                        window.turnstile_success_ts = Date.now();
+
+                        // Show loading state
+                        $(turnstileContainer).hide();
+                        $(loadingState).show();
+
+                        // Call success callback
+                        options.onSuccess(token);
+
+                        // resolve the promise
+                        resolve();
+                    },
+                    'expired-callback': function() {
+                        showError('Verification expired. Please try again.');
+                    },
+                    'error-callback': function() {
+                        showError('Verification failed. Please refresh the page and try again.');
+                        options.onError('Turnstile verification failed');
+                    }
+                });
+            } catch (error) {
+                console.error('Failed to initialize Turnstile:', error);
+                showError('Failed to load security verification. Please refresh the page.');
+                options.onError(error);
+            }
+        };
+
+        const showError = (message) => {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        };
+
+        // Start initialization
+        initTurnstile();
+        
+        // Prevent modal from closing by clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                // Don't close - force users to complete verification
+                turnstileContainer.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    if (turnstileContainer) {
+                        turnstileContainer.style.transform = 'scale(1)';
+                    }
+                }, 200);
+            }
+        });
+        
+        // Add transition styles
+        modal.style.opacity = '0';
+        modal.style.transition = 'opacity 0.3s ease';
+        
+        // Fade in
+        requestAnimationFrame(() => {
+            modal.style.opacity = '1';
+        });
+    });
+};
+
 window.initgui = async function(options){
-    let url = new URL(window.location);
-    url = url.href;
+    const url = new URL(window.location).href;
+    window.url = url;
+    const url_paths = window.location.pathname.split('/').filter(element => element);
+    window.url_paths = url_paths
 
     let picked_a_user_for_sdk_login = false;
 
@@ -178,12 +295,21 @@ window.initgui = async function(options){
     // Checks the type of device the user is on (phone, tablet, or desktop).
     // Depending on the device type, it sets a class attribute on the body tag
     // to style or script the page differently for each device type.
-    if(isMobile.phone)
+    
+    if (isMobile.phone) {
         $('body').attr('class', 'device-phone');
-    else if(isMobile.tablet)
-        $('body').attr('class', 'device-tablet');
-    else
+    } else if (isMobile.tablet) {
+        // This is our new, smarter check for tablets
+        if (window.matchMedia && typeof window.matchMedia === 'function' && window.matchMedia('(hover: hover)').matches) {
+            // The user has a mouse/trackpad, so give them the desktop UI
+            $('body').attr('class', 'device-desktop');
+        } else {
+            // The user is on a touch-only tablet, so give them the mobile UI
+            $('body').attr('class', 'device-tablet');
+        }
+    } else {
         $('body').attr('class', 'device-desktop');
+    }
 
     // Appends a meta tag to the head of the document specifying the character encoding to be UTF-8.
     // This ensures that special characters and symbols display correctly across various platforms and browsers.
@@ -199,16 +325,14 @@ window.initgui = async function(options){
     // will hold the result of the whoami API call
     let whoami;
 
-    window.url_paths = window.location.pathname.split('/').filter(element => element);
-
     //--------------------------------------------------------------------------------------
     // Extract 'action' from URL
     //--------------------------------------------------------------------------------------
     let action;
-    if(url_paths[0]?.toLocaleLowerCase() === 'action' && url_paths[1]){
-        action = url_paths[1].toLowerCase();
+    if (window.url_paths[0]?.toLocaleLowerCase() === 'action' && window.url_paths[1]) {
+        action = window.url_paths[1].toLowerCase();
     }
-
+    
     //--------------------------------------------------------------------------------------
     // Determine if we are in full-page mode
     // i.e. https://puter.com/app/<app_name>/?puter.fullpage=true
@@ -225,6 +349,14 @@ window.initgui = async function(options){
 
     // Launch services before any UI is rendered
     await launch_services(options);
+
+    //--------------------------------------------------------------------------------------
+    // Is attempt_temp_user_creation?
+    // i.e. https://puter.com/?attempt_temp_user_creation=true
+    //--------------------------------------------------------------------------------------
+    if(window.url_query_params.has('attempt_temp_user_creation') && (window.url_query_params.get('attempt_temp_user_creation') === 'true' || window.url_query_params.get('attempt_temp_user_creation') === '1')){
+        window.attempt_temp_user_creation = true;
+    }
 
     //--------------------------------------------------------------------------------------
     // Is GUI embedded in a popup?
@@ -249,7 +381,7 @@ window.initgui = async function(options){
         // this is the referrer in terms of user acquisition
         window.referrerStr = window.openerOrigin;
 
-        if(action === 'sign-in' && !window.is_auth()){
+        if(action === 'sign-in' && !window.is_auth() && !(window.attempt_temp_user_creation && window.first_visit_ever)){
             // show signup window
             if(await UIWindowSignup({
                 reload_on_success: false,
@@ -262,7 +394,7 @@ window.initgui = async function(options){
             }))
                 await window.getUserAppToken(window.openerOrigin);
         }
-        else if(action === 'sign-in' && window.is_auth()){
+        else if(action === 'sign-in' && window.is_auth() && !(window.attempt_temp_user_creation && window.first_visit_ever)){
             picked_a_user_for_sdk_login = await UIWindowSessionList({
                 reload_on_success: false,
                 draggable_body: false,
@@ -361,29 +493,13 @@ window.initgui = async function(options){
         let response = await window.checkUserSiteRelationship(window.openerOrigin);
         window.userAppToken = response.token;
 
-        if(!picked_a_user_for_sdk_login && window.logged_in_users.length > 0 && (!window.userAppToken || window.url_query_params.get('request_auth') )){
-            await UIWindowSessionList({
+        if(!picked_a_user_for_sdk_login && window.logged_in_users.length > 1 && (!window.userAppToken || window.url_query_params.get('request_auth') )){
+            picked_a_user_for_sdk_login = await UIWindowSessionList({
                 reload_on_success: false,
                 draggable_body: false,
                 has_head: false,
                 cover_page: true,
             });
-        }
-        // if not and action is show-open-file-picker, we need confirmation before proceeding
-        if(action === 'show-open-file-picker' || action === 'show-save-file-picker' || action === 'show-directory-picker'){
-            if(!window.userAppToken){
-                let is_confirmed = await PuterDialog();
-
-                if(is_confirmed === false){
-                    if(!window.is_auth()){
-                        window.first_visit_ever = false;
-                        localStorage.removeItem("has_visited_before", true);
-                    }
-
-                    window.close();
-                    window.open('','_self').close();
-                }
-            }
         }
     }
     // -------------------------------------------------------------------------------------
@@ -395,7 +511,7 @@ window.initgui = async function(options){
         puter.setAuthToken(query_param_auth_token);
 
         try{
-            whoami = await puter.os.user();
+            whoami = await puter.os.user({query: 'icon_size=64'});
         }catch(e){
             if(e.status === 401){
                 window.logout();
@@ -456,7 +572,7 @@ window.initgui = async function(options){
         // try to get user data using /whoami, only if that data is missing
         if(!whoami){
             try{
-                whoami = await puter.os.user();
+                whoami = await puter.os.user({query: 'icon_size=64'});
             }catch(e){
                 if(e.status === 401){
                     bad_session_logout();
@@ -484,7 +600,7 @@ window.initgui = async function(options){
             // -------------------------------------------------------------------------------------
             if(!window.embedded_in_popup){
                 await window.get_auto_arrange_data()
-                puter.fs.stat(window.desktop_path, async function(desktop_fsentry){
+                puter.fs.stat({path: window.desktop_path, consistency: 'eventual'}).then(desktop_fsentry => {
                     UIDesktop({desktop_fsentry: desktop_fsentry});
                 })
             }
@@ -789,6 +905,7 @@ window.initgui = async function(options){
             console.error('Error:', error);
         })
     }
+
     // -------------------------------------------------------------------------------------
     // Desktop Background
     // If we're in fullpage/emebedded/Auth Popup mode, we don't want to load the custom background
@@ -805,9 +922,13 @@ window.initgui = async function(options){
             UIWindowSessionList();
         }
         else{
+            const resp = await fetch(window.gui_origin + '/whoarewe');
+            const whoarewe = await resp.json();
             await UIWindowLogin({
+                // show_signup_button: 
                 reload_on_success: true,
                 send_confirmation_code: false,
+                show_signup_button: ( ! whoarewe.disable_user_signup ),
                 window_options:{
                     has_head: false
                 }
@@ -816,7 +937,7 @@ window.initgui = async function(options){
     }
 
     // -------------------------------------------------------------------------------------
-    // Un-authed and first visit ever -> create temp user
+    // Un-authed and first visit ever -> create temp user with Turnstile challenge
     // -------------------------------------------------------------------------------------
     else if(!window.is_auth() && window.first_visit_ever && !window.disable_temp_users){
         let referrer;
@@ -841,31 +962,84 @@ window.initgui = async function(options){
         let headers = {};
         if(window.custom_headers)
             headers = window.custom_headers;
-        $.ajax({
-            url: window.gui_origin + "/signup",
-            type: 'POST',
-            async: true,
-            headers: headers,
-            contentType: "application/json",
-            data: JSON.stringify({
+
+        // Function to create temp user after captcha completion
+        const createTempUser = (turnstileToken) => {
+            // if this is a popup, show a spinner
+            let spinner_init_ts = Date.now();
+            if(window.embedded_in_popup){
+                puter.ui.showSpinner('<span style="-webkit-font-smoothing: antialiased;">Setting up your <a href="https://puter.com" target="_blank">Puter.com</a> account for secure AI and Cloud features</span>');
+            }
+
+            const requestData = {
                 referrer: referrer,
                 referral_code: window.referral_code,
                 is_temp: true,
-            }),
-            success: async function (data){
-                window.update_auth_data(data.token, data.user);
-                document.dispatchEvent(new Event("login", { bubbles: true}));
-            },
-            error: function (err){
-                $('#signup-error-msg').html(html_encode(err.responseText));
-                $('#signup-error-msg').fadeIn();
-                // re-enable 'Create Account' button
-                $('.signup-btn').prop('disabled', false);
+            };
+
+            // Add Turnstile token if available
+            if (turnstileToken) {
+                requestData['cf-turnstile-response'] = turnstileToken;
             }
-        });
+
+            $.ajax({
+                url: window.gui_origin + "/signup",
+                type: 'POST',
+                async: true,
+                headers: headers,
+                contentType: "application/json",
+                data: JSON.stringify(requestData),
+                success: async function (data){
+                    setTimeout(() => {
+                        $('.captcha-modal').fadeOut(200, function(){
+                        $(this).remove();
+
+                        // if this is a popup, hide the spinner, make sure it was visible for at least 2 seconds
+                        if(window.embedded_in_popup){
+                            let spinner_duration = (Date.now() - spinner_init_ts);
+                            setTimeout(() => {
+                                window.update_auth_data(data.token, data.user);
+                                document.dispatchEvent(new Event("login", { bubbles: true}));        
+                                puter.ui.hideSpinner();
+                            }, spinner_duration > 2000 ? 10 : 2000 - spinner_duration);
+
+                            return;
+                        }else{
+                            window.update_auth_data(data.token, data.user);
+                            document.dispatchEvent(new Event("login", { bubbles: true}));
+                        }
+                        });
+                    }, (Date.now() - window.turnstile_success_ts) > 2000 ? 10 : 2000 - (Date.now() - window.turnstile_success_ts));
+                },
+                error: async (err) => {
+                    UIAlert({
+                        message: html_encode(err.responseText),
+                    });
+                },
+                complete: function(){
+                    
+                }
+            });
+        };
+
+        // Check if Turnstile is enabled and show challenge
+        if (window.gui_params?.turnstileSiteKey) {
+            window.showTurnstileChallenge({
+                onSuccess: createTempUser,
+                onError: (error) => {
+                    console.error('Turnstile verification failed:', error);
+                    UIAlert({
+                        message: 'Security verification failed. Please refresh the page and try again.',
+                    });
+                }
+            });
+        } else {
+            // No Turnstile configured, proceed without challenge
+            createTempUser();
+        }
     }
 
-    // if there is at least one window open (only non-Explorer windows), ask user for confirmation when navigating away
+    // if there is at least one window open (only non-Explorer windows), ask user for confirmation when navigating away from puter
     if(window.feature_flags.prompt_user_when_navigation_away_from_puter){
         window.onbeforeunload = function(){
             if($(`.window:not(.window[data-app="explorer"])`).length > 0)
@@ -885,7 +1059,7 @@ window.initgui = async function(options){
         // -------------------------------------------------------------------------------------
         if(!window.embedded_in_popup){
             await window.get_auto_arrange_data();
-            puter.fs.stat(window.desktop_path, function (desktop_fsentry) {
+            puter.fs.stat({path: window.desktop_path, consistency: 'eventual'}).then(desktop_fsentry => {
                 UIDesktop({ desktop_fsentry: desktop_fsentry });
             })
         }
@@ -1164,9 +1338,8 @@ window.initgui = async function(options){
 
         // If the clicked element is not a context menu, remove all context menus
         if ($(e.target).parents(".context-menu").length === 0) {
-            const $ctxmenus = $(".context-menu");
-            $ctxmenus.fadeOut(200, function(){
-                $ctxmenus.remove();
+            $(".context-menu").fadeOut(200, function(){
+                $(this).remove();
             });
         }
 
@@ -1222,8 +1395,18 @@ window.initgui = async function(options){
     //--------------------------------------------------------
     $(document).on('mousedown', function(e){
         // if taskbar or any parts of it is clicked, drop the event
-        if($(e.target).hasClass('taskbar') || $(e.target).closest('.taskbar').length > 0)
+        if($(e.target).hasClass('taskbar') || $(e.target).closest('.taskbar').length > 0){
             return;
+        }
+        // if toolbar or any parts of it is clicked, drop the event
+        if($(e.target).hasClass('toolbar') || $(e.target).closest('.toolbar').length > 0){
+            return;
+        }
+
+        // if close or minimize button clicked, drop the event
+        if (document.elementFromPoint(e.clientX, e.clientY).closest('.window-close-btn, .window-minimize-btn')) {
+            return;
+        }
 
         // if mouse is clicked on a window, activate it
         if(window.mouseover_window !== undefined){
@@ -1438,3 +1621,11 @@ $(document).on('contextmenu', '.disable-context-menu', function(e){
 
 // util/desktop.js
 window.privacy_aware_path = privacy_aware_path({ window });
+
+$(window).on('system-logout-event', function(){
+    // Clear cookie
+    document.cookie = 'puter=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    // Redirect to clean URL without any query parameters
+    const cleanUrl = window.location.origin + window.location.pathname;
+    window.location.replace(cleanUrl);
+});

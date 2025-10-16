@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -47,7 +47,7 @@ async function UIWindowSessionList(options){
         h += `</div>`;
 
         const el_window = await UIWindow({
-            title: 'Session List!',
+            title: i18n('window_title_session_list'),
             app: 'session-list',
             single_instance: true,
             icon: null,
@@ -69,8 +69,6 @@ async function UIWindowSessionList(options){
             show_in_taskbar: false,
             update_window_url: false,
             cover_page: options.cover_page ?? false,
-            onAppend: function(this_window){
-            },
             window_class: 'window-session-list',
             body_css: {
                 width: 'initial',

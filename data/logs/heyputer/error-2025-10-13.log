@@ -1,0 +1,70 @@
+{"label":"log-service","level":"system","log_directory":"/var/puter/logs/heyputer","message":"log service started","output_lvl":{"esc":"36;1","label":"INFO","ordinal":2,"winst":"info"},"timestamp":"2025-10-13T01:33:07.669Z"}
+{"label":"database","level":"error","message":"Database out of date: puter-database.sqlite","timestamp":"2025-10-13T01:33:07.714Z"}
+{"label":"database","level":"error","message":"UPGRADING DATABASE: -1 -> 32","timestamp":"2025-10-13T01:33:07.714Z"}
+{"label":"database","level":"error","message":"34 .sql files to apply","timestamp":"2025-10-13T01:33:07.714Z"}
+{"label":"database","level":"error","message":"applying 0001_create-tables.sql","timestamp":"2025-10-13T01:33:07.715Z"}
+{"label":"database","level":"error","message":"applying 0002_add-default-apps.sql","timestamp":"2025-10-13T01:33:07.740Z"}
+{"label":"database","level":"error","message":"applying 0003_user-permissions.sql","timestamp":"2025-10-13T01:33:07.748Z"}
+{"label":"database","level":"error","message":"applying 0004_sessions.sql","timestamp":"2025-10-13T01:33:07.750Z"}
+{"label":"database","level":"error","message":"applying 0005_background-apps.sql","timestamp":"2025-10-13T01:33:07.751Z"}
+{"label":"database","level":"error","message":"applying 0006_update-apps.sql","timestamp":"2025-10-13T01:33:07.752Z"}
+{"label":"database","level":"error","message":"applying 0007_sessions.sql","timestamp":"2025-10-13T01:33:07.756Z"}
+{"label":"database","level":"error","message":"applying 0008_otp.sql","timestamp":"2025-10-13T01:33:07.759Z"}
+{"label":"database","level":"error","message":"applying 0009_app-prefix-fix.sql","timestamp":"2025-10-13T01:33:07.762Z"}
+{"label":"database","level":"error","message":"applying 0010_add-git-app.sql","timestamp":"2025-10-13T01:33:07.764Z"}
+{"label":"database","level":"error","message":"applying 0011_notification.sql","timestamp":"2025-10-13T01:33:07.767Z"}
+{"label":"database","level":"error","message":"applying 0012_appmetadata.sql","timestamp":"2025-10-13T01:33:07.769Z"}
+{"label":"database","level":"error","message":"applying 0013_protected-apps.sql","timestamp":"2025-10-13T01:33:07.770Z"}
+{"label":"database","level":"error","message":"applying 0014_share.sql","timestamp":"2025-10-13T01:33:07.773Z"}
+{"label":"database","level":"error","message":"applying 0015_group.sql","timestamp":"2025-10-13T01:33:07.775Z"}
+{"label":"database","level":"error","message":"applying 0016_group-permissions.sql","timestamp":"2025-10-13T01:33:07.777Z"}
+{"label":"database","level":"error","message":"applying 0017_publicdirs.sql","timestamp":"2025-10-13T01:33:07.780Z"}
+{"label":"database","level":"error","message":"applying 0018_fix-0003.sql","timestamp":"2025-10-13T01:33:07.782Z"}
+{"label":"database","level":"error","message":"applying 0019_fix-0016.sql","timestamp":"2025-10-13T01:33:07.787Z"}
+{"label":"database","level":"error","message":"applying 0020_dev-center.sql","timestamp":"2025-10-13T01:33:07.792Z"}
+{"label":"database","level":"error","message":"applying 0021_app-owner-id.sql","timestamp":"2025-10-13T01:33:07.794Z"}
+{"label":"database","level":"error","message":"applying 0022_dev-center-max.sql","timestamp":"2025-10-13T01:33:07.796Z"}
+{"label":"database","level":"error","message":"applying 0023_fix-kv.sql","timestamp":"2025-10-13T01:33:07.797Z"}
+{"label":"database","level":"error","message":"applying 0024_default-groups.sql","timestamp":"2025-10-13T01:33:07.803Z"}
+{"label":"database","level":"error","message":"applying 0025_system-user.dbmig.js","timestamp":"2025-10-13T01:33:07.805Z"}
+{"label":"database","level":"error","message":"applying 0026_user-groups.dbmig.js","timestamp":"2025-10-13T01:33:07.808Z"}
+{"label":"database","level":"error","message":"applying 0027_emulator-app.dbmig.js","timestamp":"2025-10-13T01:33:07.810Z"}
+{"label":"database","level":"error","message":"applying 0028_clean-email.sql","timestamp":"2025-10-13T01:33:07.813Z"}
+{"label":"database","level":"error","message":"applying 0029_emulator_priv.sql","timestamp":"2025-10-13T01:33:07.815Z"}
+{"label":"database","level":"error","message":"applying 0030_comments.sql","timestamp":"2025-10-13T01:33:07.816Z"}
+{"label":"database","level":"error","message":"applying 0031_audit-meta.sql","timestamp":"2025-10-13T01:33:07.826Z"}
+{"label":"database","level":"error","message":"applying 0032_signup_metadata.sql","timestamp":"2025-10-13T01:33:07.827Z"}
+{"label":"database","level":"error","message":"applying 0033_ai-usage.sql","timestamp":"2025-10-13T01:33:07.840Z"}
+{"label":"database","level":"error","message":"applying 0034_app-redirect.sql","timestamp":"2025-10-13T01:33:07.845Z"}
+{"label":"user","level":"error","message":"YES THIS WAS USED","timestamp":"2025-10-13T01:33:08.129Z"}
+{"label":"web-server","level":"error","message":"web server setup done","timestamp":"2025-10-13T01:33:08.141Z"}
+{"label":"init","level":"system","message":"server ready","timestamp":"2025-10-13T01:33:08.148Z"}
+{"label":"LLMkdir","level":"error","message":"GET FSLOCK","operation":"ab5618fd-d898-4de8-8283-bc1d4cd5b434","timestamp":"2025-10-13T01:33:08.152Z"}
+{"label":"process-event-service","level":"error","message":"Error @ process:unhandledRejection: Tried to get path of non-existent fsentry: [root]/system; Error: Tried to get path of non-existent fsentry: [root]/system\n    at FSNodeContext.get (/opt/puter/app/src/backend/src/filesystem/FSNodeContext.js:522:19)\n    at LLMkdir._run (/opt/puter/app/src/backend/src/filesystem/ll_operations/ll_mkdir.js:41:34)\n    at /opt/puter/app/src/backend/src/services/OperationTraceService.js:351:40\n    at /opt/puter/app/src/backend/src/util/context.js:178:26\n    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)\n    at Context.arun (/opt/puter/app/src/backend/src/util/context.js:176:26)\n    at LLMkdir.run (/opt/puter/app/src/backend/src/services/OperationTraceService.js:342:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async /opt/puter/app/src/backend/src/traits/OtelFeature.js:38:30\n    at async instance.<computed> [as run] (/opt/puter/app/src/backend/src/traits/OtelFeature.js:37:17)\n    at async __on_user.system-user-ready (/opt/puter/app/src/backend/src/modules/apps/AppIconService.js:249:13)\n    at async AppIconService.__on (/opt/puter/app/src/backend/src/services/BaseService.js:106:16)\n    at async /opt/puter/app/src/backend/src/util/context.js:178:20\n    at async Context.arun (/opt/puter/app/src/backend/src/util/context.js:176:16)\n    at async Promise.all (index 92)\n    at async Container.emit (/opt/puter/app/src/backend/src/services/Container.js:222:9)","timestamp":"2025-10-13T01:33:08.159Z"}
+{"label":"process-event-service","level":"error","message":{},"timestamp":"2025-10-13T01:33:08.159Z"}
+{"label":"alarm","level":"error","message":"upcoming alarm: process:unhandledRejection:Tried to get path of non-existent fsentry: [root]/system: Tried to get path of non-existent fsentry: [root]/system","timestamp":"2025-10-13T01:33:08.160Z"}
+{"error":{},"label":"alarm","level":"error","message":"ACTIVE bold-rain-3712 (process:unhandledRej...) :: Tried to get path of non-existent fsentry: [root]/system (1)","timestamp":"2025-10-13T01:33:08.160Z"}
+{"label":"alarm","level":"error","message":"failed to write alert log: ENOENT: no such file or directory, open 'alert_process:unhandledRejection:Tried to get path of non-existent fsentry: [root]/system.log'","timestamp":"2025-10-13T01:33:08.161Z"}
+{"label":"broadcast","level":"error","message":"{}","timestamp":"2025-10-13T01:33:08.173Z"}
+{"label":"user","level":"error","message":"YES THIS WAS USED","timestamp":"2025-10-13T01:33:08.458Z"}
+{"label":"LLMkdir","level":"error","message":"GET FSLOCK","operation":"f1f58e9e-cec4-4cc3-b2ee-444f3982adae","timestamp":"2025-10-13T01:33:08.543Z"}
+{"label":"LLMkdir","level":"error","message":"REQUESTING LOCK","name":".policy","operation":"f1f58e9e-cec4-4cc3-b2ee-444f3982adae","parent":"/admin","timestamp":"2025-10-13T01:33:08.544Z"}
+{"label":"fslock","level":"error","message":"WAITING FOR LOCK: /admin/.policy Symbol(write)","timestamp":"2025-10-13T01:33:08.544Z"}
+{"label":"LLMkdir","level":"error","message":"GOT LOCK","name":".policy","operation":"f1f58e9e-cec4-4cc3-b2ee-444f3982adae","parent":"/admin","timestamp":"2025-10-13T01:33:08.545Z"}
+{"label":"__event-push-ws","level":"error","message":"missing socket id","metadata":{"from_new_service":true,"item_path":"/admin/.policy/drivers.json","item_uid":"04dc6e83-fe9a-4d5d-9313-09070431d668"},"timestamp":"2025-10-13T01:33:08.663Z"}
+{"label":"log-service","level":"system","log_directory":"/var/puter/logs/heyputer","message":"log service started","output_lvl":{"esc":"36;1","label":"INFO","ordinal":2,"winst":"info"},"timestamp":"2025-10-13T01:35:27.194Z"}
+{"label":"web-server","level":"error","message":"web server setup done","timestamp":"2025-10-13T01:35:27.628Z"}
+{"label":"init","level":"system","message":"server ready","timestamp":"2025-10-13T01:35:27.636Z"}
+{"label":"LLMkdir","level":"error","message":"GET FSLOCK","operation":"405c585e-7058-4150-9136-f099e7aeb783","timestamp":"2025-10-13T01:35:27.640Z"}
+{"label":"LLMkdir","level":"error","message":"REQUESTING LOCK","name":"app_icons","operation":"405c585e-7058-4150-9136-f099e7aeb783","parent":"/system","timestamp":"2025-10-13T01:35:27.640Z"}
+{"label":"fslock","level":"error","message":"WAITING FOR LOCK: /system/app_icons Symbol(write)","timestamp":"2025-10-13T01:35:27.641Z"}
+{"label":"LLMkdir","level":"error","message":"GOT LOCK","name":"app_icons","operation":"405c585e-7058-4150-9136-f099e7aeb783","parent":"/system","timestamp":"2025-10-13T01:35:27.642Z"}
+{"label":"event","level":"error","message":"Error @ event-service.emit: Cannot read properties of undefined (reading 'sockets'); TypeError: Cannot read properties of undefined (reading 'sockets')\n    at SocketioService.has (/opt/puter/app/src/backend/src/modules/web/SocketioService.js:85:34)\n    at WSPushService._on_outer_gui (/opt/puter/app/src/backend/src/services/WSPushService.js:313:33)\n    at /opt/puter/app/src/backend/src/services/EventService.js:81:31\n    at /opt/puter/app/src/backend/src/util/context.js:178:26\n    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)\n    at Context.arun (/opt/puter/app/src/backend/src/util/context.js:176:26)\n    at Context.arun (/opt/puter/app/src/backend/src/util/context.js:69:27)\n    at EventService.emit (/opt/puter/app/src/backend/src/services/EventService.js:79:25)\n    at WSPushService._on_fs_create (/opt/puter/app/src/backend/src/services/WSPushService.js:74:24)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async /opt/puter/app/src/backend/src/services/EventService.js:81:25\n    at async /opt/puter/app/src/backend/src/util/context.js:178:20\n    at async Context.arun (/opt/puter/app/src/backend/src/util/context.js:176:16)","timestamp":"2025-10-13T01:35:27.661Z"}
+{"label":"event","level":"error","message":{},"timestamp":"2025-10-13T01:35:27.661Z"}
+{"label":"alarm","level":"error","message":"upcoming alarm: event-service.emit:Cannot read properties of undefined (reading 'sockets'): Cannot read properties of undefined (reading 'sockets')","timestamp":"2025-10-13T01:35:27.661Z"}
+{"error":{},"label":"alarm","level":"error","message":"ACTIVE silver-mouse-1623 (event-service.emit:C...) :: Cannot read properties of undefined (reading 'sockets') (1)","timestamp":"2025-10-13T01:35:27.663Z"}
+{"label":"broadcast","level":"error","message":"{}","timestamp":"2025-10-13T01:35:27.674Z"}
+{"label":"referral-code","level":"error","message":"trying referral code 58N94K2W","timestamp":"2025-10-13T01:36:36.223Z","trace_request":"ab75309a-064a-422b-abdc-5fdb8009bd2a"}
+{"label":"user","level":"error","message":"YES THIS WAS USED","timestamp":"2025-10-13T01:36:36.225Z","trace_request":"ab75309a-064a-422b-abdc-5fdb8009bd2a"}
+{"label":"HLReadDir","level":"error","message":"READDIR","namediff":false,"operation":"d7257e9d-8e48-44ec-ad0e-f5606bbd1e10","timestamp":"2025-10-13T01:36:36.315Z","trace_request":"66fc9cbb-5151-4132-8576-195ec7ad5c2a","userdir":true}
+{"label":"HLReadDir","level":"error","message":"READDIR","namediff":true,"operation":"f5bfc793-69a6-4226-93a0-179cc7d2653f","timestamp":"2025-10-13T01:36:36.449Z","trace_request":"0fabbdd9-2e5a-4bd7-89d4-1d1d1d8acfb6","userdir":false}

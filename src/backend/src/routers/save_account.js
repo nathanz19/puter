@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -19,10 +19,14 @@
 "use strict"
 const express = require('express');
 const router = new express.Router();
-const {get_taskbar_items, username_exists, send_email_verification_code, send_email_verification_token, invalidate_cached_user, get_user } = require('../helpers');
+const {
+    get_taskbar_items, username_exists, send_email_verification_code, send_email_verification_token, invalidate_cached_user, get_user,
+    is_user_signup_disabled: lazy_user_signup,
+} = require('../helpers');
 const auth = require('../middleware/auth.js');
 const config = require('../config');
 const { DB_WRITE } = require('../services/database/consts');
+const { SECOND } = require('@heyputer/putility/src/libs/time.js');
 
 // -----------------------------------------------------------------------//
 // POST /save_account
@@ -31,6 +35,11 @@ router.post('/save_account', auth, express.json(), async (req, res, next)=>{
     // either api. subdomain or no subdomain
     if(require('../helpers').subdomain(req) !== 'api' && require('../helpers').subdomain(req) !== '')
         next();
+
+    const is_user_signup_disabled = await lazy_user_signup();
+    if ( is_user_signup_disabled ) {
+        return res.status(403).send('User signup is disabled.');
+    }
 
     // modules
     const db = req.services.get('database').get(DB_WRITE, 'auth');
@@ -73,7 +82,7 @@ router.post('/save_account', auth, express.json(), async (req, res, next)=>{
     const clean_email = svc_cleanEmail.clean(req.body.email);
     
     if ( ! await svc_cleanEmail.validate(clean_email) ) {
-        return res.status(400).send('This email domain is not allowed.');
+        return res.status(400).send('This email does not seem to be valid.');
     }
 
     const svc_edgeRateLimit = req.services.get('edge-rate-limit');
@@ -85,10 +94,7 @@ router.post('/save_account', auth, express.json(), async (req, res, next)=>{
     return svc_lock.lock([
         `save-account:username:${req.body.username}`,
         `save-account:email:${req.body.email}`
-    ], async () => {
-        await new Promise((rslv) => {
-            setTimeout(rslv, 5000);
-        });
+    ], { timeout: 5 * SECOND }, async () => {
         // duplicate username check, do this only if user has supplied a new username
         if(req.body.username !== req.user.username && await username_exists(req.body.username))
             return res.status(400).send('This username already exists in our database. Please use another one.');
@@ -141,7 +147,7 @@ router.post('/save_account', auth, express.json(), async (req, res, next)=>{
                     // password
                     await bcrypt.hash(req.body.password, 8),
                     // email_confirm_code
-                    email_confirm_code,
+                    '' + email_confirm_code,
                     //email_confirm_token
                     email_confirm_token,
                     // referred_by
@@ -154,10 +160,11 @@ router.post('/save_account', auth, express.json(), async (req, res, next)=>{
 
             // Update root directory name
             await db.write(
-                `UPDATE fsentries SET name = ? WHERE user_id = ? and parent_uid IS NULL`,
+                `UPDATE fsentries SET name = ?, path = ? WHERE user_id = ? and parent_uid IS NULL`,
                 [
                     // name
                     req.body.username,
+                    '/' + req.body.username,
                     // id
                     req.user.id,
                 ]

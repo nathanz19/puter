@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"xai"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -17,23 +17,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-const {
-    implicit_user_app_permissions,
-    default_implicit_user_app_permissions
-} = require("../../data/hardcoded-permissions");
 
+const APIError = require("../../api/APIError");
+const { ECMAP } = require("../../filesystem/ECMAP");
 const { get_user, get_app } = require("../../helpers");
-const { AssignableMethodsFeature } = require("../../traits/AssignableMethodsFeature");
-const { remove_paths_through_user } = require("../../unstructured/permission-scan-lib");
 const { Context } = require("../../util/context");
-const { get_a_letter, cylog } = require("../../util/debugutil");
 const BaseService = require("../BaseService");
 const { DB_WRITE } = require("../database/consts");
-const { UserActorType, Actor, AppUnderUserActorType, AccessTokenActorType, SiteActorType } = require("./Actor");
-
-const implicit_user_permissions = {
-    // 'driver': {},
-};
+const { UserActorType, Actor, AppUnderUserActorType } = require("./Actor");
 
 
 /**
@@ -88,14 +79,15 @@ class PermissionRewriter {
  * The actor and permission are passed to checker({ actor, permission }) as an object.
  */
 class PermissionImplicator {
-    static create ({ id, matcher, checker }) {
-        return new PermissionImplicator({ id, matcher, checker });
+    static create ({ id, matcher, checker, ...options }) {
+        return new PermissionImplicator({ id, matcher, checker, options });
     }
 
-    constructor ({ id, matcher, checker }) {
+    constructor ({ id, matcher, checker, options }) {
         this.id = id;
         this.matcher = matcher;
         this.checker = checker;
+        this.options = options;
     }
 
     matches (permission) {
@@ -146,12 +138,6 @@ class PermissionExploder {
         return this.matcher(permission);
     }
 
-    /**
-     * Check if the permission is implied by this implicator
-     * @param  {Actor} actor
-     * @param  {string} permission
-     * @returns 
-     */
     /**
     * Explodes a permission into a set of implied permissions.
     * 
@@ -281,6 +267,11 @@ class PermissionUtil {
 * This service interacts with the database to manage permissions and logs actions for auditing purposes.
 */
 class PermissionService extends BaseService {
+    static MODULES = {
+        kv: globalThis.kv,
+    }
+
+    static CONCERN = 'permissions';
     /**
     * Initializes the PermissionService by setting up internal arrays for permission handling.
     * 
@@ -338,9 +329,12 @@ class PermissionService extends BaseService {
     async check (actor, permission_options) {
         // TODO: optimized implementation for check instead of
         //       delegating to the scan() method
-        const reading = await this.scan(actor, permission_options);
-        const options = PermissionUtil.reading_to_options(reading);
-        return options.length > 0;
+        const svc_trace = this.services.get('traceService');
+        return await svc_trace.spanify(`permission:check`, async () => {
+            const reading = await this.scan(actor, permission_options);
+            const options = PermissionUtil.reading_to_options(reading);
+            return options.length > 0;
+        });
     }
 
 
@@ -360,6 +354,14 @@ class PermissionService extends BaseService {
     * @returns {Promise<Array>} A promise that resolves to an array of permission readings.
     */
     async scan (actor, permission_options, _reserved, state) {
+        const svc_trace = this.services.get('traceService');
+        return await svc_trace.spanify(`permission:scan`, async () => {
+            return await ECMAP.arun(async () => {
+                return await this.scan_(actor, permission_options, _reserved, state);
+            });
+        }, { attributes: { permission_options }, actor: actor.uid });
+    }
+    async scan_ (actor, permission_options, _reserved, state) {
         if ( ! state ) this.log.info('scan', {
             actor: actor.uid,
             permission_options,
@@ -374,6 +376,18 @@ class PermissionService extends BaseService {
         
         if ( ! Array.isArray(permission_options) ) {
             permission_options = [permission_options];
+        }
+
+        const cache_str = PermissionUtil.join(
+            'permission-scan',
+            actor.uid,
+            'options-list',
+            ...permission_options,
+        );
+        
+        const cached = kv.get(cache_str);
+        if ( cached ) {
+            return cached;
         }
         
         // TODO: command to enable these logs
@@ -398,6 +412,8 @@ class PermissionService extends BaseService {
             value: end_ts - start_ts,
         });
 
+        kv.set(cache_str, reading, { EX: 20 });
+
         return reading;
     }
     
@@ -406,6 +422,7 @@ class PermissionService extends BaseService {
     * Grants a user permission to interact with another user.
     * 
     * @param {Actor} actor - The actor granting the permission (must be a user).
+    * @param {string} app_uid - The unique identifier or name of the app.
     * @param {string} username - The username of the user receiving the permission.
     * @param {string} permission - The permission string to grant.
     * @param {Object} [extra={}] - Additional metadata or conditions for the permission.
@@ -418,6 +435,12 @@ class PermissionService extends BaseService {
 
         let app = await get_app({ uid: app_uid });
         if ( ! app ) app = await get_app({ name: app_uid });
+        
+        if ( ! app ) {
+            throw APIError.create('entity_not_found', null, {
+                identifier: 'app:' + app_uid,
+            });
+        }
 
         const app_id = app.id;
 
@@ -461,6 +484,160 @@ class PermissionService extends BaseService {
 
 
     /**
+    * Grants an app a permission for any user, as long as the user granting the
+    * permission also has the permission.
+    * 
+    * @param {Actor} actor - The actor granting the permission (must be a user).
+    * @param {string} app_uid - The unique identifier or name of the app.
+    * @param {string} username - The username of the user receiving the permission.
+    * @param {string} permission - The permission string to grant.
+    * @param {Object} [extra={}] - Additional metadata or conditions for the permission.
+    * @param {Object} [meta] - Metadata for logging or auditing purposes.
+    * @throws {Error} If the user to grant permission to is not found or if attempting to grant permissions to oneself.
+    * @returns {Promise<void>}
+    */
+    async grant_dev_app_permission (actor, app_uid, permission, extra = {}, meta) {
+        permission = await this._rewrite_permission(permission);
+
+        let app = await get_app({ uid: app_uid });
+        if ( ! app ) app = await get_app({ name: app_uid });
+        
+        if ( ! app ) {
+            throw APIError.create('entity_not_found', null, {
+                identifier: 'app:' + app_uid,
+            });
+        }
+
+        const app_id = app.id;
+
+        // UPSERT permission
+        await this.db.write(
+            'INSERT INTO `dev_to_app_permissions` (`user_id`, `app_id`, `permission`, `extra`) ' +
+            'VALUES (?, ?, ?, ?) ' +
+            this.db.case({
+                mysql: 'ON DUPLICATE KEY UPDATE `extra` = ?',
+                otherwise: 'ON CONFLICT(`user_id`, `app_id`, `permission`) DO UPDATE SET `extra` = ?',
+            }),
+            [
+                actor.type.user.id,
+                app_id,
+                permission,
+                JSON.stringify(extra),
+                JSON.stringify(extra),
+            ]
+        );
+
+        // INSERT audit table
+        const audit_values = {
+            user_id: actor.type.user.id,
+            user_id_keep: actor.type.user.id,
+            app_id: app_id,
+            app_id_keep: app_id,
+            permission,
+            action: 'grant',
+            reason: meta?.reason || 'granted via PermissionService',
+        };
+
+        const sql_cols = Object.keys(audit_values).map((key) => `\`${key}\``).join(', ');
+        const sql_vals = Object.keys(audit_values).map((key) => `?`).join(', ');
+
+        await this.db.write(
+            'INSERT INTO `audit_dev_to_app_permissions` (' + sql_cols + ') ' +
+            'VALUES (' + sql_vals + ')',
+            Object.values(audit_values)
+        );
+    }
+    async revoke_dev_app_permission (actor, app_uid, permission, meta) {
+        permission = await this._rewrite_permission(permission);
+
+        // For now, actor MUST be a user
+        if ( ! (actor.type instanceof UserActorType) ) {
+            throw new Error('actor must be a user');
+        }
+
+        let app = await get_app({ uid: app_uid });
+        if ( ! app ) app = await get_app({ name: app_uid });
+        if ( ! app ) {
+            throw APIError.create('entity_not_found', null, {
+                identifier: 'app' + app_uid,
+            })
+        }
+        const app_id = app.id;
+
+        // DELETE permission
+        await this.db.write(
+            'DELETE FROM `dev_to_app_permissions` ' +
+            'WHERE `user_id` = ? AND `app_id` = ? AND `permission` = ?',
+            [
+                actor.type.user.id,
+                app_id,
+                permission,
+            ]
+        );
+
+        // INSERT audit table
+        const audit_values = {
+            user_id: actor.type.user.id,
+            user_id_keep: actor.type.user.id,
+            app_id: app_id,
+            app_id_keep: app_id,
+            permission,
+            action: 'revoke',
+            reason: meta?.reason || 'revoked via PermissionService',
+        };
+
+        const sql_cols = Object.keys(audit_values).map((key) => `\`${key}\``).join(', ');
+        const sql_vals = Object.keys(audit_values).map((key) => `?`).join(', ');
+
+        await this.db.write(
+            'INSERT INTO `audit_dev_to_app_permissions` (' + sql_cols + ') ' +
+            'VALUES (' + sql_vals + ')',
+            Object.values(audit_values)
+        );
+    }
+    async revoke_dev_app_all (actor, app_uid, meta) {
+        // For now, actor MUST be a user
+        if ( ! (actor.type instanceof UserActorType) ) {
+            throw new Error('actor must be a user');
+        }
+
+        let app = await get_app({ uid: app_uid });
+        if ( ! app ) app = await get_app({ name: app_uid });
+        const app_id = app.id;
+
+        // DELETE permissions
+        await this.db.write(
+            'DELETE FROM `dev_to_app_permissions` ' +
+            'WHERE `user_id` = ? AND `app_id` = ?',
+            [
+                actor.type.user.id,
+                app_id,
+            ]
+        );
+
+        // INSERT audit table
+        const audit_values = {
+            user_id: actor.type.user.id,
+            user_id_keep: actor.type.user.id,
+            app_id: app_id,
+            app_id_keep: app_id,
+            permission: '*',
+            action: 'revoke',
+            reason: meta?.reason || 'revoked all via PermissionService',
+        };
+
+        const sql_cols = Object.keys(audit_values).map((key) => `\`${key}\``).join(', ');
+        const sql_vals = Object.keys(audit_values).map((key) => `?`).join(', ');
+
+        await this.db.write(
+            'INSERT INTO `audit_dev_to_app_permissions` (' + sql_cols + ') ' +
+            'VALUES (' + sql_vals + ')',
+            Object.values(audit_values)
+        );
+    }
+
+
+    /**
     * Grants a permission to a user for a specific app.
     * 
     * @param {Actor} actor - The actor granting the permission, must be a user.
@@ -483,6 +660,11 @@ class PermissionService extends BaseService {
 
         let app = await get_app({ uid: app_uid });
         if ( ! app ) app = await get_app({ name: app_uid });
+        if ( ! app ) {
+            throw APIError.create('entity_not_found', null, {
+                identifier: 'app' + app_uid,
+            })
+        }
         const app_id = app.id;
 
         // DELETE permission
@@ -587,7 +769,9 @@ class PermissionService extends BaseService {
         permission = await this._rewrite_permission(permission);
         const user = await get_user({ username });
         if ( ! user ) {
-            throw new Error('user not found');
+            throw APIError.create('user_does_not_exist', null, {
+                username,
+            })
         }
 
         // Don't allow granting permissions to yourself
@@ -650,7 +834,9 @@ class PermissionService extends BaseService {
         const svc_group = this.services.get('group');
         const group = await svc_group.get({ uid: gid });
         if ( ! group ) {
-            throw new Error('group not found');
+            throw APIError.create('entity_not_found', null, {
+                identifier: 'group:' + gid,
+            });
         }
         
         await this.db.write(
@@ -705,7 +891,11 @@ class PermissionService extends BaseService {
 
         const user = await get_user({ username });
         if ( ! user ) {
-            throw new Error('user not found');
+            if ( ! user ) {
+                throw APIError.create('user_does_not_exist', null, {
+                    username,
+                })
+            }
         }
 
         // DELETE permission
@@ -755,7 +945,9 @@ class PermissionService extends BaseService {
         const svc_group = this.services.get('group');
         const group = await svc_group.get({ uid: gid });
         if ( ! group ) {
-            throw new Error('group not found');
+            throw APIError.create('entity_not_found', null, {
+                identifier: 'group:' + gid,
+            });
         }
 
         // DELETE permission
@@ -797,15 +989,10 @@ class PermissionService extends BaseService {
      * - This was written for use in ll_listusers to display
      *   home directories of users that shared files with the
      *   current user.
+     *
+     * @param {Object} user - The user whose permission issuers are to be listed.
+     * @returns {Promise<Array>} A promise that resolves to an array of user objects.
      */
-    /**
-    * Lists users who have granted any permissions to the specified user.
-    * 
-    * This method provides a flat, non-recursive view of permission issuers.
-    * 
-    * @param {Object} user - The user whose permission issuers are to be listed.
-    * @returns {Promise<Array>} A promise that resolves to an array of user objects.
-    */
     async list_user_permission_issuers (user) {
         const rows = await this.db.read(
             'SELECT DISTINCT issuer_user_id FROM `user_to_user_permissions` ' +
@@ -834,17 +1021,14 @@ class PermissionService extends BaseService {
      * Use History:
      * - This was written for FSNodeContext.fetchShares to query
      *   all the "shares" associated with a file.
+     * 
+     * This method retrieves permissions from the database where the permission key starts with a specified prefix.
+     * It is designed for "flat" (non-cascading) queries.
+     * 
+     * @param {Object} issuer - The actor granting the permissions.
+     * @param {string} prefix - The prefix to match in the permission key.
+     * @returns {Object} An object containing arrays of user and app permissions matching the prefix.
      */
-    /**
-    * Queries permissions granted by an issuer to various users and apps based on a permission prefix.
-    * 
-    * This method retrieves permissions from the database where the permission key starts with a specified prefix.
-    * It is designed for "flat" (non-cascading) queries.
-    * 
-    * @param {Object} issuer - The actor granting the permissions.
-    * @param {string} prefix - The prefix to match in the permission key.
-    * @returns {Object} An object containing arrays of user and app permissions matching the prefix.
-    */
     async query_issuer_permissions_by_prefix (issuer, prefix) {
         const user_perms = await this.db.read(
             'SELECT DISTINCT holder_user_id, permission ' +
@@ -893,22 +1077,11 @@ class PermissionService extends BaseService {
      * 
      * This is a "flat" (non-cascading) view.
      *
-     * @param {*} issuer 
-     * @param {*} holder 
-     * @param {*} prefix 
-     * @returns 
+     * @param {Object} issuer - The actor granting the permissions.
+     * @param {Object} holder - The actor receiving the permissions.
+     * @param {string} prefix - The prefix of the permission keys to match.
+     * @returns {Promise<Array<string>>} An array of permission strings matching the prefix.
      */
-    /**
-    * Queries the permissions granted by an issuer to a holder with a specific prefix.
-    * 
-    * This method retrieves permissions that match a given prefix from the database.
-    * It's a flat view, meaning it does not include cascading permissions.
-    * 
-    * @param {Object} issuer - The actor granting the permissions.
-    * @param {Object} holder - The actor receiving the permissions.
-    * @param {string} prefix - The prefix of the permission keys to match.
-    * @returns {Promise<Array<string>>} An array of permission strings matching the prefix.
-    */
     async query_issuer_holder_permissions_by_prefix (issuer, holder, prefix) {
         const user_perms = await this.db.read(
             'SELECT permission ' +

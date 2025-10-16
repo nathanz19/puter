@@ -1,10 +1,29 @@
+/*
+ * Copyright (C) 2024-present Puter Technologies Inc.
+ * 
+ * This file is part of Puter.
+ * 
+ * Puter is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 const { AdvancedBase } = require("@heyputer/putility");
 const EmitterFeature = require("@heyputer/putility/src/features/EmitterFeature");
 const { Context } = require("./util/context");
 const { ExtensionServiceState } = require("./ExtensionService");
 
 /**
- * This class creates the `extension` global that is seem by Puter backend
+ * This class creates the `extension` global that is seen by Puter backend
  * extensions.
  */
 class Extension extends AdvancedBase {
@@ -21,12 +40,58 @@ class Extension extends AdvancedBase {
     constructor (...a) {
         super(...a);
         this.service = null;
+        this.log = null;
         this.ensure_service_();
+        
+        this.log = (...a) => {
+            this.log_context.info(a.join(' '));
+        };
+        this.LOG = (...a) => {
+            this.log_context.noticeme(a.join(' '));
+        };
+        ['info','warn','debug','error','tick','noticeme','system'].forEach(lvl => {
+            this.log[lvl] = (...a) => {
+                this.log_context[lvl](...a);
+            }
+        });
+        
+        this.only_one_preinit_fn = null;
+        this.only_one_init_fn = null;
+        
+        this.registry = {
+            register: this.register.bind(this),
+            of: (typeKey) => {
+                return {
+                    named: name => {
+                        if ( arguments.length === 0 ) {
+                            return this.registry_[typeKey].named;
+                        }
+                        return this.registry_[typeKey].named[name];
+                    },
+                    all: () => [
+                        ...Object.values(this.registry_[typeKey].named),
+                        ...this.registry_[typeKey].anonymous,
+                    ],
+                }
+            }
+        };
     }
 
     example () {
         console.log('Example method called by an extension.');
     }
+    
+    // === [START] RuntimeModule aliases ===
+    set exports (value) {
+        this.runtime.exports = value;
+    }
+    get exports () {
+        return this.runtime.exports;
+    }
+    import (name) {
+        return this.runtime.import(name);
+    }
+    // === [END] RuntimeModule aliases ===
 
     /**
      * This will get a database instance from the default service.
@@ -42,6 +107,74 @@ class Extension extends AdvancedBase {
         return db;
     }
 
+    get services () {
+        const services = this.service.values.get('services');
+        if ( ! services ) {
+            throw new Error(
+                'extension tried to access "services" before it was ' +
+                'initialized'
+            );
+        }
+        return services;
+    }
+
+    get log_context () {
+        const log_context = this.service.values.get('log_context');
+        if ( ! log_context ) {
+            throw new Error(
+                'extension tried to access "log_context" before it was ' +
+                'initialized'
+            );
+        }
+        return log_context;
+    }
+    
+    /**
+     * Register anonymous or named data to a particular type/category.
+     * @param {string} typeKey Type of data being registered
+     * @param {string} [key] Key of data being registered
+     * @param {any} data The data to be registered
+     */
+    register (typeKey, keyOrData, data) {
+        if ( ! this.registry_[typeKey] ) {
+            this.registry_[typeKey] = {
+                named: {},
+                anonymous: [],
+            };
+        }
+        
+        const typeRegistry = this.registry_[typeKey];
+        
+        if ( arguments.length <= 1 ) {
+            throw new Error('you must specify what to register');
+        }
+        
+        if ( arguments.length === 2 ) {
+            data = keyOrData;
+            if ( Array.isArray(data) ) {
+                for ( const datum of data ) {
+                    typeRegistry.anonymous.push(datum);
+                }
+                return;
+            }
+            typeRegistry.anonymous.push(data);
+            return;
+        }
+        
+        const key = keyOrData;
+        typeRegistry.named[key] = data;
+    }
+    
+    /**
+     * Alias for .register()
+     * @param {string} typeKey Type of data being registered
+     * @param {string} [key] Key of data being registered
+     * @param {any} data The data to be registered
+     */
+    reg (...a) {
+        this.register(...a);
+    }
+    
     /**
      * This will create a GET endpoint on the default service.
      * @param {*} path - route for the endpoint
@@ -84,6 +217,48 @@ class Extension extends AdvancedBase {
             ...options,
             methods: ['POST'],
         });
+    }
+    
+    use (...args) {
+        this.ensure_service_();
+        this.service.expressThings_.push({
+            type: 'router',
+            value: args,
+        });
+    }
+
+    get preinit() {
+        return (function (callback) {
+            this.on('preinit', callback);
+        }).bind(this);
+    }
+    set preinit(callback) {
+        if ( this.only_one_preinit_fn === null ) {
+            this.on('preinit', (...a) => {
+                this.only_one_preinit_fn(...a);
+            });
+        }
+        if ( callback === null ) {
+            this.only_one_preinit_fn = () => {};
+        }
+        this.only_one_preinit_fn = callback;
+    }
+
+    get init() {
+        return (function(callback) {
+            this.on('init', callback);
+        }).bind(this);
+    }
+    set init (callback) {
+        if ( this.only_one_init_fn === null ) {
+            this.on('init', (...a) => {
+                this.only_one_init_fn(...a);
+            });
+        }
+        if ( callback === null ) {
+            this.only_one_init_fn = () => {};
+        }
+        this.only_one_init_fn = callback;
     }
 
     /**

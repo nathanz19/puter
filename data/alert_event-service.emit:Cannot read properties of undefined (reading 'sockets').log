@@ -1,0 +1,7 @@
+ALERT silver-mouse-1623 (event-service.emit:C...) :: Cannot read properties of undefined (reading 'sockets') (1)
+started: 2025-10-13T01:35:27.663Z
+short id: silver-mouse-1623
+original id: event-service.emit:Cannot read properties of undefined (reading 'sockets')
+severity: critical
+message: Cannot read properties of undefined (reading 'sockets')
+fields: {"error":"TypeError: Cannot read properties of undefined (reading 'sockets')\n    at SocketioService.has (/opt/puter/app/src/backend/src/modules/web/SocketioService.js:85:34)\n    at WSPushService._on_outer_gui (/opt/puter/app/src/backend/src/services/WSPushService.js:313:33)\n    at /opt/puter/app/src/backend/src/services/EventService.js:81:31\n    at /opt/puter/app/src/backend/src/util/context.js:178:26\n    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)\n    at Context.arun (/opt/puter/app/src/backend/src/util/context.js:176:26)\n    at Context.arun (/opt/puter/app/src/backend/src/util/context.js:69:27)\n    at EventService.emit (/opt/puter/app/src/backend/src/services/EventService.js:79:25)\n    at WSPushService._on_fs_create (/opt/puter/app/src/backend/src/services/WSPushService.js:74:24)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async /opt/puter/app/src/backend/src/services/EventService.js:81:25\n    at async /opt/puter/app/src/backend/src/util/context.js:178:20\n    at async Context.arun (/opt/puter/app/src/backend/src/util/context.js:176:16)"}

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -72,6 +72,7 @@ const en = {
         confirm_delete_user_title: "Delete Account?",
         confirm_session_revoke: "Are you sure you want to revoke this session?",
         confirm_your_email_address: "Confirm Your Email Address",
+        choose_publishing_option: "Choose how you want to publish your website:",
         contact_us: "Contact Us",
         contact_us_verification_required: "You must have a verified email address to use this.",
         contain: 'Contain',
@@ -83,7 +84,10 @@ const en = {
         cover: 'Cover',
         create_account: "Create Account",
         create_free_account: "Create Free Account",
+        create_desktop_shortcut: "Create Shortcut (Desktop)",
+        create_desktop_shortcut_s: "Create Shortcuts (Desktop)",
         create_shortcut: "Create Shortcut",
+        create_shortcut_s: "Create Shortcuts",
         credits: "Credits",
         current_password: "Current Password",
         cut: 'Cut',
@@ -164,14 +168,12 @@ const en = {
         log_out: 'Log Out',
         looks_good: "Looks good!",
         manage_sessions: "Manage Sessions",
-        menubar_style: "Menubar Style",
-        menubar_style_desktop: "Desktop",
-        menubar_style_system: "System",
-        menubar_style_window: "Window",
         modified: 'Modified',
         move: 'Move',
         moving_file: "Moving %%",
         my_websites: "My Websites",
+        minimize: "Minimize",
+        reload_app: "Reload App",
         name: 'Name',
         name_cannot_be_empty: 'Name cannot be empty.',
         name_cannot_contain_double_period: "Name can not be the '..' character.",
@@ -189,8 +191,10 @@ const en = {
         no_websites_published: "You have not published any websites yet. Right click on a folder to get started.",
         ok: 'OK',
         open: "Open",
+        new_window: "New Window",
         open_in_new_tab: "Open in New Tab",
         open_in_new_window: "Open in New Window",
+        open_trash: "Open Trash",
         open_with: "Open With",
         original_name: 'Original Name',
         original_path: 'Original Path',
@@ -208,7 +212,15 @@ const en = {
         path: 'Path',
         personalization: "Personalization",
         pick_name_for_website: "Pick a name for your website:",
+        pick_name_for_worker: "Pick a name for your worker:",
         picture: "Picture",
+        // Avatar removal translations
+        remove: "Remove",
+        'account.avatar.removeButton': 'Remove',
+        'account.avatar.removeConfirm': 'Are you sure you want to remove your profile picture? This will restore your default avatar.',
+        'account.avatar.removedToast': 'Profile picture removed.',
+        'confirm_remove_profile_picture': 'Are you sure you want to remove your profile picture? This will restore your default avatar.',
+        'confirm_remove_profile_picture_title': 'Remove Profile Picture?',
         pictures: 'Pictures',
         plural_suffix: 's',
         powered_by_puter_js: `Powered by {{link=docs}}Puter.js{{/link}}`,
@@ -227,6 +239,7 @@ const en = {
         public: 'Public',
         publish: "Publish",
         publish_as_website: 'Publish as website',
+        publish_as_serverless_worker: 'Publish as Worker',
         puter_description: `Puter is a privacy-first personal cloud to keep all your files, apps, and games in one secure place, accessible from anywhere at any time.`,
         reading: "Reading %strong%",
         writing: "Writing %strong%",
@@ -292,6 +305,12 @@ const en = {
         taskmgr_header_type: "Type",
         terms: "Terms",
         text_document: 'Text document',
+        'toolbar.enter_fullscreen': 'Enter Full Screen',
+        'toolbar.github': 'GitHub',
+        'toolbar.refer': 'Refer',
+        'toolbar.save_account': 'Save Account',
+        'toolbar.search': 'Search',
+        'toolbar.qrcode': 'QR Code',
         tos_fineprint: `By clicking 'Create Free Account' you agree to Puter's {{link=terms}}Terms of Service{{/link}} and {{link=privacy}}Privacy Policy{{/link}}.`,
         transparency: "Transparency",
         trash: 'Trash',
@@ -309,6 +328,7 @@ const en = {
         unzipping: "Unzipping %strong%",
         upload: 'Upload',
         upload_here: 'Upload here',
+        used_of: '{{used}} used of {{available}}',
         usage: 'Usage',
         username: "Username",
         username_changed: 'Username updated successfully.',
@@ -321,6 +341,7 @@ const en = {
         you_have_been_referred_to_puter_by_a_friend: "You have been referred to Puter by a friend!",
         zip: "Zip",
         sequencing: "Sequencing %strong%",
+        worker: "Worker",
         zipping: "Zipping %strong%",
 
         // === 2FA Setup ===
@@ -376,7 +397,9 @@ const en = {
         'billing.subscription_cancelled': 'Your subscription has been canceled.',
         'billing.subscription_cancelled_description': 'You will still have access to your subscription until the end of this billing period.',
         'billing.offering.free': 'Free',
+        'billing.offering.basic': 'Basic',
         'billing.offering.pro': 'Professional',
+        'billing.offering.professional': 'Professional',
         'billing.offering.business': 'Business',
         'billing.cloud_storage': 'Cloud Storage',
         'billing.ai_access': 'AI Access',
@@ -409,6 +432,81 @@ const en = {
         'billing.expanded': 'Expanded',
         'billing.accelerated': 'Accelerated',
         'billing.enjoy_msg': 'Enjoy %% of Cloud Storage plus other benefits.',
+        'too_many_attempts': 'Too many attempts. Please try again later.',
+        'server_timeout': 'The server took too long to respond. Please try again.',
+        'signup_error': 'An error occurred during signup. Please try again.',
+        
+        // Welcome Window
+        'welcome_title': 'Welcome to your Personal Internet Computer',
+        'welcome_description': 'Store files, play games, find awesome apps, and much more! All in one place, accessible from anywhere at any time.',
+        'welcome_get_started': 'Get Started',
+        'welcome_terms': 'Terms',
+        'welcome_privacy': 'Privacy',
+        'welcome_developers': 'Developers',
+        'welcome_open_source': 'Open Source',
+        'welcome_instant_login_title': 'Instant Login!',
+        
+        // Alert Window
+        'alert_error_title': 'Error!',
+        'alert_warning_title': 'Warning!',
+        'alert_info_title': 'Info',
+        'alert_success_title': 'Success!',
+        'alert_confirm_title': 'Are you sure?',
+        'alert_yes': 'Yes',
+        'alert_no': 'No',
+        'alert_retry': 'Retry',
+        'alert_cancel': 'Cancel',
+        
+        // Signup Window
+        'signup_confirm_password': 'Confirm Password',
+        
+        // Login Window
+        'login_email_username_required': 'Email or username is required',
+        'login_password_required': 'Password is required',
+        
+        // Various Window Titles
+        'window_title_open': 'Open',
+        'window_title_change_password': 'Change Password',
+        'window_title_select_font': 'Select font…',
+        'window_title_session_list': 'Session List!',
+        'window_title_set_new_password': 'Set New Password',
+        'window_title_instant_login': 'Instant Login!',
+        'window_title_publish_website': 'Publish Website',
+        'window_title_publish_worker': 'Publish Worker',
+        'window_title_authenticating': 'Authenticating...',
+        'window_title_refer_friend': 'Refer a friend!',
+        
+        // Desktop UI
+        'desktop_show_desktop': 'Show Desktop',
+        'desktop_show_open_windows': 'Show Open Windows',
+        'desktop_exit_full_screen': 'Exit Full Screen',
+        'desktop_enter_full_screen': 'Enter Full Screen',
+        'desktop_position': 'Position',
+        'desktop_position_left': 'Left',
+        'desktop_position_bottom': 'Bottom',
+        'desktop_position_right': 'Right',
+        // Item UI
+        'item_shared_with_you': 'A user has shared this item with you.',
+        'item_shared_by_you': 'You have shared this item with at least one other user.',
+        'item_shortcut': 'Shortcut',
+        'item_associated_websites': 'Associated website',
+        'item_associated_websites_plural': 'Associated websites',
+        'no_suitable_apps_found': 'No suitable apps found',
+        
+        // Window UI
+        'window_click_to_go_back': 'Click to go back.',
+        'window_click_to_go_forward': 'Click to go forward.',
+        'window_click_to_go_up': 'Click to go one directory up.',
+        'window_title_public': 'Public',
+        'window_title_videos': 'Videos',
+        'window_title_pictures': 'Pictures',
+        'window_title_puter': 'Puter',
+        'window_folder_empty': 'This folder is empty',
+        
+        // Website Management
+        'manage_your_subdomains': 'Manage Your Subdomains',
+
+        'open_containing_folder': 'Open Containing Folder',
     }
 };
 

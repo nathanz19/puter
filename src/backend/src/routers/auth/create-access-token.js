@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -54,9 +54,13 @@ module.exports = eggspress('/auth/create-access-token', {
     }
 
     const actor = Context.get('actor');
+    
+    const options = {
+        ...(req.body.expiresIn ? { expiresIn: '' + req.body.expiresIn } : {}),
+    };
 
     const token = await svc_auth.create_access_token(
-        actor, permissions
+        actor, permissions, options
     );
 
     res.json({ token });

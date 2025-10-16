@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -21,6 +21,7 @@ const { NodePathSelector, NodeUIDSelector, NodeInternalIDSelector, NodeChildSele
 const BaseService = require("../../services/BaseService");
 
 module.exports = class DatabaseFSEntryFetcher extends BaseService {
+    static CONCERN = 'filesystem';
     _construct () {
         this.defaultProperties = [
             'id',
@@ -100,7 +101,7 @@ module.exports = class DatabaseFSEntryFetcher extends BaseService {
     async findByUID(uuid, fetch_entry_options = {}) {
         const { thumbnail } = fetch_entry_options;
 
-        let fsentry = await this.db.requireRead(
+        let fsentry = await this.db.tryHardRead(
             `SELECT ` +
                 this.defaultProperties.join(', ') +
                 (thumbnail ? `, thumbnail` : '') +
@@ -114,7 +115,7 @@ module.exports = class DatabaseFSEntryFetcher extends BaseService {
     async findByID(id, fetch_entry_options = {}) {
         const { thumbnail } = fetch_entry_options;
 
-        let fsentry = await this.db.requireRead(
+        let fsentry = await this.db.tryHardRead(
             `SELECT ` +
                 this.defaultProperties.join(', ') +
                 (thumbnail ? `, thumbnail` : '') +
@@ -220,5 +221,13 @@ module.exports = class DatabaseFSEntryFetcher extends BaseService {
             [parent_uid, name]
         );
         return !! check_dupe[0];
+    }
+
+    async nameExistsUnderParentID (parent_id, name) {
+        const parent = await this.findByID(parent_id);
+        if ( ! parent ) {
+            return false;
+        }
+        return this.nameExistsUnderParent(parent.uuid, name);
     }
 }

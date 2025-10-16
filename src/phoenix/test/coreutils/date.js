@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -22,9 +22,6 @@ import { MakeTestContext } from './harness.js'
 import builtins from '../../src/puter-shell/coreutils/__exports__.js';
 
 export const runDateTests = () => {
-    // These tests are disabled for now.
-    // (broken, very low priority)
-    return;
     describe('date', function () {
         beforeEach(() => {
             ck.freeze();

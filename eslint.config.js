@@ -1,139 +1,218 @@
-import js from "@eslint/js";
-import globals from "globals";
+import js from '@eslint/js';
+import stylistic from '@stylistic/eslint-plugin';
+import { defineConfig } from 'eslint/config';
+import globals from 'globals';
+import controlStructureSpacing from './control-structure-spacing.js';
 
-export default [
-    js.configs.recommended,
-
+export default defineConfig([
     {
-        // Global ignores
-        ignores: [
-            "**/*.min.js",
-            "**/src/lib/**",
-            "**/dist/",
-            "src/backend/src/public/assets/**",
-            "incubator/**"
-        ],
+        plugins: {
+            js,
+            '@stylistic': stylistic,
+            custom: { rules: { 'control-structure-spacing': controlStructureSpacing } },
+        },
     },
     {
-        // Top-level and tools use Node
-        files: [
-            "tools/**/*.js",
-        ],
-        languageOptions: {
-            globals: {
-                ...globals.node,
-            }
-        }
-    },
-    {
-        // Back end
-        files: [
-            "src/backend/**/*.js",
-            "mods/**/*.js",
-            "dev-server.js",
-            "utils.js",
-        ],
-        languageOptions: {
-            globals: {
-                ...globals.node,
-                "kv": true,
-                "def": true,
-                "use": true,
-                "ll":true,
-            }
-        }
-    },
-    {
-        // Front end
-        files: [
-            "src/**/*.js",
-        ],
-        ignores: [
-            "src/backend/**/*.js",
-        ],
-        languageOptions: {
-            globals: {
-                ...globals.browser,
-                ...globals.commonjs,
-                // Weird false positives
-                "Buffer": true,
-                // Puter Common
-                "puter": true,
-                "i18n": true,
-                "html_encode": true,
-                "html_decode": true,
-                "isMobile": true,
-                // Class Registry
-                "logger": true,
-                "def": true,
-                "use": true,
-                // Libraries
-                "saveAs": true,         // FileSaver
-                "iro": true,            // iro.js color picker
-                "$": true,              // jQuery
-                "jQuery": true,         // jQuery
-                "fflate": true,         // fflate
-                "_": true,              // lodash
-                "QRCode": true,         // qrcode
-                "io": true,             // socket.io
-                "timeago": true,        // timeago
-                "SelectionArea": true,  // viselect
-                // Puter GUI Globals
-                "set_menu_item_prop": true,
-                "determine_active_container_parent": true,
-                "privacy_aware_path": true,
-                "api_origin": true,
-                "auth_token": true,
-                "logout": true,
-                "is_email": true,
-                "select_ctxmenu_item": true,
-            }
-        }
-    },
-    {
-        // Mods
-        // NOTE: Mods have backend and frontend parts, so this just includes the globals for both.
-        files: [
-            "mods/**/*.js",
-        ],
-        languageOptions: {
-            globals: {
-                ...globals.node,
-                "use": true,
-                "window": true,
-                "puter": true,
-            }
-        }
-    },
-    {
-        // Tests
-        files: [
-            "**/test/**/*.js",
-        ],
-        languageOptions: {
-            globals: {
-                ...globals.mocha,
-            }
-        }
-    },
-    {
-        // Phoenix
-        files: [
-            "src/phoenix/**/*.js",
-        ],
-        languageOptions: {
-            globals: {
-                ...globals.node,
-            }
-        }
-    },
-    {
-        // Global rule settings
+        files: ['src/backend/**/*.{js,mjs,cjs}'],
+        languageOptions: { globals: globals.node },
         rules: {
-            "no-prototype-builtins": "off", // Complains about any use of hasOwnProperty()
-            "no-unused-vars": "off", // Temporary, we just have a lot of these
-            "no-debugger": "warn",
-            "no-async-promise-executor": "off",  // We do this quite often and it's fine
-        }
+            'no-unused-vars': ['error', {
+                'vars': 'all',
+                'args': 'after-used',
+                'caughtErrors': 'all',
+                'ignoreRestSiblings': false,
+                'ignoreUsingDeclarations': false,
+                'reportUsedIgnorePattern': false,
+                'argsIgnorePattern': '^_',
+                'caughtErrorsIgnorePattern': '^_',
+                'destructuredArrayIgnorePattern': '^_',
+
+            }],
+            curly: ['error', 'multi-line'],
+            '@stylistic/curly-newline': ['error', 'always'],
+            '@stylistic/object-curly-spacing': ['error', 'always'],
+            '@stylistic/indent': ['error', 4, {
+                CallExpression: {
+                    arguments: 4,
+                },
+            }],
+            '@stylistic/indent-binary-ops': ['error', 4],
+            '@stylistic/array-bracket-newline': ['error', 'consistent'],
+            '@stylistic/semi': ['error', 'always'],
+            '@stylistic/quotes': 'off',
+            '@stylistic/function-call-argument-newline': ['error', 'consistent'],
+            '@stylistic/arrow-spacing': ['error', { before: true, after: true }],
+            '@stylistic/space-before-function-paren': ['error', { 'anonymous': 'never', 'named': 'never', 'asyncArrow': 'always', 'catch': 'always' }],
+            '@stylistic/key-spacing': ['error', { 'beforeColon': false, 'afterColon': true }],
+            '@stylistic/keyword-spacing': ['error', { 'before': true, 'after': true }],
+            '@stylistic/no-multiple-empty-lines': ['error', { max: 1, maxEOF: 0 }],
+            '@stylistic/comma-spacing': ['error', { 'before': false, 'after': true }],
+            '@stylistic/comma-dangle': ['error', 'always-multiline'],
+            '@stylistic/object-property-newline': ['error', { allowAllPropertiesOnSameLine: true }],
+            '@stylistic/dot-location': ['error', 'property'],
+            '@stylistic/space-infix-ops': ['error'],
+            'no-undef': 'error',
+            'custom/control-structure-spacing': 'error',
+            '@stylistic/no-trailing-spaces': 'error',
+
+        },
+        extends: ['js/recommended'],
+        plugins: {
+            js,
+            '@stylistic': stylistic,
+        },
     },
-];
+    {
+        files: ['extensions/**/*.{js,mjs,cjs}'],
+        languageOptions: {
+            globals: {
+                extension: 'readonly',
+                ...globals.node,
+            },
+        },
+        rules: {
+            'no-unused-vars': ['error', {
+                'vars': 'all',
+                'args': 'after-used',
+                'caughtErrors': 'all',
+                'ignoreRestSiblings': false,
+                'ignoreUsingDeclarations': false,
+                'reportUsedIgnorePattern': false,
+                'argsIgnorePattern': '^_',
+                'caughtErrorsIgnorePattern': '^_',
+                'destructuredArrayIgnorePattern': '^_',
+
+            }],
+            curly: ['error', 'multi-line'],
+            '@stylistic/curly-newline': ['error', 'always'],
+            '@stylistic/object-curly-spacing': ['error', 'always'],
+            '@stylistic/indent': ['error', 4, { CallExpression: { arguments: 4 } }],
+            '@stylistic/indent-binary-ops': ['error', 4],
+            '@stylistic/array-bracket-newline': ['error', 'consistent'],
+            '@stylistic/semi': ['error', 'always'],
+            '@stylistic/quotes': ['error', 'single'],
+            '@stylistic/function-call-argument-newline': ['error', 'consistent'],
+            '@stylistic/arrow-spacing': ['error', { before: true, after: true }],
+            '@stylistic/space-before-function-paren': ['error', { 'anonymous': 'never', 'named': 'never', 'asyncArrow': 'always', 'catch': 'always' }],
+            '@stylistic/key-spacing': ['error', { 'beforeColon': false, 'afterColon': true }],
+            '@stylistic/keyword-spacing': ['error', { 'before': true, 'after': true }],
+            '@stylistic/no-multiple-empty-lines': ['error', { max: 1, maxEOF: 0 }],
+            '@stylistic/comma-spacing': ['error', { 'before': false, 'after': true }],
+            '@stylistic/comma-dangle': ['error', 'always-multiline'],
+            '@stylistic/object-property-newline': ['error', { allowAllPropertiesOnSameLine: true }],
+            '@stylistic/dot-location': ['error', 'property'],
+            '@stylistic/space-infix-ops': ['error'],
+            'no-undef': 'error',
+            'custom/control-structure-spacing': 'error',
+            '@stylistic/no-trailing-spaces': 'error',
+
+        },
+        extends: ['js/recommended'],
+        plugins: {
+            js,
+            '@stylistic': stylistic,
+        },
+    },
+    {
+        files: ['**/*.{js,mjs,cjs}'],
+        ignores: [
+            'src/backend/**/*.{js,mjs,cjs}',
+            'extensions/**/*.{js,mjs,cjs}',
+        ],
+        languageOptions: { globals: globals.browser },
+        rules: {
+
+            'no-unused-vars': ['error', {
+                'vars': 'all',
+                'args': 'after-used',
+                'caughtErrors': 'all',
+                'ignoreRestSiblings': false,
+                'ignoreUsingDeclarations': false,
+                'reportUsedIgnorePattern': false,
+                'argsIgnorePattern': '^_',
+                'caughtErrorsIgnorePattern': '^_',
+                'destructuredArrayIgnorePattern': '^_',
+            }],
+            '@stylistic/curly-newline': ['error', 'always'],
+            '@stylistic/object-curly-spacing': ['error', 'always'],
+            '@stylistic/indent': ['error', 4, {
+                'CallExpression': { arguments: 4 },
+            }],
+            '@stylistic/indent-binary-ops': ['error', 4],
+            '@stylistic/array-bracket-newline': ['error', 'consistent'],
+            '@stylistic/semi': ['error', 'always'],
+            '@stylistic/quotes': ['error', 'single'],
+            '@stylistic/function-call-argument-newline': ['error', 'consistent'],
+            '@stylistic/arrow-spacing': ['error', { before: true, after: true }],
+            '@stylistic/space-before-function-paren': ['error', { 'anonymous': 'never', 'named': 'never', 'asyncArrow': 'always', 'catch': 'never' }],
+            '@stylistic/key-spacing': ['error', { 'beforeColon': false, 'afterColon': true }],
+            '@stylistic/keyword-spacing': ['error', { 'before': true, 'after': true }],
+            '@stylistic/no-multiple-empty-lines': ['error', { max: 1, maxEOF: 0 }],
+            '@stylistic/comma-spacing': ['error', { 'before': false, 'after': true }],
+            '@stylistic/comma-dangle': ['error', 'always-multiline'],
+            '@stylistic/object-property-newline': ['error', { allowAllPropertiesOnSameLine: true }],
+            '@stylistic/dot-location': ['error', 'property'],
+            '@stylistic/space-infix-ops': ['error'],
+            'no-template-curly-in-string': 'error',
+            'prefer-template': 'error',
+            'no-undef': 'error',
+            'no-useless-concat': 'error',
+            'template-curly-spacing': ['error', 'never'],
+            curly: ['error', 'multi-line'],
+            'custom/control-structure-spacing': 'error',
+            '@stylistic/no-trailing-spaces': 'error',
+        },
+    },
+    {
+        files: ['**/*.{js,mjs,cjs}'],
+        ignores: ['src/backend/**/*.{js,mjs,cjs}'],
+        languageOptions: { globals: globals.browser },
+        rules: {
+            'no-unused-vars': ['error', {
+                'vars': 'all',
+                'args': 'after-used',
+                'caughtErrors': 'all',
+                'ignoreRestSiblings': false,
+                'ignoreUsingDeclarations': false,
+                'reportUsedIgnorePattern': false,
+                'argsIgnorePattern': '^_',
+                'caughtErrorsIgnorePattern': '^_',
+                'destructuredArrayIgnorePattern': '^_',
+            }],
+            '@stylistic/curly-newline': ['error', 'always'],
+            '@stylistic/object-curly-spacing': ['error', 'always'],
+            '@stylistic/indent': ['error', 4, {
+                'CallExpression': { arguments: 4 },
+            }],
+            '@stylistic/indent-binary-ops': ['error', 4],
+            '@stylistic/array-bracket-newline': ['error', 'consistent'],
+            '@stylistic/semi': ['error', 'always'],
+            '@stylistic/quotes': ['error', 'single'],
+            '@stylistic/function-call-argument-newline': ['error', 'consistent'],
+            '@stylistic/arrow-spacing': ['error', { before: true, after: true }],
+            '@stylistic/space-before-function-paren': ['error', { 'anonymous': 'never', 'named': 'never', 'asyncArrow': 'always', 'catch': 'never' }],
+            '@stylistic/key-spacing': ['error', { 'beforeColon': false, 'afterColon': true }],
+            '@stylistic/keyword-spacing': ['error', { 'before': true, 'after': true }],
+            '@stylistic/no-multiple-empty-lines': ['error', { max: 1, maxEOF: 0 }],
+            '@stylistic/comma-spacing': ['error', { 'before': false, 'after': true }],
+            '@stylistic/comma-dangle': ['error', 'always-multiline'],
+            '@stylistic/object-property-newline': ['error', { allowAllPropertiesOnSameLine: true }],
+            '@stylistic/dot-location': ['error', 'property'],
+            '@stylistic/space-infix-ops': ['error'],
+            'no-template-curly-in-string': 'error',
+            'prefer-template': 'error',
+            'no-undef': 'error',
+            'no-useless-concat': 'error',
+            'template-curly-spacing': ['error', 'never'],
+            curly: ['error', 'multi-line'],
+            'custom/control-structure-spacing': 'error',
+            '@stylistic/no-trailing-spaces': 'error',
+        },
+        extends: ['js/recommended'],
+        plugins: {
+            js,
+            '@stylistic': stylistic,
+
+        },
+    },
+]);

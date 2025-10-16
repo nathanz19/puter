@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -28,7 +28,6 @@ const FSNodeParam = require('../../api/filesystem/FSNodeParam.js');
 module.exports = eggspress('/delete', {
     subdomain: 'api',
     auth2: true,
-    fs: true,
     json: true,
     allowedMethods: ['POST'],
 }, async (req, res, next) => {
@@ -52,7 +51,7 @@ module.exports = eggspress('/delete', {
     // TODO: remove this pseudo-batch
     for ( const item_path of paths ) {
         const target = await (new FSNodeParam('path')).consolidate({
-            req: { fs: req.fs, user },
+            req: { user },
             getParam: () => item_path,
         });
         const hl_remove = new HLRemove();

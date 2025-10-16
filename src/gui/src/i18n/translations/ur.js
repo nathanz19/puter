@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -167,10 +167,6 @@ const ur = {
     log_out: "لاگ آؤٹ",
     looks_good: "اچھا لگ رہا ہے!",
     manage_sessions: "سیشنز کا نظم کریں۔",
-    menubar_style: "مینو بار اسٹائل",
-    menubar_style_desktop: "ڈیسک ٹاپ",
-    menubar_style_system: "سسٹم",
-    menubar_style_window: "ونڈو",
     move: "منتقل کریں",
     moving_file: "منتقل ہو رہا ہے %%",
     my_websites: "میری ویب سائٹیں ",
@@ -231,6 +227,13 @@ const ur = {
     publish: "شائع کریں",
     publish_as_website: "ویب سائٹ کے طور پر شائع کریں",
     puter_description: `Puter ایک رازداری کا پہلا ذاتی کلاؤڈ ہے جو آپ کی تمام فائلوں، ایپس اور گیمز کو ایک محفوظ جگہ پر رکھتا ہے، کسی بھی وقت کہیں سے بھی قابل رسائی ہے۔`,
+    // ur (Urdu / اردو)
+    remove: "حذف کریں",
+    'account.avatar.removeButton': 'حذف کریں',
+    'account.avatar.removeConfirm': "کیا آپ واقعی اپنی پروفائل تصویر حذف کرنا چاہتے ہیں؟ اس سے آپ کا ڈیفالٹ اوتار بحال ہوگا۔",
+    'account.avatar.removedToast': 'پروفائل تصویر حذف کر دی گئی۔',
+    'confirm_remove_profile_picture': "کیا آپ واقعی اپنی پروفائل تصویر حذف کرنا چاہتے ہیں؟ اس سے آپ کا ڈیفالٹ اوتار بحال ہوگا۔",
+    'confirm_remove_profile_picture_title': 'پروفائل تصویر حذف کریں؟',
     reading_file: "پڑھنا %strong%",
     recent: "حال ہی میں",
     recommended: "تجویز کردہ",
@@ -407,6 +410,7 @@ const ur = {
     "billing.subscription_cancelled_description": "آپ کو اس بلنگ مدت کے اختتام تک اپنی سبسکرپشن تک رسائی حاصل رہے گی۔", // In English: "You will still have access to your subscription until the end of this billing period."
     "billing.offering.free": "مفت", // In English: "Free"
     "billing.offering.pro": "پروفیشنل", // In English: "Professional"
+    "billing.offering.professional": "پروفیشنل", // In English: "Professional"
     "billing.offering.business": "کاروبار", // In English: "Business"
     "billing.cloud_storage": "کلاؤڈ اسٹوریج", // In English: "Cloud Storage"
     "billing.ai_access": "اے آئی تک رسائی", // In English: "AI Access"
@@ -438,6 +442,83 @@ const ur = {
     "billing.expanded": "وسیع", // In English: "Expanded"
     "billing.accelerated": "تیز رفتار", // In English: "Accelerated"
     "billing.enjoy_msg": "کلاؤڈ اسٹوریج کے %% حصے کے ساتھ دیگر فوائد کا لطف اٹھائیں۔", // In English: "Enjoy %% of Cloud Storage plus other benefits."
+    "choose_publishing_option": "اپنی ویب سائٹ شائع کرنے کا طریقہ منتخب کریں:", // In English: "Choose how you want to publish your website:"
+    "create_desktop_shortcut": "شارٹ کٹ بنائیں (ڈیسک ٹاپ)", // In English: "Create Shortcut (Desktop)"
+    "create_desktop_shortcut_s": "شارٹ کٹس بنائیں (ڈیسک ٹاپ)", // In English: "Create Shortcuts (Desktop)"
+    "create_shortcut_s": "شارٹ کٹس بنائیں", // In English: "Create Shortcuts"
+    "minimize": "چھوٹا کریں", // In English: "Minimize"
+    "reload_app": "ایپ دوبارہ لوڈ کریں", // In English: "Reload App"
+    "new_window": "نیا ونڈو", // In English: "New Window"
+    "open_trash": "ری سائیکل بن کھولیں", // In English: "Open Trash"
+    "pick_name_for_worker": "اپنے ورکر کے لیے ایک نام منتخب کریں:", // In English: "Pick a name for your worker:"
+    "publish_as_serverless_worker": "ورکر کے طور پر شائع کریں", // In English: "Publish as Worker"
+    "toolbar.enter_fullscreen": "فل اسکرین پر جائیں", // In English: "Enter Full Screen"
+    "toolbar.github": "گیٹ ہب", // In English: "GitHub"
+    "toolbar.refer": "ریفر کریں", // In English: "Refer"
+    "toolbar.save_account": "اکاؤنٹ محفوظ کریں", // In English: "Save Account"
+    "toolbar.search": "تلاش کریں", // In English: "Search"
+    "toolbar.qrcode": "کیو آر کوڈ", // In English: "QR Code"
+    "used_of": "{{used}} استعمال شدہ از {{available}}", // In English: "{{used}} used of {{available}}"
+    "worker": "ورکر", // In English: "Worker"
+    "billing.offering.basic": "بنیادی", // In English: "Basic"
+    "too_many_attempts": "بہت زیادہ کوششیں۔ براہ کرم بعد میں دوبارہ کوشش کریں۔", // In English: "Too many attempts. Please try again later."
+    "server_timeout": "سرور کے جواب میں بہت زیادہ وقت لگ گیا۔ براہ کرم دوبارہ کوشش کریں۔", // In English: "The server took too long to respond. Please try again."
+    "signup_error": "سائن اپ کے دوران ایک خرابی پیش آئی۔ براہ کرم دوبارہ کوشش کریں۔", // In English: "An error occurred during signup. Please try again."
+    "welcome_title": "اپنے ذاتی انٹرنیٹ کمپیوٹر میں خوش آمدید", // In English: "Welcome to your Personal Internet Computer"
+    "welcome_description": "فائلیں محفوظ کریں، گیمز کھیلیں، زبردست ایپس تلاش کریں، اور بھی بہت کچھ! سب کچھ ایک ہی جگہ پر، ہر جگہ اور ہر وقت دستیاب۔", // In English: "Store files, play games, find awesome apps, and much more! All in one place, accessible from anywhere at any time."
+    "welcome_get_started": "شروع کریں", // In English: "Get Started"
+    "welcome_terms": "شرائط", // In English: "Terms"
+    "welcome_privacy": "رازداری", // In English: "Privacy"
+    "welcome_developers": "ڈیولپرز", // In English: "Developers"
+    "welcome_open_source": "اوپن سورس", // In English: "Open Source"
+    "welcome_instant_login_title": "فوری لاگ ان!", // In English: "Instant Login!"
+    "alert_error_title": "خرابی!", // In English: "Error!"
+    "alert_warning_title": "انتباہ!", // In English: "Warning!"
+    "alert_info_title": "معلومات", // In English: "Info"
+    "alert_success_title": "کامیابی!", // In English: "Success!"
+    "alert_confirm_title": "کیا آپ کو یقین ہے؟", // In English: "Are you sure?"
+    "alert_yes": "جی ہاں", // In English: "Yes"
+    "alert_no": "نہیں", // In English: "No"
+    "alert_retry": "دوبارہ کوشش کریں", // In English: "Retry"
+    "alert_cancel": "منسوخ کریں", // In English: "Cancel"
+    "signup_confirm_password": "پاس ورڈ کی تصدیق کریں", // In English: "Confirm Password"
+    "login_email_username_required": "ای میل یا صارف نام درکار ہے", // In English: "Email or username is required"
+    "login_password_required": "پاس ورڈ درکار ہے", // In English: "Password is required"
+    "window_title_open": "کھولیں", // In English: "Open"
+    "window_title_change_password": "پاس ورڈ تبدیل کریں", // In English: "Change Password"
+    "window_title_select_font": "فونٹ منتخب کریں…", // In English: "Select font…"
+    "window_title_session_list": "سیشن فہرست!", // In English: "Session List!"
+    "window_title_set_new_password": "نیا پاس ورڈ سیٹ کریں", // In English: "Set New Password"
+    "window_title_instant_login": "فوری لاگ ان!", // In English: "Instant Login!"
+    "window_title_publish_website": "ویب سائٹ شائع کریں", // In English: "Publish Website"
+    "window_title_publish_worker": "ورکر شائع کریں", // In English: "Publish Worker"
+    "window_title_authenticating": "تصدیق جاری ہے...", // In English: "Authenticating..."
+    "window_title_refer_friend": "کسی دوست کو ریفر کریں!", // In English: "Refer a friend!"
+    "desktop_show_desktop": "ڈیسک ٹاپ دکھائیں", // In English: "Show Desktop"
+    "desktop_show_open_windows": "کھلی ہوئی ونڈوز دکھائیں", // In English: "Show Open Windows"
+    "desktop_exit_full_screen": "فل اسکرین سے باہر نکلیں", // In English: "Exit Full Screen"
+    "desktop_enter_full_screen": "فل اسکرین پر جائیں", // In English: "Enter Full Screen"
+    "desktop_position": "پوزیشن", // In English: "Position"
+    "desktop_position_left": "بائیں", // In English: "Left"
+    "desktop_position_bottom": "نیچے", // In English: "Bottom"
+    "desktop_position_right": "دائیں", // In English: "Right"
+    "item_shared_with_you": "کسی صارف نے یہ آئٹم آپ کے ساتھ شیئر کیا ہے۔", // In English: "A user has shared this item with you."
+    "item_shared_by_you": "آپ نے یہ آئٹم کم از کم ایک دوسرے صارف کے ساتھ شیئر کیا ہے۔", // In English: "You have shared this item with at least one other user."
+    "item_shortcut": "شارٹ کٹ", // In English: "Shortcut"
+    "item_associated_websites": "وابستہ ویب سائٹ", // In English: "Associated website"
+    "item_associated_websites_plural": "وابستہ ویب سائٹس", // In English: "Associated websites"
+    "no_suitable_apps_found": "کوئی موزوں ایپ نہیں ملی", // In English: "No suitable apps found"
+    "window_click_to_go_back": "واپس جانے کے لیے کلک کریں۔", // In English: "Click to go back."
+    "window_click_to_go_forward": "آگے جانے کے لیے کلک کریں۔", // In English: "Click to go forward."
+    "window_click_to_go_up": "ایک ڈائریکٹری اوپر جانے کے لیے کلک کریں۔", // In English: "Click to go one directory up."
+    "window_title_public": "عوامی", // In English: "Public"
+    "window_title_videos": "ویڈیوز", // In English: "Videos"
+    "window_title_pictures": "تصاویر", // In English: "Pictures"
+    "window_title_puter": "پیوٹر", // In English: "Puter"
+    "window_folder_empty": "یہ فولڈر خالی ہے", // In English: "This folder is empty"
+    "manage_your_subdomains": "اپنے سب ڈومینز کو منظم کریں", // In English: "Manage Your Subdomains"
+    "open_containing_folder": "موجودہ فولڈر کھولیں" // In English: "Open Containing Folder"
+
 
   },
 };

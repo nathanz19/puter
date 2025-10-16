@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -31,32 +31,40 @@ import RecoveryCodeEntryView from './Components/RecoveryCodeEntryView.js';
 
 async function UIWindowLogin(options){
     options = options ?? {};
-    options.reload_on_success = options.reload_on_success ?? false;
-    options.has_head = options.has_head ?? true;
-    options.send_confirmation_code = options.send_confirmation_code ?? false;
-    options.show_password = options.show_password ?? false;
-
+    
+    if(options.reload_on_success === undefined)
+        options.reload_on_success = true;
+    
     return new Promise(async (resolve) => {
         const internal_id = window.uuidv4();
+        
         let h = ``;
-        h += `<div style="max-width: 500px; min-width: 340px;">`;
-            if(!options.has_head && options.show_close_button !== false)
-                h += `<div class="generic-close-window-button"> &times; </div>`;
-            h += `<div style="padding: 20px; border-bottom: 1px solid #ced7e1; width: 100%; box-sizing: border-box;">`;
-                // title
-                h += `<h1 class="login-form-title">${i18n('log_in')}</h1>`;
-                // login form
-                h += `<form class="login-form">`;
-                    // error msg
-                    h += `<div class="login-error-msg"></div>`;
-                    // username/email
-                    h += `<div style="overflow: hidden;">`;
-                        h += `<label for="email_or_username-${internal_id}">${i18n('email_or_username')}</label>`;
-                        h += `<input id="email_or_username-${internal_id}" class="email_or_username" type="text" name="email_or_username" spellcheck="false" autocorrect="off" autocapitalize="off" data-gramm_editor="false" autocomplete="username"/>`;
+        h += `<div style="max-width:100%; width:100%; height:100%; min-height:0; box-sizing:border-box; display:flex; flex-direction:column; justify-content:flex-start; align-items:stretch; padding:0; overflow:auto; color:var(--color-text);">`;
+            // logo
+            h += `<div class="logo-wrapper" style="display:flex; justify-content:center; padding:20px 20px 0 20px; margin-bottom: 0;">`;
+                h += `<img src="${window.icons['logo-white.svg']}" style="width: 40px; height: 40px; margin: 0 auto; display: block; padding: 15px; background-color: blue; border-radius: 5px;">`;
+            h += `</div>`;
+            // title
+            h += `<div style="padding:10px 20px; text-align:center; margin-bottom:0;">`;
+                h += `<h1 style="font-size:18px; margin-bottom:0;">${i18n('log_in')}</h1>`;
+            h += `</div>`;
+            // form
+            h += `<div style="padding:20px; overflow-y:auto; overflow-x:hidden;">`;
+                h += `<form class="login-form" style="width:100%;">`;
+                    // server messages
+                    h += `<div class="login-error-msg" style="color:#e74c3c; display:none; margin-bottom:10px; line-height:15px; font-size:13px;"></div>`;
+                    // email or username
+                    h += `<div style="position: relative; margin-bottom: 20px;">`;
+                    h += `<label style="display:block; margin-bottom:5px;">${i18n('email_or_username')}</label>`;
+                    if(options.email_or_username){
+                        h += `<input type="text" class="email_or_username" value="${options.email_or_username}" autocomplete="username"/>`;
+                    }else{
+                        h += `<input type="text" class="email_or_username" autocomplete="username"/>`;
+                    }
                     h += `</div>`;
-                    // password with conditional type based based on options.show_password
-                    h += `<div style="overflow: hidden; margin-top: 20px; margin-bottom: 20px; position: relative;">`;
-                    h += `<label for="password-${internal_id}">${i18n('password')}</label>`;
+                    // password
+                    h += `<div style="position: relative; margin-bottom: 20px;">`;
+                    h += `<label style="display:block; margin-bottom:5px;">${i18n('password')}</label>`;
                     h += `<input id="password-${internal_id}" class="password" type="${options.show_password ? "text" : "password"}" name="password" autocomplete="current-password"/>`;
                     // show/hide icon
                     h += `<span style="position: absolute; right: 5%; top: 50%; cursor: pointer;" id="toggle-show-password-${internal_id}">
@@ -64,12 +72,15 @@ async function UIWindowLogin(options){
                             </span>`;
                     h += `</div>`;
                     // login
-                    h += `<button class="login-btn button button-primary button-block button-normal">${i18n('log_in')}</button>`;
+                    h += `<button type="submit" class="login-btn button button-primary button-block button-normal">${i18n('log_in')}</button>`;
                     // password recovery
                     h += `<p style="text-align:center; margin-bottom: 0;"><span class="forgot-password-link">${i18n('forgot_pass_c2a')}</span></p>`;
                 h += `</form>`;
             h += `</div>`;
             // create account link
+            
+            // If show_signup_button is undefined, the default behavior is to show it.
+            // If show_signup_button is set to false, the button will not be shown.
             if(options.show_signup_button === undefined || options.show_signup_button){
                 h += `<div class="c2a-wrapper" style="padding:20px;">`;
                     h += `<button class="signup-c2a-clickable">${i18n('create_free_account')}</button>`;
@@ -131,36 +142,58 @@ async function UIWindowLogin(options){
         })
 
         $(el_window).find('.login-btn').on('click', function(e){
+            // Prevent default button behavior (important for async requests)
+            e.preventDefault();
+            
+            // Clear previous error states
+            $(el_window).find('.login-error-msg').hide();
+
             const email_username = $(el_window).find('.email_or_username').val();
             const password = $(el_window).find('.password').val();
+            
+            // Basic validation for email/username and password
+            if(!email_username) {
+                $(el_window).find('.login-error-msg').html(i18n('login_email_username_required'));
+                $(el_window).find('.login-error-msg').fadeIn();
+                return;
+            }
+            
+            if(!password) {
+                $(el_window).find('.login-error-msg').html(i18n('login_password_required'));
+                $(el_window).find('.login-error-msg').fadeIn();
+                return;
+            }
+            
+            // Prepare data for the request
             let data;
-        
             if(window.is_email(email_username)){
                 data = JSON.stringify({ 
                     email: email_username, 
-                    password: password
-                })
-            }else{
+                    password: password,
+                });
+            } else {
                 data = JSON.stringify({ 
                     username: email_username, 
-                    password: password
-                })
+                    password: password,
+                });
             }
-        
-            $(el_window).find('.login-error-msg').hide();
         
             let headers = {};
             if(window.custom_headers)
                 headers = window.custom_headers;
     
+            // Disable the login button to prevent multiple submissions
+            $(el_window).find('.login-btn').prop('disabled', true);
+    
             $.ajax({
                 url: window.gui_origin + "/login",
                 type: 'POST',
-                async: false,
+                async: true,
                 headers: headers,
                 contentType: "application/json",
                 data: data,				
                 success: async function (data){
+                    // Keep the button disabled on success since we're redirecting or closing
                     let p = Promise.resolve();
                     if ( data.next_step === 'otp' ) {
                         p = new TeePromise();
@@ -217,7 +250,6 @@ async function UIWindowLogin(options){
                                             p.resolve();
                                         } catch (e) {
                                             // keeping this log; useful in screenshots
-                                            console.log('2FA Login Error', e);
                                             component.set('error', i18n(error_i18n_key));
                                             component.set('is_checking_code', false);
                                         }
@@ -284,7 +316,6 @@ async function UIWindowLogin(options){
                                             p.resolve();
                                         } catch (e) {
                                             // keeping this log; useful in screenshots
-                                            console.log('2FA Recovery Error', e);
                                             component.set('error', i18n(error_i18n_key));
                                         }
                                     }
@@ -327,15 +358,49 @@ async function UIWindowLogin(options){
                     await p;
 
                     window.update_auth_data(data.token, data.user);
-                    
+
                     if(options.reload_on_success){
+                        sessionStorage.setItem('playChimeNextUpdate', 'yes');
                         window.onbeforeunload = null;
-                        window.location.replace('/');
+                        // Replace with a clean URL to prevent password leakage
+                        const cleanUrl = window.location.origin + window.location.pathname;
+                        window.location.replace(cleanUrl);
                     }else
                         resolve(true);
                     $(el_window).close();
                 },
-                error: function (err){
+                error: function (err){                    
+                    // First, ensure URL is clean in case of error (prevent password leakage)
+                    if (window.location.search && (
+                        window.location.search.includes('password=') || 
+                        window.location.search.includes('username=') || 
+                        window.location.search.includes('email=')
+                    )) {
+                        const cleanUrl = window.location.origin + window.location.pathname;
+                        history.replaceState({}, document.title, cleanUrl);
+                    }
+                    
+                    // Enable 'Log In' button
+                    $(el_window).find('.login-btn').prop('disabled', false);
+                    
+                    // Handle captcha-specific errors
+                    const errorText = err.responseText || '';
+                    
+                    // Try to parse error as JSON
+                    try {
+                        const errorJson = JSON.parse(errorText);
+                        
+                        // If it's a message in the JSON, use that
+                        if (errorJson.message) {
+                            $(el_window).find('.login-error-msg').html(errorJson.message);
+                            $(el_window).find('.login-error-msg').fadeIn();
+                            return;
+                        }
+                    } catch (e) {
+                        // Not JSON, continue with text analysis
+                    }
+                    
+                    // Fall back to original error handling
                     const $errorMessage = $(el_window).find('.login-error-msg');
                     if (err.status === 404) {
                         // Don't include the whole 404 page
@@ -368,6 +433,27 @@ async function UIWindowLogin(options){
         $(el_window).find('.login-form').on('submit', function(e){
             e.preventDefault();
             e.stopPropagation();
+            
+            // Instead of triggering the click event, process the login directly
+            const email_username = $(el_window).find('.email_or_username').val();
+            const password = $(el_window).find('.password').val();
+            
+            // Basic validation
+            if(!email_username) {
+                $(el_window).find('.login-error-msg').html(i18n('email_or_username_required') || 'Email or username is required');
+                $(el_window).find('.login-error-msg').fadeIn();
+                return false;
+            }
+            
+            if(!password) {
+                $(el_window).find('.login-error-msg').html(i18n('password_required') || 'Password is required');
+                $(el_window).find('.login-error-msg').fadeIn();
+                return false;
+            }
+            
+            // Process login using the same function as the button click
+            $(el_window).find('.login-btn').click();
+            
             return false;
         })
 

@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"claude"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -23,10 +23,9 @@ import { simpleGit } from 'simple-git';
 const REPO_URL = 'https://github.com/HeyPuter/puter';
 
 const params = {
-    from: 'v2.4.1',
-    // from: 'v2.4.0',
-    to: 'v2.4.2',
-    date: '2024-07-22',
+    from: 'v2.5.0',
+    to: 'v2.5.1',
+    date: '2025-02-13',
 };
 
 const git = simpleGit();
@@ -69,14 +68,29 @@ const scopes = {
     backend: {
         label: 'Backend'
     },
+    api: {
+        label: 'API',
+    },
     gui: {
         label: 'GUI'
+    },
+    puterjs: {
+        label: 'Puter JS'
     },
     tools: {
         ignore: true,
     },
     security: {
         label: 'Security',
+    },
+    ai: {
+        label: 'AI',
+    },
+    putility: {
+        label: 'Putility',
+    },
+    docker: {
+        label: 'Docker',
     },
 };
 
@@ -92,8 +106,27 @@ const complicated_cases = [
     * @type {Array<function>}
     */
     function fix_i18n ({ commit, meta }) {
-        if ( meta.type === 'fix' && meta.scope === 'i18n' ) {
+        if ( meta.scope === 'i18n' ) {
             meta.type = 'i18n';
+            meta.scope = undefined;
+        }
+    },
+    function deps_scope ({ commit, meta }) {
+        if ( meta.scope === 'deps' ) {
+            meta.type = 'chore';
+            meta.scope = undefined;
+        }
+    },
+    function puterai_is_ai ({ commit, meta }) {
+        const ai_scopes = ['puterai', 'puerai', 'puter-ai'];
+        if ( ai_scopes.includes(meta.scope) ) {
+            meta.scope = 'ai';
+        }
+    },
+    function doc_scopes ({ commit, meta }) {
+        const doc_scopes = ['readme'];
+        if ( doc_scopes.includes(meta.scope) ) {
+            meta.type = 'doc';
             meta.scope = undefined;
         }
     }

@@ -1,3 +1,22 @@
+/*
+ * Copyright (C) 2024-present Puter Technologies Inc.
+ * 
+ * This file is part of Puter.
+ * 
+ * Puter is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 // METADATA // {"ai-commented":{"service":"claude"}}
 const { can } = require("../util/langutil");
 const BaseService = require("./BaseService");
@@ -76,17 +95,17 @@ class CleanEmailService extends BaseService {
         this.domain_nondistinct = this.constructor.DOMAIN_NONDISTINCT;
     }
 
+    /**
+    * Cleans an email address by applying provider-specific rules and standardizations
+    * @param {string} email - The email address to clean
+    * @returns {string} The cleaned email address with applied rules and standardizations
+    * 
+    * Splits email into local and domain parts, applies provider-specific rules like:
+    * - Removing dots for certain providers (Gmail, iCloud)
+    * - Handling subaddressing (removing +suffix)
+    * - Normalizing domains (e.g. googlemail.com -> gmail.com)
+    */
     clean (email) {
-        /**
-        * Cleans an email address by applying provider-specific rules and standardizations
-        * @param {string} email - The email address to clean
-        * @returns {string} The cleaned email address with applied rules and standardizations
-        * 
-        * Splits email into local and domain parts, applies provider-specific rules like:
-        * - Removing dots for certain providers (Gmail, iCloud)
-        * - Handling subaddressing (removing +suffix)
-        * - Normalizing domains (e.g. googlemail.com -> gmail.com)
-        */
         const eml = (() => {
             const [local, domain] = email.split('@');
             return { local, domain };

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -26,11 +26,11 @@ const StringParam = require('../../api/filesystem/StringParam');
 const FlagParam = require("../../api/filesystem/FlagParam");
 const UserParam = require('../../api/filesystem/UserParam');
 const FSNodeContext = require('../FSNodeContext');
-const { ContextAwareFeature } = require('../../traits/ContextAwareFeature');
 const { OtelFeature } = require('../../traits/OtelFeature');
 const { HLFilesystemOperation } = require('./definitions');
 const { is_valid_path } = require('../validation');
 const { HLRemove } = require('./hl_remove');
+const { LLMkdir } = require('../ll_operations/ll_mkdir');
 
 class MkTree extends HLFilesystemOperation {
     static DESCRIPTION = `
@@ -142,7 +142,8 @@ class MkTree extends HLFilesystemOperation {
             const currentParent = current;
             current = new NodeChildSelector(current, dir);
 
-            const node = await fs.mkdir_2({
+            const ll_mkdir = new LLMkdir();
+            const node = await ll_mkdir.run({
                 parent: await fs.node(currentParent),
                 name: current.name,
                 actor,
@@ -201,7 +202,8 @@ class QuickMkdir extends HLFilesystemOperation {
             const currentParent = current;
             current = new NodeChildSelector(current, dir);
 
-            const node = await fs.mkdir_2({
+            const ll_mkdir = new LLMkdir();
+            const node = await ll_mkdir.run({
                 parent: await fs.node(currentParent),
                 name: current.name,
                 actor,
@@ -269,14 +271,33 @@ class HLMkdir extends HLFilesystemOperation {
             });
         }
 
+        // Unify the following formats:
+        // - full path: {"path":"/foo/bar", args...}, used by apitest (./tools/api-tester/apitest.js)
+        // - parent + path: {"parent": "/foo", "path":"bar", args...}, used by puter-js (puter.fs.mkdir("/foo/bar"))
+        if ( !values.parent && values.path ) {
+            values.parent = await fs.node(new NodePathSelector(_path.dirname(values.path)));
+            values.path = _path.basename(values.path);
+        }
+
         let parent_node = values.parent || await fs.node(new RootNodeSelector());
         console.log('USING PARENT', parent_node.selector.describe());
+
         let target_basename = _path.basename(values.path);
 
+        // "top_parent" is the immediate parent of the target directory
+        // (e.g: /home/foo/bar -> /home/foo)
         const top_parent = values.create_missing_parents
-            ? await this._create_top_parent({ top_parent: parent_node })
+            ? await this._create_dir(parent_node)
             : await this._get_existing_top_parent({ top_parent: parent_node })
             ;
+
+        // TODO: this can be removed upon completion of: https://github.com/HeyPuter/puter/issues/1352
+        if ( top_parent.isRoot ) {
+            // root directory is read-only
+            throw APIError.create('forbidden', null, {
+                message: 'Cannot create directories in the root directory.'
+            });
+        }
 
         // `parent_node` becomes the parent of the last directory name
         // specified under `path`.
@@ -310,12 +331,14 @@ class HLMkdir extends HLFilesystemOperation {
                 });
             }
             else if ( dedupe_name ) {
-                const fsEntryFetcher = context.get('services').get('fsEntryFetcher');
+                const fs = context.get('services').get('filesystem');
+                const parent_selector = parent_node.selector;
                 for ( let i=1 ;; i++ ) {
                     let try_new_name = `${target_basename} (${i})`;
-                    const exists = await fsEntryFetcher.nameExistsUnderParent(
-                        existing.entry.parent_uid, try_new_name
-                    );
+                    const selector = new NodeChildSelector(parent_selector, try_new_name);
+                    const exists = await parent_node.provider.quick_check({
+                        selector,
+                    });
                     if ( ! exists ) {
                         target_basename = try_new_name;
                         break;
@@ -328,7 +351,7 @@ class HLMkdir extends HLFilesystemOperation {
                 }
                 this.created = existing;
                 this.used_existing = true;
-                return {};
+                return await this.created.getSafeEntry();
             } else {
                 throw APIError.create('item_with_same_name_exists', null, {
                     entry_name: target_basename,
@@ -358,7 +381,8 @@ class HLMkdir extends HLFilesystemOperation {
             return await this.created.getSafeEntry();
         }
 
-        this.created = await fs.mkdir_2({
+        const ll_mkdir = new LLMkdir();
+        this.created = await ll_mkdir.run({
             parent: parent_node,
             name: target_basename,
             actor: values.actor,
@@ -382,13 +406,35 @@ class HLMkdir extends HLFilesystemOperation {
     }
 
     async _create_parents ({ parent_node }) {
-        const { values } = this;
+        const { context, values } = this;
         const { _path } = this.modules;
+
+        const fs = context.get('services').get('filesystem');
+
+        // Determine the deepest existing node
+        let deepest_existing = parent_node;
+        let remaining_path  = _path.dirname(values.path).split('/').filter(Boolean);
+        {
+            const parts = remaining_path.slice();
+            for (;;) {
+                if ( remaining_path.length === 0 ) {
+                    return deepest_existing;
+                }
+                const component = remaining_path[0];
+                const next_selector = new NodeChildSelector(deepest_existing.selector, component);
+                const next_node = await fs.node(next_selector);
+                if ( ! await next_node.exists() ) {
+                    break;
+                }
+                deepest_existing = next_node;
+                remaining_path.shift();
+            }
+        }
 
         const tree_op = new MkTree();
         await tree_op.run({
-            parent: parent_node,
-            tree: [_path.dirname(values.path)],
+            parent: deepest_existing,
+            tree: [remaining_path.join('/')],
         });
 
         this.parent_directories_created = tree_op.directories_created;
@@ -424,16 +470,24 @@ class HLMkdir extends HLFilesystemOperation {
         return node;
     }
 
-    async _create_top_parent ({ top_parent }) {
-        if ( await top_parent.exists() ) {
-            if ( ! top_parent.entry.is_dir ) {
+    /**
+     * Creates a directory and all its ancestors.
+     *
+     * @param {FSNodeContext} dir - The directory to create.
+     * @returns {Promise<FSNodeContext>} The created directory.
+     */
+    async _create_dir (dir) {
+        console.log('CREATING DIR', dir.selector.describe());
+
+        if ( await dir.exists() ) {
+            if ( ! dir.entry.is_dir ) {
                 throw APIError.create('dest_is_not_a_directory');
             }
-            return top_parent;
+            return dir;
         }
 
         const maybe_path_selector =
-            top_parent.get_selector_of_type(NodePathSelector);
+            dir.get_selector_of_type(NodePathSelector);
 
         if ( ! maybe_path_selector ) {
             throw APIError.create('dest_does_not_exist');

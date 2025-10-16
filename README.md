@@ -3,22 +3,22 @@
 <h3 align="center">The Internet OS! Free, Open-Source, and Self-Hostable.</h3>
 
 <p align="center">
-    <img alt="test" src="https://github.com/heyPuter/puter/actions/workflows/test.yml/badge.svg">
-    <img alt="GitHub repo size" src="https://img.shields.io/github/repo-size/HeyPuter/puter"> <img alt="GitHub Release" src="https://img.shields.io/github/v/release/HeyPuter/puter?label=latest%20version"> <img alt="GitHub License" src="https://img.shields.io/github/license/HeyPuter/puter">
-</p>
-<p align="center">
     <a href="https://puter.com/?ref=github.com"><strong>« LIVE DEMO »</strong></a>
     <br />
     <br />
     <a href="https://puter.com/?ref=github.com">Puter.com</a>
     ·
-    <a href="https://docs.puter.com" target="_blank">SDK</a>
+    <a href="https://puter.com/app/app-center">App Store</a>
+    ·
+    <a href="https://developer.puter.com" target="_blank">Developers</a>
+    ·
+    <a href="https://github.com/heyputer/puter-cli" target="_blank">CLI</a>
     ·
     <a href="https://discord.com/invite/PQcx7Teh8u">Discord</a>
     ·
     <a href="https://reddit.com/r/puter">Reddit</a>
     ·
-    <a href="https://twitter.com/HeyPuter">X (Twitter)</a>
+    <a href="https://twitter.com/HeyPuter">X</a>
 </p>
 
 <h3 align="center"><img width="800" style="border-radius:5px;" alt="screenshot" src="https://assets.puter.site/puter.com-screenshot-3.webp"></h3>
@@ -47,10 +47,12 @@ cd puter
 npm install
 npm start
 ```
+**→** This should launch Puter at 
+<font color="red"> http://puter.localhost:4100 (or the next available port). </font>
 
-This will launch Puter at http://puter.localhost:4100 (or the next available port).
 
-If this does not work, see [First Run Issues](./doc/first-run-issues.md) for
+
+If this does not work, see [First Run Issues](./doc/self-hosters/first-run-issues.md) for
 troubleshooting steps.
 
 <br/>
@@ -60,6 +62,8 @@ troubleshooting steps.
 ```bash
 mkdir puter && cd puter && mkdir -p puter/config puter/data && sudo chown -R 1000:1000 puter && docker run --rm -p 4100:4100 -v `pwd`/puter/config:/etc/puter -v `pwd`/puter/data:/var/puter  ghcr.io/heyputer/puter
 ```
+**→** This should launch Puter at 
+<font color="red"> http://puter.localhost:4100 (or the next available port). </font>
 
 <br/>
 
@@ -73,6 +77,8 @@ sudo chown -R 1000:1000 puter
 wget https://raw.githubusercontent.com/HeyPuter/puter/main/docker-compose.yml
 docker compose up
 ```
+**→** This should be available at 
+<font color="red"> http://puter.localhost:4100 (or the next available port). </font>
 
 <br/>
 
@@ -86,6 +92,8 @@ New-Item -Path "puter\data" -ItemType Directory -Force
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/HeyPuter/puter/main/docker-compose.yml" -OutFile "docker-compose.yml"
 docker compose up
 ```
+**→** This should launch Puter at 
+<font color="red"> http://puter.localhost:4100 (or the next available port). </font>
 
 <br/>
 
@@ -106,7 +114,7 @@ Puter is available as a hosted service at [**puter.com**](https://puter.com).
 - **Operating Systems:** Linux, macOS, Windows
 - **RAM:** 2GB minimum (4GB recommended)
 - **Disk Space:** 1GB free space
-- **Node.js:** Version 16+ (Version 22+ recommended)
+- **Node.js:** Version 20.19.5+ (Version 23+ recommended)
 - **npm:** Latest stable version
 
 <br/>
@@ -152,6 +160,7 @@ This repository, including all its contents, sub-projects, modules, and componen
 - [Italian / Italiano](https://github.com/HeyPuter/puter/blob/main/doc/i18n/README.it.md)
 - [Japanese / 日本語](https://github.com/HeyPuter/puter/blob/main/doc/i18n/README.jp.md)
 - [Korean / 한국어](https://github.com/HeyPuter/puter/blob/main/doc/i18n/README.ko.md)
+- [Malay / Bahasa Malaysia](https://github.com/HeyPuter/puter/blob/main/doc/i18n/README.my.md)
 - [Malayalam / മലയാളം](https://github.com/HeyPuter/puter/blob/main/doc/i18n/README.ml.md)
 - [Polish / Polski](https://github.com/HeyPuter/puter/blob/main/doc/i18n/README.pl.md)
 - [Portuguese / Português](https://github.com/HeyPuter/puter/blob/main/doc/i18n/README.pt.md)

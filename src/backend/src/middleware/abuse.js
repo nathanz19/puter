@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -17,9 +17,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 const APIError = require("../api/APIError");
+const config = require("../config");
 const { Context } = require("../util/context");
 
 const abuse = options => (req, res, next) => {
+    if ( config.disable_abuse_checks ) {
+        next(); return;
+    }
+
     const requester = Context.get('requester');
 
     if ( options.no_bots ) {

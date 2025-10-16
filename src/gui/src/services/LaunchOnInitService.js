@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -34,7 +34,6 @@ export class LaunchOnInitService extends Service {
 
         if ( launch_options.on_initialized ) {
             for ( const command of launch_options.on_initialized ) {
-                console.log('running', command)
                 this.run_(command);
             }
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -18,8 +18,7 @@
  */
 const { permission } = require("process");
 const { Sequence } = require("../../codex/Sequence");
-const { get_user } = require("../../helpers");
-const { Actor, UserActorType } = require("../../services/auth/Actor");
+const { UserActorType } = require("../../services/auth/Actor");
 const { PERMISSION_SCANNERS } = require("../../unstructured/permission-scanners");
 
 module.exports = new Sequence([
@@ -75,6 +74,42 @@ module.exports = new Sequence([
             }
         }
         a.set('permission_options', permission_options.flat());
+    },
+    async function handle_shortcuts (a) {
+        const reading = a.get('reading');
+        const { actor, permission_options } = a.values();
+        
+        const _permission_implicators = a.iget('_permission_implicators');
+
+        for ( const permission of permission_options )
+        for ( const implicator of _permission_implicators ) {
+            if ( ! implicator.options?.shortcut ) continue;
+            
+            // TODO: is it possible to DRY this with concurrent implicators in permission-scanners.js?
+            if ( ! implicator.matches(permission) ) {
+                continue;
+            }
+            const implied = await implicator.check({
+                actor,
+                permission,
+            });
+            if ( implied ) {
+                reading.push({
+                    $: 'option',
+                    permission,
+                    source: 'implied',
+                    by: implicator.id,
+                    data: implied,
+                    ...((!!actor.type.user)
+                        ? { holder_username: actor.type.user.username }
+                        : {}),
+                });
+                if ( implicator.options?.shortcut ) {
+                    a.stop();
+                    return;
+                }
+            }
+        }
     },
     async function run_scanners (a) {
         const scanners = PERMISSION_SCANNERS;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -53,6 +53,7 @@ let _handle_multipart;
 module.exports = eggspress('/drivers/call', {
     subdomain: 'api',
     auth2: true,
+    // noReallyItsJson: true,
     allowedMethods: ['POST'],
 }, async (req, res, next) => {
     const x = Context.get();

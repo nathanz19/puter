@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -117,6 +117,16 @@ async function UIWindowSettings(options){
                 tab_placeholders[i].replaceWith(tab.dom);
             }
         });
+
+        // If options.tab is provided, open that tab
+        if (options.tab) {
+            const $tabToOpen = $el_window.find(`.settings-sidebar-item[data-settings="${options.tab}"]`);
+            if ($tabToOpen.length > 0) {
+                setTimeout(() => {
+                    $tabToOpen.trigger('click');
+                }, 50);
+            }
+        }
 
         $(el_window).on('click', '.settings-sidebar-item', function(){
             const $this = $(this);

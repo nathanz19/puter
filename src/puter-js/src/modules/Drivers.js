@@ -31,34 +31,73 @@ class FetchDriverCallBackend {
     }
     
     async call ({ driver, method_name, parameters }) {
-        const resp = await fetch(`${this.context.APIOrigin}/drivers/call`, {
-            headers: {
-                Authorization: `Bearer ${this.context.authToken}`,
-                'Content-Type': 'application/json',
-            },
-            method: 'POST',
-            body: JSON.stringify({
-                'interface': driver.iface_name,
-                ...(driver.service_name
-                    ? { service: driver.service_name }
-                    : {}),
-                method: method_name,
-                args: parameters,
-            }),
-        });
-        
-        const content_type = resp.headers.get('content-type')
-            .split(';')[0].trim(); // TODO: parser for Content-Type
-        const handler = this.response_handlers[content_type];
-        if ( ! handler ) {
-            const msg = `unrecognized content type: ${content_type}`;
-            console.error(msg);
-            console.error('creating blob so dev tools shows response...');
-            await resp.blob();
-            throw new Error(msg);
+        try {
+            const resp = await fetch(`${this.context.APIOrigin}/drivers/call`, {
+                headers: {
+                    'Content-Type': 'text/plain;actually=json',
+                },
+                method: 'POST',
+                body: JSON.stringify({
+                    'interface': driver.iface_name,
+                    ...(driver.service_name
+                        ? { service: driver.service_name }
+                        : {}),
+                    method: method_name,
+                    args: parameters,
+                    auth_token: this.context.authToken
+                }),
+            });
+            
+            const content_type = resp.headers.get('content-type')
+                .split(';')[0].trim(); // TODO: parser for Content-Type
+            const handler = this.response_handlers[content_type];
+            if ( ! handler ) {
+                const msg = `unrecognized content type: ${content_type}`;
+                console.error(msg);
+                console.error('creating blob so dev tools shows response...');
+                await resp.blob();
+                
+                // Log the error
+                if (globalThis.puter?.apiCallLogger?.isEnabled()) {
+                    globalThis.puter.apiCallLogger.logRequest({
+                        service: 'drivers',
+                        operation: `${driver.iface_name}::${method_name}`,
+                        params: { interface: driver.iface_name, driver: driver.service_name || driver.iface_name, method: method_name, args: parameters },
+                        error: { message: msg }
+                    });
+                }
+                
+                throw new Error(msg);
+            }
+            
+            const result = await handler(resp);
+            
+            // Log the successful response
+            if (globalThis.puter?.apiCallLogger?.isEnabled()) {
+                globalThis.puter.apiCallLogger.logRequest({
+                    service: 'drivers',
+                    operation: `${driver.iface_name}::${method_name}`,
+                    params: { interface: driver.iface_name, driver: driver.service_name || driver.iface_name, method: method_name, args: parameters },
+                    result: result
+                });
+            }
+            
+            return result;
+        } catch (error) {
+            // Log unexpected errors
+            if (globalThis.puter?.apiCallLogger?.isEnabled()) {
+                globalThis.puter.apiCallLogger.logRequest({
+                    service: 'drivers',
+                    operation: `${driver.iface_name}::${method_name}`,
+                    params: { interface: driver.iface_name, driver: driver.service_name || driver.iface_name, method: method_name, args: parameters },
+                    error: {
+                        message: error.message || error.toString(),
+                        stack: error.stack
+                    }
+                });
+            }
+            throw error;
         }
-        
-        return await handler(resp);
     }
 }
 
@@ -109,6 +148,10 @@ class Drivers {
             get: () => this.APIOrigin,
         });
     }
+    
+    _init ({ puter }) {
+        puter.call = this.call.bind(this);
+    }
 
     /**
      * Sets a new authentication token and resets the socket connection with the updated token, if applicable.
@@ -133,36 +176,99 @@ class Drivers {
     }
     
     async list () {
-        const resp = await fetch(`${this.APIOrigin}/lsmod`, {
-            headers: {
-                Authorization: 'Bearer ' + this.authToken,
-            },
-            method: 'POST'
-        });
-        const list = await resp.json();
-        return list.interfaces;
+        try {
+            const resp = await fetch(`${this.APIOrigin}/lsmod`, {
+                headers: {
+                    Authorization: 'Bearer ' + this.authToken,
+                },
+                method: 'POST'
+            });
+            
+            const list = await resp.json();
+            
+            // Log the response
+            if (globalThis.puter?.apiCallLogger?.isEnabled()) {
+                globalThis.puter.apiCallLogger.logRequest({
+                    service: 'drivers',
+                    operation: 'list',
+                    params: {},
+                    result: list.interfaces
+                });
+            }
+            
+            return list.interfaces;
+        } catch (error) {
+            // Log the error
+            if (globalThis.puter?.apiCallLogger?.isEnabled()) {
+                globalThis.puter.apiCallLogger.logRequest({
+                    service: 'drivers',
+                    operation: 'list',
+                    params: {},
+                    error: {
+                        message: error.message || error.toString(),
+                        stack: error.stack
+                    }
+                });
+            }
+            throw error;
+        }
     }
     
     async get (iface_name, service_name) {
+        if ( ! service_name ) service_name = iface_name;
         const key = `${iface_name}:${service_name}`;
         if ( this.drivers_[key] ) return this.drivers_[key];
-        
-        const interfaces = await this.list();
-        if ( ! interfaces[iface_name] ) {
-            throw new Error(`Interface ${iface_name} not found`);
-        }
-        
+
+        // const interfaces = await this.list();
+        // if ( ! interfaces[iface_name] ) {
+        //     throw new Error(`Interface ${iface_name} not found`);
+        // }
+
         return this.drivers_[key] = new Driver ({
             call_backend: new FetchDriverCallBackend({
                 context: this.context,
             }),
-            iface: interfaces[iface_name],
+            // iface: interfaces[iface_name],
             iface_name,
             service_name,
         });
     }
     
-    async call (iface_name, service_name, method_name, parameters) {
+    async call (...a) {
+        let iface_name, service_name, method_name, parameters;
+        
+        // Services with the same name as an interface they implement
+        // are considered the default implementation for that interface.
+        //
+        // A method with the same name as the interface and service it is
+        // called on can be left unspecified in a driver call through puter.js.
+        //
+        // For example:
+        // puter.drivers.call('ipgeo', { ip: '1.2.3.4' });
+        //
+        // Is the same as:
+        // puter.drivers.call('ipgeo', 'ipgeo', 'ipgeo', { ip: '1.2.3.4' })
+        //
+        // This is commonly the case when an interface only exists to
+        // connect a particular service to the drivers API. In this case,
+        // the interface might not specify the structure of the response
+        // because it is only intended for that specific integration
+        // (and that integration alone is responsible for avoiding regressions)
+        
+        // interface name, service name, method name, parameters
+        if ( a.length === 4 ) {
+            ([iface_name, service_name, method_name, parameters] = a);
+        }
+        // interface name, method name, parameters
+        else if ( a.length === 3 ) {
+            ([iface_name, method_name, parameters] = a);
+        }
+        // interface name, parameters
+        else if ( a.length === 2 ) {
+            ([iface_name, parameters] = a);
+            method_name = iface_name;
+        }
+
         const driver = await this.get(iface_name, service_name);
         return await driver.call(method_name, parameters);
     }

@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"openai-completion","model":"gpt-4o-mini"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-const { AdvancedBase } = require("../../../../putility");
 const BaseService = require("../BaseService");
 const { DB_WRITE, DB_READ } = require("./consts");
 
@@ -57,19 +56,64 @@ class BaseDatabaseAccessService extends BaseService {
         return this;
     }
 
-    read (query, params) {
-        return this._read(query, params);
+    async read (query, params) {
+        const svc_trace = this.services.get('traceService');
+        return await svc_trace.spanify(`database:read`, async () => {
+            if ( this.config.slow ) await new Promise(rslv => setTimeout(rslv, 70));
+            return await this._read(query, params);
+        }, { attributes: { query, trace: (new Error()).stack } });
     }
 
-    pread (query, params) {
-        return this._read(query, params, { use_primary: true });
+    /**
+     * requireRead will fallback to the primary database
+     * when a read-replica configuration is in use;
+     * otherwise it behaves the same as `read()`.
+     *
+     * @param {string} query
+     * @param {array} params
+     * @returns {Promise<*>}
+     */
+    async tryHardRead (query, params) {
+        if ( this.config.slow ) await new Promise(rslv => setTimeout(rslv, 70));
+        return this._tryHardRead(query, params);
     }
 
-    write (query, params) {
-        return this._write(query, params);
+    /**
+     * requireRead will fallback to the primary database
+     * when a read-replica configuration is in use by
+     * delegating to `tryHardRead()`.
+     * If the query returns no results, an error is thrown.
+     *
+     * @param {string} query
+     * @param {array} params
+     * @returns {Promise<*>}
+     */
+    async requireRead (query, params) {
+        if ( this.config.slow ) await new Promise(rslv => setTimeout(rslv, 70));
+        const results = this._tryHardRead(query, params);
+        if ( results.length === 0 ) {
+            throw new Error('required read failed: ' + query);
+        }
+        return results;
     }
 
-    insert (table_name, data) {
+    async pread (query, params) {
+        if ( this.config.slow ) await new Promise(rslv => setTimeout(rslv, 70));
+        const svc_trace = this.services.get('traceService');
+        return await svc_trace.spanify(`database:pread`, async () => {
+            return await this._read(query, params, { use_primary: true });
+        }, { attributes: { query, trace: (new Error()).stack } });
+    }
+
+    async write (query, params) {
+        if ( this.config.slow ) await new Promise(rslv => setTimeout(rslv, 70));
+        const svc_trace = this.services.get('traceService');
+        return await svc_trace.spanify(`database:write`, async () => {
+            return await this._write(query, params);
+        }, { attributes: { query, trace: (new Error()).stack } });
+    }
+
+    async insert (table_name, data) {
         const values = Object.values(data);
         const sql = this._gen_insert_sql(table_name, data);
         console.log('INSERT SQL', sql);
@@ -86,19 +130,6 @@ class BaseDatabaseAccessService extends BaseService {
 
     batch_write (statements) {
         return this._batch_write(statements);
-    }
-
-    /**
-     * requireRead will fallback to the primary database
-     * when a read-replica configuration is in use;
-     * otherwise it behaves the same as `read()`.
-     *
-     * @param {string} query
-     * @param {array} params
-     * @returns {Promise<*>}
-     */
-    requireRead (query, params) {
-        return this._requireRead(query, params);
     }
 }
 

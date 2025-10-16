@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"openai-completion","model":"gpt-4o-mini"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -61,7 +61,7 @@ class FilesystemAPIService extends BaseService {
         app.use(require('../routers/filesystem_api/rename'))
         
         app.use(require('../routers/filesystem_api/search'))
-
+        
         // v1
         app.use(require('../routers/writeFile'))
         app.use(require('../routers/file'))
@@ -69,6 +69,8 @@ class FilesystemAPIService extends BaseService {
         // misc
         app.use(require('../routers/df'))
 
+        // cache
+        app.use(require('../routers/filesystem_api/cache'))
     }
 }
 

@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"xai"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -18,7 +18,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 const { NodeInternalIDSelector, NodeUIDSelector } = require("../filesystem/node/selectors");
-const { Context } = require("../util/context");
 const { SiteActorType } = require("./auth/Actor");
 const { PermissionUtil, PermissionRewriter, PermissionImplicator } = require("./auth/PermissionService");
 const BaseService = require("./BaseService");
@@ -114,15 +113,18 @@ class PuterSiteService extends BaseService {
     * @returns {Promise<Object|null>} Returns an object with subdomain details or null if not found.
     * @note In development environment, 'devtest' subdomain returns hardcoded values.
     */
-    async get_subdomain (subdomain) {
+    async get_subdomain (subdomain, options) {
         if ( subdomain === 'devtest' && this.global_config.env === 'dev' ) {
             return {
                 user_id: null,
                 root_dir_id: this.config.devtest_directory,
             };
         }
+        console.log('???', subdomain, options);
         const rows = await this.db.read(
-            `SELECT * FROM subdomains WHERE subdomain = ? LIMIT 1`,
+            `SELECT * FROM subdomains WHERE ${
+                options.is_custom_domain ? 'domain' : 'subdomain'
+            } = ? LIMIT 1`,
             [subdomain]
         );
         if ( rows.length === 0 ) return null;

@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"mistral","model":"mistral-large-latest"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -67,7 +67,7 @@ class Container {
     }
 
     /**
-     * registerService registers a service with the servuces container.
+     * registerService registers a service with the services container.
      * 
      * @param {String} name - the name of the service
      * @param {BaseService.constructor} cls - an implementation of BaseService
@@ -134,13 +134,13 @@ class Container {
             throw new Error(`missing service: ${name}`);
         }
     }
-    has (name) { return !! this.instances_[name]; }
     /**
     * Checks if a service is registered in the container.
     *
     * @param {String} name - The name of the service to check.
     * @returns {Boolean} - Returns true if the service is registered, false otherwise.
     */
+    has (name) { return !! this.instances_[name]; }
     get values () {
         const values = {};
         for ( const k in this.instances_ ) {
@@ -173,6 +173,11 @@ class Container {
     * initialized or rejects if any service initialization fails.
     */
     async init () {
+        for ( const k in this.instances_ ) {
+            if ( ! this.instances_[k]._run_as_early_as_possible ) continue;
+            this.logger.info(`very early hooks for ${k}`);
+            await this.instances_[k].run_as_early_as_possible();
+        }
         for ( const k in this.instances_ ) {
             this.logger.info(`constructing ${k}`);
             await this.instances_[k].construct();
@@ -245,18 +250,18 @@ class ProxyContainer {
         }
         return this.delegate.get(name);
     }
-    has (name) {
-        if ( this.instances_.hasOwnProperty(name) ) {
-            return true;
-        }
-        return this.delegate.has(name);
-    }
     /**
     * Checks if the container has a service with the specified name.
     *
     * @param {string} name - The name of the service to check.
     * @returns {boolean} - Returns true if the service exists, false otherwise.
     */
+    has (name) {
+        if ( this.instances_.hasOwnProperty(name) ) {
+            return true;
+        }
+        return this.delegate.has(name);
+    }
     get values () {
         const values = {};
         Object.assign(values, this.delegate.values);

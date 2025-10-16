@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -160,10 +160,6 @@ const th = {
         log_out: "ออกจากระบบ",
         looks_good: "ดูดีเลย!",
         manage_sessions: "จัดการเซสชั่น",
-        menubar_style: "ไตล์เมนูบาร์",
-        menubar_style_desktop: "เดสก์ท็อป",
-        menubar_style_system: "ระบบ",
-        menubar_style_window: "หน้าต่าง",
         modified: 'แก้ไขเเมื่อ',
         move: "ย้าย",
         moving_file: "กำลังย้าย %%",
@@ -223,6 +219,13 @@ const th = {
         publish: "เผยแพร่",
         publish_as_website: "เผยแพร่เป็นเว็บไซต์",
         puter_description: `Puter is a privacy-first personal cloud to keep all your files, apps, and games in one secure place, accessible from anywhere at any time.`,
+        // th (Thai / ไทย)
+        remove: "ลบ",
+        'account.avatar.removeButton': 'ลบ',
+        'account.avatar.removeConfirm': "คุณแน่ใจหรือไม่ว่าต้องการลบรูปโปรไฟล์ของคุณ? จะคืนค่าเป็นอวาตาร์เริ่มต้นของคุณ",
+        'account.avatar.removedToast': 'ลบรูปโปรไฟล์แล้ว',
+        'confirm_remove_profile_picture': "คุณแน่ใจหรือไม่ว่าต้องการลบรูปโปรไฟล์ของคุณ? จะคืนค่าเป็นอวาตาร์เริ่มต้นของคุณ",
+        'confirm_remove_profile_picture_title': 'ลบรูปโปรไฟล์?',
         reading_file: "กำลังอ่าน %strong%",
         recent: "ล่าสุด",
         recommended: "แนะนำ",
@@ -378,6 +381,7 @@ const th = {
         "billing.subscription_cancelled_description": "คุณยังเป็นสมาชิกอยู่จนถึงวันสิ้นสุดรอบบิลนี้", // In English: "You will still have access to your subscription until the end of this billing period."
         "billing.offering.free": "ฟรี", // In English: "Free"
         "billing.offering.pro": "มืออาชีพ", // In English: "Professional"
+        "billing.offering.professional": "มืออาชีพ", // In English: "Professional"
         "billing.offering.business": "ธุรกิจ", // In English: "Business"
         "billing.cloud_storage": "จัดเก็บบนคลาวด์", // In English: "Cloud Storage"
         "billing.ai_access": "การเข้าถึงโดย AI", // In English: "AI Access"
@@ -409,6 +413,82 @@ const th = {
         "billing.expanded": "ขยาย", // In English: "Expanded"
         "billing.accelerated": "เร่ง", // In English: "Accelerated"
         "billing.enjoy_msg": "ขอให้สนุกกับพื้นที่จัดเก็บบนคลาด์ที่เพิ่มขึ้น %% ของคุณ", // In English: "Enjoy "" of Cloud Storage plus other benefits."
+        "choose_publishing_option": "เลือกวิธีที่คุณต้องการเผยแพร่เว็บไซต์ของคุณ:",
+        "create_desktop_shortcut": "สร้างทางลัด (เดสก์ท็อป)",
+        "create_desktop_shortcut_s": "สร้างทางลัด (เดสก์ท็อป)",
+        "create_shortcut_s": "สร้างทางลัด",
+        "minimize": "ย่อเล็กสุด",
+        "reload_app": "โหลดแอปใหม่",
+        "new_window": "หน้าต่างใหม่",
+        "open_trash": "เปิดถังขยะ",
+        "pick_name_for_worker": "เลือกชื่อสำหรับ worker ของคุณ:",
+        "publish_as_serverless_worker": "เผยแพร่เป็น Worker",
+        "toolbar.enter_fullscreen": "เข้าสู่โหมดเต็มจอ",
+        "toolbar.github": "GitHub",
+        "toolbar.refer": "แนะนำ",
+        "toolbar.save_account": "บันทึกบัญชี",
+        "toolbar.search": "ค้นหา",
+        "toolbar.qrcode": "QR Code",
+        "used_of": "ใช้ {{used}} จาก {{available}}",
+        "worker": "Worker",
+        "billing.offering.basic": "พื้นฐาน",
+        "too_many_attempts": "พยายามหลายครั้งเกินไป กรุณาลองใหม่ภายหลัง",
+        "server_timeout": "เซิร์ฟเวอร์ใช้เวลานานเกินไปในการตอบสนอง กรุณาลองใหม่",
+        "signup_error": "เกิดข้อผิดพลาดระหว่างการสมัครสมาชิก กรุณาลองใหม่",
+        "welcome_title": "ยินดีต้อนรับสู่คอมพิวเตอร์อินเทอร์เน็ตส่วนตัวของคุณ",
+        "welcome_description": "จัดเก็บไฟล์ เล่นเกม ค้นหาแอปที่ยอดเยี่ยม และอื่นๆ อีกมากมาย! ทุกอย่างในที่เดียว เข้าถึงได้จากทุกที่ทุกเวลา",
+        "welcome_get_started": "เริ่มต้นใช้งาน",
+        "welcome_terms": "เงื่อนไข",
+        "welcome_privacy": "ความเป็นส่วนตัว",
+        "welcome_developers": "นักพัฒนา",
+        "welcome_open_source": "โอเพนซอร์ส",
+        "welcome_instant_login_title": "เข้าสู่ระบบทันที!",
+        "alert_error_title": "ข้อผิดพลาด!",
+        "alert_warning_title": "คำเตือน!",
+        "alert_info_title": "ข้อมูล",
+        "alert_success_title": "สำเร็จ!",
+        "alert_confirm_title": "คุณแน่ใจหรือไม่?",
+        "alert_yes": "ใช่",
+        "alert_no": "ไม่",
+        "alert_retry": "ลองใหม่",
+        "alert_cancel": "ยกเลิก",
+        "signup_confirm_password": "ยืนยันรหัสผ่าน",
+        "login_email_username_required": "จำเป็นต้องมีอีเมลหรือชื่อผู้ใช้",
+        "login_password_required": "จำเป็นต้องมีรหัสผ่าน",
+        "window_title_open": "เปิด",
+        "window_title_change_password": "เปลี่ยนรหัสผ่าน",
+        "window_title_select_font": "เลือกแบบอักษร…",
+        "window_title_session_list": "รายการเซสชั่น!",
+        "window_title_set_new_password": "ตั้งรหัสผ่านใหม่",
+        "window_title_instant_login": "เข้าสู่ระบบทันที!",
+        "window_title_publish_website": "เผยแพร่เว็บไซต์",
+        "window_title_publish_worker": "เผยแพร่ Worker",
+        "window_title_authenticating": "กำลังยืนยันตัวตน...",
+        "window_title_refer_friend": "แนะนำเพื่อน!",
+        "desktop_show_desktop": "แสดงเดสก์ท็อป",
+        "desktop_show_open_windows": "แสดงหน้าต่างที่เปิดอยู่",
+        "desktop_exit_full_screen": "ออกจากโหมดเต็มจอ",
+        "desktop_enter_full_screen": "เข้าสู่โหมดเต็มจอ",
+        "desktop_position": "ตำแหน่ง",
+        "desktop_position_left": "ซ้าย",
+        "desktop_position_bottom": "ล่าง",
+        "desktop_position_right": "ขวา",
+        "item_shared_with_you": "ผู้ใช้คนหนึ่งได้แชร์รายการนี้กับคุณ",
+        "item_shared_by_you": "คุณได้แชร์รายการนี้กับผู้ใช้อย่างน้อยหนึ่งคน",
+        "item_shortcut": "ทางลัด",
+        "item_associated_websites": "เว็บไซต์ที่เกี่ยวข้อง",
+        "item_associated_websites_plural": "เว็บไซต์ที่เกี่ยวข้อง",
+        "no_suitable_apps_found": "ไม่พบแอปที่เหมาะสม",
+        "window_click_to_go_back": "คลิกเพื่อย้อนกลับ",
+        "window_click_to_go_forward": "คลิกเพื่อไปข้างหน้า",
+        "window_click_to_go_up": "คลิกเพื่อขึ้นไปหนึ่งไดเรกทอรี",
+        "window_title_public": "สาธารณะ",
+        "window_title_videos": "วีดีโอ",
+        "window_title_pictures": "รูปภาพ",
+        "window_title_puter": "Puter",
+        "window_folder_empty": "โฟลเดอร์นี้ว่างเปล่า",
+        "manage_your_subdomains": "จัดการซับโดเมนของคุณ",
+        "open_containing_folder": "เปิดโฟลเดอร์ที่บรรจุ",
     }
 };
 

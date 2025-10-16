@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -22,6 +22,10 @@ import UIItem from '../UI/UIItem.js';
 import item_icon from './item_icon.js';
 
 const refresh_item_container = function(el_item_container, options){
+    // start a transaction
+    const transaction = new window.Transaction('refresh-item-container');
+    transaction.start();
+
     options = options || {};
 
     let container_path =  $(el_item_container).attr('data-path');
@@ -65,7 +69,7 @@ const refresh_item_container = function(el_item_container, options){
     // --------------------------------------------------------
     // Folder's configs and properties
     // --------------------------------------------------------
-    puter.fs.stat(container_path, function(fsentry){
+    puter.fs.stat({path: container_path, consistency: options.consistency ?? 'eventual'}).then(fsentry => {
         if(el_window){
             $(el_window).attr('data-uid', fsentry.id);
             $(el_window).attr('data-sort_by', fsentry.sort_by ?? 'name');
@@ -104,7 +108,7 @@ const refresh_item_container = function(el_item_container, options){
     $(el_item_container).find('.item').removeItems()
 
     // get items
-    puter.fs.readdir(container_path).then((fsentries)=>{
+    puter.fs.readdir({path: container_path, consistency: options.consistency ?? 'eventual'}).then((fsentries)=>{
         // Check if the same folder is still loading since el_item_container's
         // data-path might have changed by other operations while waiting for the response to this `readdir`.
         if($(el_item_container).attr('data-path') !== container_path)
@@ -202,7 +206,7 @@ const refresh_item_container = function(el_item_container, options){
             // if this is desktop, add Trash
             if($(el_item_container).hasClass('desktop')){
                 try{
-                    const trash = await puter.fs.stat(window.trash_path);
+                    const trash = await puter.fs.stat({path: window.trash_path, consistency: options.consistency ?? 'eventual'});
                     UIItem({
                         appendTo: el_item_container,
                         uid: trash.id,
@@ -228,17 +232,36 @@ const refresh_item_container = function(el_item_container, options){
                 $(el_item_container).attr('data-sort_order')
             );
 
-            if(options.fadeInItems)
-                $(el_item_container).animate({'opacity': '1'});
+            if(options.fadeInItems) {
+                $(el_item_container).animate({'opacity': '1'}, {
+                    complete: () => {
+                        // Call onComplete callback when fade-in animation is done
+                        if(options.onComplete && typeof options.onComplete === 'function') {
+                            options.onComplete();
+                        }
+                    }
+                });
+            } else {
+                // If no fade-in animation, call onComplete immediately
+                if(options.onComplete && typeof options.onComplete === 'function') {
+                    options.onComplete();
+                }
+            }
 
             // update footer item count if this is an explorer window
             if(el_window)
                 window.update_explorer_footer_item_count(el_window);
+
+            // end the transaction
+            transaction.end();
         },
         // This makes sure the loading spinner shows up if the request takes longer than 1 second 
         // and stay there for at least 1 second since the flickering is annoying
         (Date.now() - start_ts) > 1000 ? 1000 : 1)
     }).catch(e => {
+        // end the transaction
+        transaction.end();
+
         // clear loading timeout
         clearTimeout(loading_timeout);
 
@@ -249,6 +272,11 @@ const refresh_item_container = function(el_item_container, options){
         // show error message
         $(error_message).html('Failed to load directory' + html_encode((e && e.message ? ': ' + e.message : '')));
         $(error_message).show();
+
+        // Call onComplete callback even in error case, since the "loading" is technically complete
+        if(options.onComplete && typeof options.onComplete === 'function') {
+            options.onComplete();
+        }
     });
 }    
 

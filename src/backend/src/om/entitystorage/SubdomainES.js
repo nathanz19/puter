@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -23,6 +23,8 @@ const { DB_READ } = require("../../services/database/consts");
 const { Context } = require("../../util/context");
 const { Eq } = require("../query/query");
 const { BaseES } = require("./BaseES");
+
+const PERM_READ_ALL_SUBDOMAINS = 'read-all-subdomains';
 
 class SubdomainES extends BaseES {
     static METHODS = {
@@ -52,12 +54,17 @@ class SubdomainES extends BaseES {
             // Note: we don't need to worry about read;
             // non-owner users don't have permission to list
             // but they still have permission to read.
-            options.predicate = options.predicate.and(
-                new Eq({
-                    key: 'owner',
-                    value: user.id,
-                }),
-            );
+            const svc_permission = this.context.get('services').get('permission');
+            const has_permission_to_read_all = await svc_permission.check(Context.get("actor"), PERM_READ_ALL_SUBDOMAINS);
+
+            if (!has_permission_to_read_all) {
+                options.predicate = options.predicate.and(
+                    new Eq({
+                        key: 'owner',
+                        value: user.id,
+                    }),
+                );
+            }
 
             return await this.upstream.select(options);
         },

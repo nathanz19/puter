@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -163,10 +163,6 @@ const pt = {
         log_out: 'Sair',
         looks_good: "Looks good!",
         manage_sessions: "Gerir Sessões",
-        menubar_style: "Estilo da Barra de Menu",
-        menubar_style_desktop: "Desktop",
-        menubar_style_system: "Sistema",
-        menubar_style_window: "Window",
         modified: 'Modificado',
         move: 'Mover',
         moving_file: "Movendo %%",
@@ -227,6 +223,13 @@ const pt = {
         publish: "Publicar",
         publish_as_website: 'Publicar como Site',
         puter_description: `Puter é uma nuvem pessoal que prioriza a privacidade e que mantém todos os teus ficheiros, aplicativos e jogos num local seguro, acessível de qualquer lugar e a qualquer hora.`,
+        // pt (Portuguese / Português)
+        remove: "Remover",
+        'account.avatar.removeButton': 'Remover',
+        'account.avatar.removeConfirm': "Você tem certeza de que deseja remover sua foto de perfil? Isso restaurará seu avatar padrão.",
+        'account.avatar.removedToast': 'Foto de perfil removida.',
+        'confirm_remove_profile_picture': "Você tem certeza de que deseja remover sua foto de perfil? Isso restaurará seu avatar padrão.",
+        'confirm_remove_profile_picture_title': 'Remover foto de perfil?',
         reading: 'A ler %strong%', 
         writing: 'A escrever %strong%',
         reading_file: "A ler %strong%",
@@ -360,9 +363,6 @@ const pt = {
         'You_cant_share_with_yourself': 'Não podes partilhar contigo mesmo', // In English: "You can't share with yourself."
         'This_user_already_has_access_to_this_item': 'Este utilizador já tem acesso a este item', // In English: "This user already has access to this item"
 
-        // ----------------------------------------
-        // Missing translations:
-        // ----------------------------------------
         "People with access": "Pessoas com acesso", // In English: "People with access"
         "Share With…": "Partilhar com…", // In English: "Share With…"
         "You can't share with yourself.": "Não pode partilhar consigo mesmo.", // In English: "You can't share with yourself."
@@ -382,6 +382,7 @@ const pt = {
         "billing.subscription_cancelled_description": "Ainda terá acesso à sua subscrição até ao final deste período de faturação.", // In English: "You will still have access to your subscription until the end of this billing period."
         "billing.offering.free": "Grátis", // In English: "Free"
         "billing.offering.pro": "Profissional", // In English: "Professional"
+        "billing.offering.professional": "Profissional", // In English: "Professional"
         "billing.offering.business": "Empresarial", // In English: "Business"
         "billing.cloud_storage": "Armazenamento na Nuvem", // In English: "Cloud Storage"
         "billing.ai_access": "Acesso à IA", // In English: "AI Access"
@@ -413,7 +414,82 @@ const pt = {
         "billing.expanded": "Expandido", // In English: "Expanded"
         "billing.accelerated": "Acelerado", // In English: "Accelerated"
         "billing.enjoy_msg": "Desfrute de %% de Armazenamento na Nuvem e outros benefícios.", // In English: "Enjoy %% of Cloud Storage plus other benefits."
-
+        "choose_publishing_option": "Escolha como deseja publicar seu site:", // In English: "Choose how you want to publish your website:"
+        "create_desktop_shortcut": "Criar Atalho (Área de Trabalho)", // In English: "Create Shortcut (Desktop)"
+        "create_desktop_shortcut_s": "Criar Atalhos (Área de Trabalho)", // In English: "Create Shortcuts (Desktop)"
+        "create_shortcut_s": "Criar Atalhos", // In English: "Create Shortcuts"
+        "minimize": "Minimizar", // In English: "Minimize"
+        "reload_app": "Recarregar Aplicação", // In English: "Reload App"
+        "new_window": "Nova Janela", // In English: "New Window"
+        "open_trash": "Abrir Lixeira", // In English: "Open Trash"
+        "pick_name_for_worker": "Escolha um nome para o seu worker:", // In English: "Pick a name for your worker:"
+        "publish_as_serverless_worker": "Publicar como Worker", // In English: "Publish as Worker"
+        "toolbar.enter_fullscreen": "Entrar em Tela Cheia", // In English: "Enter Full Screen"
+        "toolbar.github": "GitHub", // In English: "GitHub"
+        "toolbar.refer": "Indicar", // In English: "Refer"
+        "toolbar.save_account": "Salvar Conta", // In English: "Save Account"
+        "toolbar.search": "Pesquisar", // In English: "Search"
+        "toolbar.qrcode": "Código QR", // In English: "QR Code"
+        "used_of": "{{used}} usado de {{available}}", // In English: "{{used}} used of {{available}}"
+        "worker": "Worker", // In English: "Worker"
+        "billing.offering.basic": "Básico", // In English: "Basic"
+        "too_many_attempts": "Muitas tentativas. Por favor, tente novamente mais tarde.", // In English: "Too many attempts. Please try again later."
+        "server_timeout": "O servidor demorou muito para responder. Por favor, tente novamente.", // In English: "The server took too long to respond. Please try again."
+        "signup_error": "Ocorreu um erro durante o cadastro. Por favor, tente novamente.", // In English: "An error occurred during signup. Please try again."
+        "welcome_title": "Bem-vindo ao seu Computador Pessoal na Internet", // In English: "Welcome to your Personal Internet Computer"
+        "welcome_description": "Armazene arquivos, jogue jogos, encontre aplicativos incríveis e muito mais! Tudo em um só lugar, acessível de qualquer lugar a qualquer momento.", // In English: "Store files, play games, find awesome apps, and much more! All in one place, accessible from anywhere at any time."
+        "welcome_get_started": "Começar", // In English: "Get Started"
+        "welcome_terms": "Termos", // In English: "Terms"
+        "welcome_privacy": "Privacidade", // In English: "Privacy"
+        "welcome_developers": "Desenvolvedores", // In English: "Developers"
+        "welcome_open_source": "Código Aberto", // In English: "Open Source"
+        "welcome_instant_login_title": "Login Instantâneo!", // In English: "Instant Login!"
+        "alert_error_title": "Erro!", // In English: "Error!"
+        "alert_warning_title": "Aviso!", // In English: "Warning!"
+        "alert_info_title": "Informação", // In English: "Info"
+        "alert_success_title": "Sucesso!", // In English: "Success!"
+        "alert_confirm_title": "Tem certeza?", // In English: "Are you sure?"
+        "alert_yes": "Sim", // In English: "Yes"
+        "alert_no": "Não", // In English: "No"
+        "alert_retry": "Tentar Novamente", // In English: "Retry"
+        "alert_cancel": "Cancelar", // In English: "Cancel"
+        "signup_confirm_password": "Confirmar Senha", // In English: "Confirm Password"
+        "login_email_username_required": "Email ou nome de usuário é obrigatório", // In English: "Email or username is required"
+        "login_password_required": "Senha é obrigatória", // In English: "Password is required"
+        "window_title_open": "Abrir", // In English: "Open"
+        "window_title_change_password": "Alterar Senha", // In English: "Change Password"
+        "window_title_select_font": "Selecionar fonte…", // In English: "Select font…"
+        "window_title_session_list": "Lista de Sessões!", // In English: "Session List!"
+        "window_title_set_new_password": "Definir Nova Senha", // In English: "Set New Password"
+        "window_title_instant_login": "Login Instantâneo!", // In English: "Instant Login!"
+        "window_title_publish_website": "Publicar Site", // In English: "Publish Website"
+        "window_title_publish_worker": "Publicar Worker", // In English: "Publish Worker"
+        "window_title_authenticating": "Autenticando...", // In English: "Authenticating..."
+        "window_title_refer_friend": "Indicar um amigo!", // In English: "Refer a friend!"
+        "desktop_show_desktop": "Mostrar Área de Trabalho", // In English: "Show Desktop"
+        "desktop_show_open_windows": "Mostrar Janelas Abertas", // In English: "Show Open Windows"
+        "desktop_exit_full_screen": "Sair da Tela Cheia", // In English: "Exit Full Screen"
+        "desktop_enter_full_screen": "Entrar em Tela Cheia", // In English: "Enter Full Screen"
+        "desktop_position": "Posição", // In English: "Position"
+        "desktop_position_left": "Esquerda", // In English: "Left"
+        "desktop_position_bottom": "Inferior", // In English: "Bottom"
+        "desktop_position_right": "Direita", // In English: "Right"
+        "item_shared_with_you": "Um usuário compartilhou este item com você.", // In English: "A user has shared this item with you."
+        "item_shared_by_you": "Você compartilhou este item com pelo menos um outro usuário.", // In English: "You have shared this item with at least one other user."
+        "item_shortcut": "Atalho", // In English: "Shortcut"
+        "item_associated_websites": "Site associado", // In English: "Associated website"
+        "item_associated_websites_plural": "Sites associados", // In English: "Associated websites"
+        "no_suitable_apps_found": "Nenhuma aplicação adequada encontrada", // In English: "No suitable apps found"
+        "window_click_to_go_back": "Clique para voltar.", // In English: "Click to go back."
+        "window_click_to_go_forward": "Clique para avançar.", // In English: "Click to go forward."
+        "window_click_to_go_up": "Clique para subir um diretório.", // In English: "Click to go one directory up."
+        "window_title_public": "Público", // In English: "Public"
+        "window_title_videos": "Vídeos", // In English: "Videos"
+        "window_title_pictures": "Imagens", // In English: "Pictures"
+        "window_title_puter": "Puter", // In English: "Puter"
+        "window_folder_empty": "Esta pasta está vazia", // In English: "This folder is empty"
+        "manage_your_subdomains": "Gerenciar Seus Subdomínios", // In English: "Manage Your Subdomains"
+        "open_containing_folder": "Abrir Pasta Contenedora", // In English: "Open Containing Folder"
     }
 };
 

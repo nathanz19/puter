@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"openai-completion","model":"gpt-4o-mini"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -23,10 +23,10 @@ const { Context, ContextExpressMiddleware } = require("../../util/context.js");
 const BaseService = require("../../services/BaseService.js");
 
 const config = require('../../config.js');
-const https = require('https')
 var http = require('http');
 const fs = require('fs');
 const auth = require('../../middleware/auth.js');
+const measure = require('../../middleware/measure.js');
 const { surrounding_box, es_import_promise } = require('../../fun/dev-console-ui-utils.js');
 
 const relative_require = require;
@@ -38,6 +38,8 @@ const strutil = require('@heyputer/putility').libs.string;
 * It also validates the host header and IP addresses to prevent security vulnerabilities.
 */
 class WebServerService extends BaseService {
+    static CONCERN = 'web';
+
     static MODULES = {
         https: require('https'),
         http: require('http'),
@@ -49,6 +51,14 @@ class WebServerService extends BaseService {
         ['on-finished']: require('on-finished'),
         morgan: require('morgan'),
     };
+    
+    _construct () {
+        this.undefined_origin_allowed = [];
+    }
+    
+    allow_undefined_origin (route) {
+        this.undefined_origin_allowed.push(route);
+    }
 
 
     /**
@@ -62,14 +72,37 @@ class WebServerService extends BaseService {
     async ['__on_boot.consolidation'] () {
         const app = this.app;
         const services = this.services;
+        await services.emit('install.middlewares.early', { app });
         await services.emit('install.middlewares.context-aware', { app });
+        this.install_post_middlewares_({ app });
         await services.emit('install.routes', {
             app,
             router_webhooks: this.router_webhooks,
         });
         await services.emit('install.routes-gui', { app });
-        
+
+        // Register after other services registers theirs: Options for all requests (for CORS)
+        app.options('/*', (_req, res) => {
+            return res.sendStatus(200);
+        });
+
         this.log.noticeme('web server setup done');
+    }
+    
+    install_post_middlewares_ ({ app }) {
+        app.use(async (req, res, next) => {
+            const svc_event = this.services.get('event');
+
+            const event = {
+                req, res,
+                end_: false,
+                end () {
+                    this.end_ = true;
+                }
+            };
+            await svc_event.emit('request.will-be-handled', event);
+            if ( ! event.end_ ) next();
+        });
     }
 
 
@@ -254,28 +287,22 @@ class WebServerService extends BaseService {
 
         const context = Context.get();
         socketio.on('connection', (socket) => {
-            /**
-            * Starts the web server and associated services.
-            *
-            * This method is responsible for starting the web server and its associated services. It first initializes the middlewares and routes for the server, then begins the server with the specified HTTP port. If the specified port is not available, it will try to find an available port within a range.
-            *
-            * @returns {Promise} A promise that resolves when the server is started.
-            */
-            // eslint-disable-next-line no-unused-vars
-            WebServerService.prototype.__on_start_webserver = async function () {
-               // ...
-            };
             socket.on('disconnect', () => {
             });
             socket.on('trash.is_empty', (msg) => {
                 socket.broadcast.to(socket.user.id).emit('trash.is_empty', msg);
             });
+            const svc_event = this.services.get('event');
+            svc_event.emit('web.socket.connected', {
+                socket,
+                user: socket.user
+            });
             socket.on('puter_is_actually_open', async (msg) => {
-                const svc_event = this.services.get('event');
                 await context.sub({
                     actor: socket.actor,
                 }).arun(async () => {
                     await svc_event.emit('web.socket.user-connected', {
+                        socket,
                         user: socket.user
                     });
                 });
@@ -330,6 +357,9 @@ class WebServerService extends BaseService {
             next();
         });
 
+        // Measure data transfer amounts
+        app.use(measure());
+
         // Instrument logging to use our log service
         {
             const morgan = require('morgan');
@@ -361,8 +391,17 @@ class WebServerService extends BaseService {
                     fields.status, fields.responseTime,
                 ].join(' ');
 
-                const log = this.services.get('log-service').create('morgan');
-                log.info(message, fields);
+                const log = this.services.get('log-service').create('morgan', {
+                    concern: 'web'
+                });
+                try {
+                    this.context.arun(() => {
+                        log.info(message, fields);
+                    });
+                } catch (e) {
+                    console.log('failed to log this message properly:', message, fields);
+                    console.error(e);
+                }
             }
             };
 
@@ -445,11 +484,20 @@ class WebServerService extends BaseService {
                 'at.' + config.static_hosting_domain.toLowerCase(),
             ];
 
+            if ( config.allow_nipio_domains ) {
+                allowedDomains.push('nip.io');
+            }
+
             // Retrieve the Host header and ensure it's in a valid format
             const hostHeader = req.headers.host;
 
-            if (!hostHeader) {
+            if ( ! config.allow_no_host_header && ! hostHeader ) {
                 return res.status(400).send('Missing Host header.');
+            }
+
+            if ( config.allow_all_host_values ) {
+                next();
+                return;
             }
 
             // Parse the Host header to isolate the hostname (strip out port if present)
@@ -459,7 +507,11 @@ class WebServerService extends BaseService {
             if (allowedDomains.some(allowedDomain => hostName === allowedDomain || hostName.endsWith('.' + allowedDomain))) {
                 next(); // Proceed if the host is valid
             } else {
-                return res.status(400).send('Invalid Host header.');
+                if ( ! config.custom_domains_enabled ) {
+                    return res.status(400).send('Invalid Host header.');
+                }
+                req.is_custom_domain = true;
+                next();
             }
         })
         
@@ -471,13 +523,22 @@ class WebServerService extends BaseService {
                 ip: req.headers?.['x-forwarded-for'] ||
                     req.connection?.remoteAddress,
             };
-            await svc_event.emit('ip.validate', event);
 
-            // check if no origin
-            if ( req.method === 'POST' && req.headers.origin === undefined ) {
-                event.allow = false;
+            if ( ! this.config.disable_ip_validate_event ) {
+                await svc_event.emit('ip.validate', event);
             }
 
+            // rules that don't apply to notification endpoints
+            const undefined_origin_allowed = config.undefined_origin_allowed || this.undefined_origin_allowed.some(rule => {
+                if ( typeof rule === 'string' ) return rule === req.path;
+                return rule.test(req.path);
+            });
+            if ( ! undefined_origin_allowed ) {
+                // check if no origin
+                if ( req.method === 'POST' && req.headers.origin === undefined ) {
+                    event.allow = false;
+                }
+            }
             if ( ! event.allow ) {
                 return res.status(403).send('Forbidden');
             }
@@ -488,6 +549,13 @@ class WebServerService extends BaseService {
         // so that signatures of the raw JSON can be verified
         this.router_webhooks = express.Router();
         app.use(this.router_webhooks);
+
+        app.use((req, res, next) => {
+            if ( req.get('x-amz-sns-message-type') ) {
+                req.headers['content-type'] = 'application/json';
+            }
+            next();
+        });
 
         app.use(express.json({limit: '50mb'}));
 
@@ -507,6 +575,21 @@ class WebServerService extends BaseService {
         app.use(helmet.xssFilter());
         // app.use(helmet.referrerPolicy());
         app.disable('x-powered-by');
+
+        // remove object and array query parameters
+        app.use(function (req, res, next) {
+            for ( let k in req.query ) {
+                if ( req.query[k] === undefined || req.query[k] === null ) {
+                    continue;
+                }
+
+                const allowed_types = ['string', 'number', 'boolean'];
+                if ( ! allowed_types.includes(typeof req.query[k]) ) {
+                    req.query[k] = undefined;
+                }
+            }
+            next();
+        });
         
         const uaParser = require('ua-parser-js');
         app.use(function (req, res, next) {
@@ -540,7 +623,7 @@ class WebServerService extends BaseService {
                 req.co_isolation_enabled
                 ;
 
-            if ( req.path === '/signup' || req.path === '/login' ) {
+            if ( req.path === '/signup' || req.path === '/login' || req.path.startsWith('/extensions/') ) {
                 res.setHeader('Access-Control-Allow-Origin', origin ?? '*');
             }
             // Website(s) to allow to connect
@@ -552,10 +635,11 @@ class WebServerService extends BaseService {
             }
 
             // Request methods to allow
-            res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+            res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE, PROPFIND, PROPPATCH, MKCOL, COPY, MOVE, LOCK, UNLOCK');
 
             const allowed_headers = [
-                "Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization",
+                "Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization", "sentry-trace", "baggage",
+                "Depth", "Destination", "Overwrite", "If", "Lock-Token", "DAV"
             ];
 
             // Request headers to allow
@@ -574,6 +658,7 @@ class WebServerService extends BaseService {
                 res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
             }
             res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+
             // Pass to next layer of middleware
 
             // disable iframes on the main domain
@@ -583,11 +668,6 @@ class WebServerService extends BaseService {
             }
 
             next();
-        });
-
-        // Options for all requests (for CORS)
-        app.options('/*', (_, res) => {
-            return res.sendStatus(200);
         });
     }
 
@@ -608,14 +688,14 @@ class WebServerService extends BaseService {
         ]);
     }
 
-
     /**
-    * Starts the web server and sets up the necessary middleware and routes.
-    * This method is responsible for initializing the Express app, handling authentication,
-    * setting up routes, and starting the HTTP server. It also sets up error handling and
-    * socket.io for real-time communication.
-    *
-    * @param {Object} services - The services object containing all necessary services.
+    * Prints the Puter logo seen in the console after the server is started.
+    * 
+    * Depending on the size of the terminal, a different version of the
+    * logo is displayed. The logo is displayed in blue text.
+    * 
+    * @returns {void}
+    * @private
     */
     // comment above line 497
     print_puter_logo_() {

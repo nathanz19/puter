@@ -1,7 +1,7 @@
+import path from "../../../lib/path.js";
 import * as utils from '../../../lib/utils.js';
 import getAbsolutePathForApp from '../utils/getAbsolutePathForApp.js';
-import stat from "./stat.js"
-import path from "../../../lib/path.js"
+import stat from "./stat.js";
 
 const move = function (...args) {
     let options;
@@ -65,6 +65,8 @@ const move = function (...args) {
             new_metadata: (options.new_metadata || options.newMetadata),
             original_client_socket_id: options.excludeSocketID,
         }));
+
+        this.postUpdate();
     })
 }
 

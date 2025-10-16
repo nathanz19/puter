@@ -1,4 +1,4 @@
-import * as utils from '../lib/utils.js'
+import * as utils from '../lib/utils.js';
 
 class AI{
     /**
@@ -37,6 +37,46 @@ class AI{
         this.APIOrigin = APIOrigin;
     }
 
+     /**
+     * Returns a list of available AI models.
+     * @param {string} provider - The provider to filter the models returned.
+     * @returns {Object} Object containing lists of available models by provider
+     */
+     async listModels(provider) {
+        const modelsByProvider = {};
+
+        const models = await puter.drivers.call('puter-chat-completion','ai-chat','models');
+
+        if (!models || !models.result || !Array.isArray(models.result)) {
+            return modelsByProvider;
+        }
+        models.result.forEach(item => {
+            if (!item.provider || !item.id) return;
+            if (provider && item.provider !== provider) return;
+            if (!modelsByProvider[item.provider]) modelsByProvider[item.provider] = [];
+            modelsByProvider[item.provider].push(item.id);
+        });
+        
+        return modelsByProvider;
+    }
+
+    /**
+     * Returns a list of all available AI providers
+     * @returns {Array} Array containing providers
+     */
+    async listModelProviders() {
+        let providers = [];
+        const models = await puter.drivers.call('puter-chat-completion','ai-chat','models');
+
+        if (!models || !models.result || !Array.isArray(models.result)) return providers; // if models is invalid then return empty array
+        providers = new Set(); // Use a Set to store unique providers
+        models.result.forEach(item => {
+            if (item.provider) providers.add(item.provider);
+        });
+        providers = Array.from(providers); // Convert Set to an array
+        return providers;
+    }
+    
     img2txt = async (...args) => {
         let MAX_INPUT_SIZE = 10 * 1024 * 1024;
         let options = {};
@@ -90,27 +130,89 @@ class AI{
         if(!args){
             throw({message: 'Arguments are required', code: 'arguments_required'});
         }
+        
+        // Accept arguments in the following formats:
+        // 1. Shorthand API
+        //      puter.ai.txt2speech("Hello world")
+        // 2. Verbose API
+        //      puter.ai.txt2speech("Hello world", {
+        //           voice: "Joanna",
+        //           engine: "neural",
+        //           language: "en-US"
+        //      })
+        // 3. Positional arguments (Legacy)
+        //      puter.ai.txt2speech(<text>, <language>, <voice>, <engine>)
+        //      e.g:
+        //      puter.ai.txt2speech("Hello world", "en-US")
+        //      puter.ai.txt2speech("Hello world", "en-US", "Joanna")
+        //      puter.ai.txt2speech("Hello world", "en-US", "Joanna", "neural")
+        // 
+        // Undefined parameters will be set to default values:
+        // - voice: "Joanna"
+        // - engine: "standard"
+        // - language: "en-US"
 
-        // if argument is string transform it to the object that the API expects
+
         if (typeof args[0] === 'string') {
             options = { text: args[0] };
         }
 
-        // if second argument is string, it's the language
-        if (args[1] && typeof args[1] === 'string') {
+        if (args[1] && typeof args[1] === 'object' && !Array.isArray(args[1])) {
+            // for verbose object API
+            Object.assign(options, args[1]);
+        } else if (args[1] && typeof args[1] === 'string') {
+            // for legacy positional-arguments API
+            // 
+            // puter.ai.txt2speech(<text>, <language>, <voice>, <engine>)
             options.language = args[1];
+            
+            if (args[2] && typeof args[2] === 'string') {
+                options.voice = args[2];
+            }
+            
+            if (args[3] && typeof args[3] === 'string') {
+                options.engine = args[3];
+            }
+        } else if (args[1] && typeof args[1] !== 'boolean') {
+            // If second argument is not an object, string, or boolean, throw an error
+            throw { message: 'Second argument must be an options object or language string. Use: txt2speech("text", { voice: "name", engine: "type", language: "code" }) or txt2speech("text", "language", "voice", "engine")', code: 'invalid_arguments' };
+        }
+
+        // Validate required text parameter
+        if (!options.text) {
+            throw { message: 'Text parameter is required', code: 'text_required' };
+        }
+
+        // Validate engine if provided
+        if (options.engine) {
+            const validEngines = ['standard', 'neural', 'long-form', 'generative'];
+            if (!validEngines.includes(options.engine)) {
+                throw { message: 'Invalid engine. Must be one of: ' + validEngines.join(', '), code: 'invalid_engine' };
+            }
+        }
+
+        // Set default values if not provided
+        if (!options.voice) {
+            options.voice = 'Joanna';
+        }
+        if (!options.engine) {
+            options.engine = 'standard';
+        }
+        if (!options.language) {
+            options.language = 'en-US';
         }
 
         // check input size
-        if (options.text.length > this.MAX_INPUT_SIZE) {
+        if (options.text.length > MAX_INPUT_SIZE) {
             throw { message: 'Input size cannot be larger than ' + MAX_INPUT_SIZE, code: 'input_too_large' };
         }
 
-        // determine if test mode is enabled
-        if (typeof args[1] === 'boolean' && args[1] === true ||
-            typeof args[2] === 'boolean' && args[2] === true ||
-            typeof args[3] === 'boolean' && args[3] === true) {
-            testMode = true;
+        // determine if test mode is enabled (check all arguments for boolean true)
+        for (let i = 0; i < args.length; i++) {
+            if (typeof args[i] === 'boolean' && args[i] === true) {
+                testMode = true;
+                break;
+            }
         }
     
         return await utils.make_driver_method(['source'], 'puter-tts', 'aws-polly', 'synthesize', {
@@ -126,13 +228,44 @@ class AI{
         }).call(this, options);
     }
 
+    // Add new methods for TTS engine management
+    txt2speech = Object.assign(this.txt2speech, {
+        /**
+         * List available TTS engines with pricing information
+         * @returns {Promise<Array>} Array of available engines
+         */
+        listEngines: async () => {
+            return await utils.make_driver_method(['source'], 'puter-tts', 'aws-polly', 'list_engines', {
+                responseType: 'text',
+            }).call(this, {});
+        },
+
+        /**
+         * List all available voices, optionally filtered by engine
+         * @param {string} [engine] - Optional engine filter
+         * @returns {Promise<Array>} Array of available voices
+         */
+        listVoices: async (engine) => {
+            const params = {};
+            if (engine) {
+                params.engine = engine;
+            }
+
+            return utils.make_driver_method(['source'], 'puter-tts', 'aws-polly', 'list_voices', {
+                responseType: 'text',
+            }).call(this, params);
+        }
+    });
+
 
     // accepts either a string or an array of message objects
     // if string, it's treated as the prompt which is a shorthand for { messages: [{ content: prompt }] }
     // if object, it's treated as the full argument object that the API expects
     chat = async (...args) => {
-        let options = {};
-        let settings = {};
+        // requestParams: parameters that will be sent to the backend driver
+        let requestParams = {};
+        // userParams: parameters provided by the user in the function call
+        let userParams = {};
         let testMode = false;
 
         // default driver is openai-completion
@@ -145,12 +278,12 @@ class AI{
 
         // ai.chat(prompt)
         if(typeof args[0] === 'string'){
-            options = { messages: [{ content: args[0] }] };
+            requestParams = { messages: [{ content: args[0] }] };
         }
 
         // ai.chat(prompt, testMode)
         if (typeof args[0] === 'string' && (!args[1] || typeof args[1] === 'boolean')) {
-            options = { messages: [{ content: args[0] }] };
+            requestParams = { messages: [{ content: args[0] }] };
         }
 
         // ai.chat(prompt, imageURL/File)
@@ -162,7 +295,7 @@ class AI{
             }
 
             // parse args[1] as an image_url object
-            options = { 
+            requestParams = { 
                 vision: true,
                 messages: [
                     { 
@@ -184,7 +317,7 @@ class AI{
             for (let i = 0; i < args[1].length; i++) {
                 args[1][i] = { image_url: { url: args[1][i] } };
             }
-            options = { 
+            requestParams = { 
                 vision: true,
                 messages: [
                     { 
@@ -198,7 +331,7 @@ class AI{
         }
         // chat([messages])
         else if (Array.isArray(args[0])) {
-            options = { messages: args[0] };
+            requestParams = { messages: args[0] };
         }
 
         // determine if testMode is enabled
@@ -208,7 +341,7 @@ class AI{
             testMode = true;
         }
     
-        // if any of the args is an object, assume it's the settings object
+        // if any of the args is an object, assume it's the user parameters object
         const is_object = v => {
             return typeof v === 'object' &&
                 !Array.isArray(v) &&
@@ -216,41 +349,185 @@ class AI{
         };
         for (let i = 0; i < args.length; i++) {
             if (is_object(args[i])) {
-                settings = args[i];
+                userParams = args[i];
                 break;
             }
         }
 
 
-        // does settings contain `model`? add it to options
-        if (settings.model) {
-            options.model = settings.model;
+        // Copy relevant parameters from userParams to requestParams
+        if (userParams.model) {
+            requestParams.model = userParams.model;
+        }
+        if (userParams.temperature) {
+            requestParams.temperature = userParams.temperature;
+        }
+        if (userParams.max_tokens) {
+            requestParams.max_tokens = userParams.max_tokens;
+        }
+        
+        // convert undefined to empty string so that .startsWith works
+        requestParams.model = requestParams.model ?? '';
+
+        // If model starts with "anthropic/", remove it
+        // later on we should standardize the model names to [vendor]/[model]
+        // for example: "claude-3-5-sonnet" should become "anthropic/claude-3-5-sonnet"
+        // but for now, we want to keep the old behavior
+        // so we remove the "anthropic/" prefix if it exists
+        if (requestParams.model && requestParams.model.startsWith('anthropic/')) {
+            requestParams.model = requestParams.model.replace('anthropic/', '');
         }
 
         // convert to the correct model name if necessary
-        if( options.model === 'claude-3-5-sonnet' || options.model === 'claude'){
-            options.model = 'claude-3-5-sonnet-latest';
+        if( requestParams.model === 'claude-3-5-sonnet'){
+            requestParams.model = 'claude-3-5-sonnet-latest';
         }
-        if ( options.model === 'mistral' ) {
-            options.model = 'mistral-large-latest';
+        if( requestParams.model === 'claude-3-7-sonnet' || requestParams.model === 'claude'){
+            requestParams.model = 'claude-3-7-sonnet-latest';
         }
-        if ( options.model === 'groq' ) {
-            options.model = 'llama3-8b-8192';
+        if( requestParams.model === 'claude-sonnet-4' || requestParams.model === 'claude-sonnet-4-latest'){
+            requestParams.model = 'claude-sonnet-4-20250514';
+        }
+        if( requestParams.model === 'claude-opus-4' || requestParams.model === 'claude-opus-4-latest') {
+            requestParams.model = 'claude-opus-4-20250514';
+        }
+        if ( requestParams.model === 'mistral' ) {
+            requestParams.model = 'mistral-large-latest';
+        }
+        if ( requestParams.model === 'groq' ) {
+            requestParams.model = 'llama3-8b-8192';
+        }
+        if ( requestParams.model === 'deepseek' ) {
+            requestParams.model = 'deepseek-chat';
+        }
+
+        // o1-mini to openrouter:openai/o1-mini
+        if ( requestParams.model === 'o1-mini') {
+            requestParams.model = 'openrouter:openai/o1-mini';
+        }
+
+        // if a model is prepended with "openai/", remove it
+        if (requestParams.model && requestParams.model.startsWith('openai/')) {
+            requestParams.model = requestParams.model.replace('openai/', '');
+            driver = 'openai-completion';
+        }
+
+        // if model starts with: 
+        //      agentica-org/
+        //      ai21/
+        //      aion-labs/
+        //      alfredpros/
+        //      alpindale/
+        //      amazon/
+        //      anthracite-org/
+        //      arcee-ai/
+        //      arliai/
+        //      baidu/
+        //      bytedance/
+        //      cognitivecomputations/
+        //      cohere/
+        //      deepseek/
+        //      eleutherai/
+        //      google/
+        //      gryphe/
+        //      inception/
+        //      infermatic/
+        //      liquid/
+        //      mancer/
+        //      meta-llama/
+        //      microsoft/
+        //      minimax/
+        //      mistralai/
+        //      moonshotai/
+        //      morph/
+        //      neversleep/
+        //      nousresearch/
+        //      nvidia/
+        //      openrouter/
+        //      perplexity/
+        //      pygmalionai/
+        //      qwen/
+        //      raifle/
+        //      rekaai/
+        //      sao10k/
+        //      sarvamai/
+        //      scb10x/
+        //      shisa-ai/
+        //      sophosympatheia/
+        //      switchpoint/
+        //      tencent/
+        //      thedrummer/
+        //      thudm/
+        //      tngtech/
+        //      undi95/
+        //      x-ai/
+        //      z-ai/   
+
+        // prepend it with openrouter:
+        if ( 
+            requestParams.model.startsWith('agentica-org/') ||
+            requestParams.model.startsWith('ai21/') ||
+            requestParams.model.startsWith('aion-labs/') ||
+            requestParams.model.startsWith('alfredpros/') ||
+            requestParams.model.startsWith('alpindale/') ||
+            requestParams.model.startsWith('amazon/') ||
+            requestParams.model.startsWith('anthracite-org/') ||
+            requestParams.model.startsWith('arcee-ai/') ||
+            requestParams.model.startsWith('arliai/') ||
+            requestParams.model.startsWith('baidu/') ||
+            requestParams.model.startsWith('bytedance/') ||
+            requestParams.model.startsWith('cognitivecomputations/') ||
+            requestParams.model.startsWith('cohere/') ||
+            requestParams.model.startsWith('deepseek/') || 
+            requestParams.model.startsWith('eleutherai/') ||
+            requestParams.model.startsWith('google/') || 
+            requestParams.model.startsWith('gryphe/') ||
+            requestParams.model.startsWith('inception/') ||
+            requestParams.model.startsWith('infermatic/') ||
+            requestParams.model.startsWith('liquid/') ||
+            requestParams.model.startsWith('mancer/') ||
+            requestParams.model.startsWith('meta-llama/') ||
+            requestParams.model.startsWith('microsoft/') ||
+            requestParams.model.startsWith('minimax/') ||
+            requestParams.model.startsWith('mistralai/') ||
+            requestParams.model.startsWith('moonshotai/') ||
+            requestParams.model.startsWith('morph/') ||
+            requestParams.model.startsWith('neversleep/') ||
+            requestParams.model.startsWith('nousresearch/') ||
+            requestParams.model.startsWith('nvidia/') ||
+            requestParams.model.startsWith('openrouter/') ||
+            requestParams.model.startsWith('perplexity/') ||
+            requestParams.model.startsWith('pygmalionai/') ||
+            requestParams.model.startsWith('qwen/') || 
+            requestParams.model.startsWith('raifle/') ||
+            requestParams.model.startsWith('rekaai/') ||
+            requestParams.model.startsWith('sao10k/') ||
+            requestParams.model.startsWith('sarvamai/') ||
+            requestParams.model.startsWith('scb10x/') ||
+            requestParams.model.startsWith('shisa-ai/') ||
+            requestParams.model.startsWith('sophosympatheia/') ||
+            requestParams.model.startsWith('switchpoint/') ||
+            requestParams.model.startsWith('tencent/') ||
+            requestParams.model.startsWith('thedrummer/') ||
+            requestParams.model.startsWith('thudm/') ||
+            requestParams.model.startsWith('tngtech/') ||
+            requestParams.model.startsWith('undi95/') ||
+            requestParams.model.startsWith('x-ai/') || 
+            requestParams.model.startsWith('z-ai/')
+        ) {
+            requestParams.model = 'openrouter:' + requestParams.model;
         }
 
         // map model to the appropriate driver
-        if (!options.model || options.model === 'gpt-4o' || options.model === 'gpt-4o-mini') {
+        if (!requestParams.model || requestParams.model.startsWith('gpt-')) {
             driver = 'openai-completion';
         }else if(
-            options.model === 'claude-3-haiku-20240307' ||
-            options.model === 'claude-3-5-sonnet-20240620' ||
-            options.model === 'claude-3-5-sonnet-20241022' ||
-            options.model === 'claude-3-5-sonnet-latest'
+            requestParams.model.startsWith('claude-')
         ){
             driver = 'claude';
-        }else if(options.model === 'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo' || options.model === 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo' || options.model === 'meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo' || options.model === `google/gemma-2-27b-it`){
+        }else if(requestParams.model === 'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo' || requestParams.model === 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo' || requestParams.model === 'meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo' || requestParams.model === `google/gemma-2-27b-it`){
             driver = 'together-ai';
-        }else if(options.model === 'mistral-large-latest' || options.model === 'codestral-latest'){
+        }else if(requestParams.model.startsWith('mistral-') || requestParams.model.startsWith('codestral-') || requestParams.model.startsWith('pixtral-') || requestParams.model.startsWith('magistral-') || requestParams.model.startsWith('devstral-') || requestParams.model.startsWith('mistral-ocr-') || requestParams.model.startsWith('open-mistral-')){
             driver = 'mistral';
         }else if([
             "distil-whisper-large-v3-en",
@@ -265,15 +542,49 @@ class AI{
             "llama-guard-3-8b",
             "mixtral-8x7b-32768",
             "whisper-large-v3"
-        ].includes(options.model)) {
+        ].includes(requestParams.model)) {
             driver = 'groq';
-        }else if(options.model === 'grok-beta') {
+        }else if(requestParams.model === 'grok-beta') {
             driver = 'xai';
         }
+        else if(requestParams.model.startsWith('grok-')){
+            driver = 'openrouter';
+        }
+        else if(
+            requestParams.model === 'deepseek-chat' ||
+            requestParams.model === 'deepseek-reasoner'
+        ){
+            driver = 'deepseek';
+        }
+        else if(
+            requestParams.model === 'gemini-1.5-flash' ||
+            requestParams.model === 'gemini-2.0-flash'
+        ){
+            driver = 'gemini';
+        }
+        else if ( requestParams.model.startsWith('openrouter:') ) {
+            driver = 'openrouter';
+        }
 
-        // stream flag from settings
-        if(settings.stream !== undefined && typeof settings.stream === 'boolean'){
-            options.stream = settings.stream;
+        // stream flag from userParams
+        if(userParams.stream !== undefined && typeof userParams.stream === 'boolean'){
+            requestParams.stream = userParams.stream;
+        }
+        
+        if ( userParams.driver ) {
+            driver = userParams.driver;
+        }
+
+        // Additional parameters to pass from userParams to requestParams
+        const PARAMS_TO_PASS = ['tools', 'response'];
+        for ( const name of PARAMS_TO_PASS ) {
+            if ( userParams[name] ) {
+                requestParams[name] = userParams[name];
+            }
+        }
+        
+        if ( requestParams.model === '' ) {
+            delete requestParams.model;
         }
 
         // Call the original chat.complete method
@@ -290,9 +601,34 @@ class AI{
 
                 return result;
             }
-        }).call(this, options);
+        }).call(this, requestParams);
     }
 
+    /**
+     * Generate images from text prompts or perform image-to-image generation
+     * 
+     * @param {string|object} prompt - Text prompt or options object
+     * @param {object|boolean} [options] - Generation options or test mode flag
+     * @param {string} [options.prompt] - Text description of the image to generate
+     * @param {string} [options.model] - Model to use (e.g., "gemini-2.5-flash-image-preview")
+     * @param {object} [options.ratio] - Image dimensions (e.g., {w: 1024, h: 1024})
+     * @param {string} [options.input_image] - Base64 encoded input image for image-to-image generation
+     * @param {string} [options.input_image_mime_type] - MIME type of input image (e.g., "image/png")
+     * @returns {Promise<Image>} Generated image object with src property
+     * 
+     * @example
+     * // Text-to-image
+     * const img = await puter.ai.txt2img("A beautiful sunset");
+     * 
+     * @example
+     * // Image-to-image
+     * const img = await puter.ai.txt2img({
+     *   prompt: "Transform this into a watercolor painting",
+     *   input_image: base64ImageData,
+     *   input_image_mime_type: "image/png",
+     *   model: "gemini-2.5-flash-image-preview"
+     * });
+     */
     txt2img = async (...args) => {
         let options = {};
         let testMode = false;
@@ -310,9 +646,24 @@ class AI{
         if (typeof args[1] === 'boolean' && args[1] === true) {
             testMode = true;
         }
-    
+
+        if (typeof args[0] === 'string' && typeof args[1] === "object") {
+            options = args[1];
+            options.prompt = args[0];
+        }
+
+        if (typeof args[0] === 'object') {
+            options = args[0]
+        }
+
+        let AIService = "openai-image-generation"
+        if (options.model === "nano-banana") 
+            options.model = "gemini-2.5-flash-image-preview";
+
+        if (options.model === "gemini-2.5-flash-image-preview")
+            AIService = "gemini-image-generation";
         // Call the original chat.complete method
-        return await utils.make_driver_method(['prompt'], 'puter-image-generation', undefined, 'generate', {
+        return await utils.make_driver_method(['prompt'], 'puter-image-generation', AIService, 'generate', {
             responseType: 'blob',
             test_mode: testMode ?? false,
             transform: async blob => {

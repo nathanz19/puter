@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -18,6 +18,7 @@
  */
 const { PassThrough, Readable, Transform } = require('stream');
 const { TeePromise } = require('@heyputer/putility').libs.promise;
+const crypto = require('crypto');
 
 class StreamBuffer extends TeePromise {
     constructor () {
@@ -340,6 +341,27 @@ const size_limit_stream = (source, { limit }) => {
     return stream;
 }
 
+class SizeMeasuringStream extends Transform {
+    constructor(options, probe) {
+        super(options);
+        this.probe = probe;
+        this.loaded = 0;
+    }
+
+    _transform(chunk, encoding, callback) {
+        this.loaded += chunk.length;
+        probe.amount = this.loaded;
+        this.push(chunk);
+        callback();
+    }
+}
+
+const size_measure_stream = (source, probe = {}) => {
+    const stream = new SizeMeasuringStream({}, probe);
+    source.pipe(stream);
+    return stream;
+}
+
 class StuckDetectorStream extends Transform {
     constructor(options, {
         timeout,
@@ -475,6 +497,31 @@ const buffer_to_stream = (buffer) => {
     return stream;
 };
 
+const hashing_stream = (source) => {
+    const hash = crypto.createHash('sha256');
+    const stream = new Transform({
+        transform(chunk, encoding, callback) {
+            hash.update(chunk);
+            this.push(chunk);
+            callback();
+        }
+    });
+
+    source.pipe(stream);
+
+    const hashPromise = new Promise((resolve, reject) => {
+        source.on('end', () => {
+            resolve(hash.digest('hex'));
+        });
+        source.on('error', reject);
+    });
+
+    return {
+        stream,
+        hashPromise,
+    };
+};
+
 module.exports = {
     StreamBuffer,
     stream_to_the_void,
@@ -488,4 +535,5 @@ module.exports = {
     chunk_stream,
     stream_to_buffer,
     buffer_to_stream,
+    hashing_stream,
 };

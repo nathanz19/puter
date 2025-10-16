@@ -1,0 +1,30 @@
+{
+    "temp": {
+        "kv": {
+            "rate-limit": {
+                "max": 1000,
+                "period": 30000
+            }
+        },
+        "es": {
+            "rate-limit": {
+                "max": 1000,
+                "period": 30000
+            }
+        }
+    },
+    "user": {
+        "kv": {
+            "rate-limit": {
+                "max": 3000,
+                "period": 30000
+            }
+        },
+        "es": {
+            "rate-limit": {
+                "max": 3000,
+                "period": 30000
+            }
+        }
+    }
+}

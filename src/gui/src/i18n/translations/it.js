@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -141,7 +141,7 @@ const it = {
       "Inserisci la tua password per confermare l'eliminazione del tuo account.",
     error_message_is_missing: "Messaggio di errore mancante.",
     error_unknown_cause: "Errore sconosciuto.",
-    error_uploading_files: "Errore durante l'upload dei file.",
+    error_uploading_files: "Errore durante il caricamento dei file.",
     favorites: "Preferiti",
     feedback: "Feedback",
     feedback_c2a:
@@ -177,10 +177,6 @@ const it = {
     log_out: "Disconnettiti",
     looks_good: "Sembra buono!",
     manage_sessions: "Gestisci le sessioni",
-    menubar_style: "Stile della barra dei menu",
-    menubar_style_desktop: "Scrivania",
-    menubar_style_system: "Sistema",
-    menubar_style_window: "Finestra",
     modified: "Modificato",
     move: "Sposta",
     moving_file: "Spostamento in corso %%",
@@ -248,6 +244,13 @@ const it = {
     publish: "Pubblica",
     publish_as_website: "Pubblica come sito web",
     puter_description: `Puter è un cloud personale che mette la privacy al primo posto, per conservare tutti i tuoi file, app e giochi in un unico luogo sicuro, accessibile da qualsiasi luogo e in qualsiasi momento.`,
+    // it (Italian / Italiano)
+    remove: "Rimuovi",
+    'account.avatar.removeButton': 'Rimuovi',
+    'account.avatar.removeConfirm': "Sei sicuro di voler rimuovere la foto del profilo? Questo ripristinerà il tuo avatar predefinito.",
+    'account.avatar.removedToast': 'Foto del profilo rimossa.',
+    'confirm_remove_profile_picture': "Sei sicuro di voler rimuovere la foto del profilo? Questo ripristinerà il tuo avatar predefinito.",
+    'confirm_remove_profile_picture_title': 'Rimuovi foto del profilo?',
     reading_file: "Leggendo %strong%",
     recent: "Recenti",
     recommended: "Consigliati",
@@ -395,60 +398,139 @@ const it = {
     Owner: "Proprietario", // In English: "Owner"
     "You can't share with yourself.": "Non puoi condividere con te stesso", // In English: "You can't share with yourself."
     "This user already has access to this item":
-      "Questo utente ha già accesso a questo file", // In English: "This user already has access to this item"
+    "Questo utente ha già accesso a questo file", // In English: "This user already has access to this item"
+  
+    "billing.change_payment_method": "Modifica", // In English: "Change"
+    "billing.cancel": "Annulla", // In English: "Cancel"
+    "billing.download_invoice": "Scarica", // In English: "Download"
+    "billing.payment_method": "Metodo di pagamento", // In English: "Payment Method"
+    "billing.payment_method_updated": "Metodo di pagamento aggiornato!", // In English: "Payment method updated!"
+    "billing.confirm_payment_method": "Conferma metodo di pagamento", // In English: "Confirm Payment Method"
+    "billing.payment_history": "Storico dei pagamenti", // In English: "Payment History"
+    "billing.refunded": "Rimborsato", // In English: "Refunded"
+    "billing.paid":  "Pagato", // In English: "Paid"
+    "billing.ok": "OK", // In English: "OK"
+    "billing.resume_subscription":  "Riprendi abbonamento", // In English: "Resume Subscription"
+    "billing.subscription_cancelled": "Il tuo abbonamento è stato annullato.", // In English: "Your subscription has been canceled."
+    "billing.subscription_cancelled_description": "Avrai ancora accesso al tuo abbonamento fino alla fine di questo periodo di fatturazione.",
+    // In English: "You will still have access to your subscription until the end of this billing period."
+    "billing.offering.free": "Gratuito", // In English: "Free"
+    "billing.offering.pro": "Professionale", // In English: "Professional"
+    "billing.offering.professional": "Professionale", // In English: "Professional"
+    "billing.offering.business": "Business", // In English: "Business"
+    "billing.cloud_storage": "Archiviazione cloud", // In English: "Cloud Storage"
+    "billing.ai_access": "Accesso AI", // In English: "AI Access"
+    "billing.bandwidth": "Larghezza di banda", // In English: "Bandwidth"
+    "billing.apps_and_games": "App e Giochi", // In English: "Apps & Games"
+    "billing.upgrade_to_pro": "Passa al piano %strong%", // In English: "Upgrade to %strong%"
+    "billing.switch_to": "Passa a %strong%", // In English: "Switch to %strong%"
+    "billing.payment_setup": "Impostazioni di pagamento", // In English: "Payment Setup"
+    "billing.back": "Indietro", // In English: "Back"
+    "billing.you_are_now_subscribed_to":  "Ora sei abbonato al piano %strong%.", // In English: "You are now subscribed to %strong% tier."
+    "billing.you_are_now_subscribed_to_without_tier":  "Ora sei abbonato.", // In English: "You are now subscribed"
+    "billing.subscription_cancellation_confirmation":  "Sei sicuro di voler annullare il tuo abbonamento?", // In English: "Are you sure you want to cancel your subscription?"
+    "billing.subscription_setup": "Impostazione abbonamento", // In English: "Subscription Setup"
+    "billing.cancel_it":  "Annulla", // In English: "Cancel It"
+    "billing.keep_it": "Mantieni", // In English: "Keep It"
+    "billing.subscription_resumed": "Il tuo abbonamento %strong% è stato ripristinato!", // In English: "Your %strong% subscription has been resumed!"
+    "billing.upgrade_now": "Aggiorna ora", // In English: "Upgrade Now"
+    "billing.upgrade":  "Aggiorna", // In English: "Upgrade"
+    "billing.currently_on_free_plan": "Attualmente sei nel piano gratuito.", // In English: "You are currently on the free plan."
+    "billing.download_receipt": "Scarica ricevuta", // In English: "Download Receipt"
+    "billing.subscription_check_error": "Si è verificato un problema durante il controllo dello stato dell'abbonamento.",
+    // In English: "A problem occurred while checking your subscription status."
+    "billing.email_confirmation_needed": "La tua email non è stata confermata. Ti invieremo un codice per completare la conferma.", 
+    // In English: "Your email has not been confirmed. We'll send you a code to confirm it now."
+    "billing.sub_cancelled_but_valid_until": "Hai annullato il tuo abbonamento. Passerà automaticamente al piano gratuito alla fine del periodo di fatturazione. Non ti verrà addebitato nuovamente a meno che non ti iscrivi di nuovo.",
+    // In English: "You have cancelled your subscription and it will automatically switch to the free tier at the end of the billing period. You will not be charged again unless you re-subscribe."
+    "billing.current_plan_until_end_of_period": "Il tuo piano attuale è valido fino alla fine del periodo di fatturazione.",
+    // In English: "Your current plan until the end of this billing period."
+    "billing.current_plan": "Piano attuale", // In English: "Current plan"
+    "billing.cancelled_subscription_tier":  "Abbonamento annullato (%%)", // In English: "Cancelled Subscription (%%)"
+    "billing.manage":  "Gestisci", // In English: "Manage"
+    "billing.limited": "Limitato", // In English: "Limited"
+    "billing.expanded": "Espanso", // In English: "Expanded"
+    "billing.accelerated": "Accelerato", // In English: "Accelerated"
+    "billing.enjoy_msg": "Goditi %% di spazio di archiviazione cloud e altri vantaggi.", // In English: "Enjoy %% of Cloud Storage plus other benefits."
     
-        "billing.change_payment_method": "Modifica", // In English: "Change"
-        "billing.cancel": "Annulla", // In English: "Cancel"
-        "billing.download_invoice": "Scarica", // In English: "Download"
-        "billing.payment_method": "Metodo di pagamento", // In English: "Payment Method"
-        "billing.payment_method_updated": "Metodo di pagamento aggiornato!", // In English: "Payment method updated!"
-        "billing.confirm_payment_method": "Conferma metodo di pagamento", // In English: "Confirm Payment Method"
-        "billing.payment_history": "Storico dei pagamenti", // In English: "Payment History"
-        "billing.refunded": "Rimborsato", // In English: "Refunded"
-        "billing.paid":  "Pagato", // In English: "Paid"
-        "billing.ok": "OK", // In English: "OK"
-        "billing.resume_subscription":  "Riprendi abbonamento", // In English: "Resume Subscription"
-        "billing.subscription_cancelled": "Il tuo abbonamento è stato annullato.", // In English: "Your subscription has been canceled."
-        "billing.subscription_cancelled_description": "Avrai ancora accesso al tuo abbonamento fino alla fine di questo periodo di fatturazione.",
-        // In English: "You will still have access to your subscription until the end of this billing period."
-        "billing.offering.free": "Gratuito", // In English: "Free"
-        "billing.offering.pro": "Professionale", // In English: "Professional"
-        "billing.offering.business": "Business", // In English: "Business"
-        "billing.cloud_storage": "Archiviazione cloud", // In English: "Cloud Storage"
-        "billing.ai_access": "Accesso AI", // In English: "AI Access"
-        "billing.bandwidth": "Larghezza di banda", // In English: "Bandwidth"
-        "billing.apps_and_games": "App e Giochi", // In English: "Apps & Games"
-        "billing.upgrade_to_pro": "Passa al piano %strong%", // In English: "Upgrade to %strong%"
-        "billing.switch_to": "Passa a %strong%", // In English: "Switch to %strong%"
-        "billing.payment_setup": "Impostazioni di pagamento", // In English: "Payment Setup"
-        "billing.back": "Indietro", // In English: "Back"
-        "billing.you_are_now_subscribed_to":  "Ora sei abbonato al piano %strong%.", // In English: "You are now subscribed to %strong% tier."
-        "billing.you_are_now_subscribed_to_without_tier":  "Ora sei abbonato.", // In English: "You are now subscribed"
-        "billing.subscription_cancellation_confirmation":  "Sei sicuro di voler annullare il tuo abbonamento?", // In English: "Are you sure you want to cancel your subscription?"
-        "billing.subscription_setup": "Impostazione abbonamento", // In English: "Subscription Setup"
-        "billing.cancel_it":  "Annulla", // In English: "Cancel It"
-        "billing.keep_it": "Mantieni", // In English: "Keep It"
-        "billing.subscription_resumed": "Il tuo abbonamento %strong% è stato ripristinato!", // In English: "Your %strong% subscription has been resumed!"
-        "billing.upgrade_now": "Aggiorna ora", // In English: "Upgrade Now"
-        "billing.upgrade":  "Aggiorna", // In English: "Upgrade"
-        "billing.currently_on_free_plan": "Attualmente sei nel piano gratuito.", // In English: "You are currently on the free plan."
-        "billing.download_receipt": "Scarica ricevuta", // In English: "Download Receipt"
-        "billing.subscription_check_error": "Si è verificato un problema durante il controllo dello stato dell'abbonamento.",
-        // In English: "A problem occurred while checking your subscription status."
-        "billing.email_confirmation_needed": "La tua email non è stata confermata. Ti invieremo un codice per completare la conferma.", 
-        // In English: "Your email has not been confirmed. We'll send you a code to confirm it now."
-        "billing.sub_cancelled_but_valid_until": "Hai annullato il tuo abbonamento. Passerà automaticamente al piano gratuito alla fine del periodo di fatturazione. Non ti verrà addebitato nuovamente a meno che non ti iscrivi di nuovo.",
-        // In English: "You have cancelled your subscription and it will automatically switch to the free tier at the end of the billing period. You will not be charged again unless you re-subscribe."
-        "billing.current_plan_until_end_of_period": "Il tuo piano attuale è valido fino alla fine del periodo di fatturazione.",
-        // In English: "Your current plan until the end of this billing period."
-        "billing.current_plan": "Piano attuale", // In English: "Current plan"
-        "billing.cancelled_subscription_tier":  "Abbonamento annullato (%%)", // In English: "Cancelled Subscription (%%)"
-        "billing.manage":  "Gestisci", // In English: "Manage"
-        "billing.limited": "Limitato", // In English: "Limited"
-        "billing.expanded": "Espanso", // In English: "Expanded"
-        "billing.accelerated": "Accelerato", // In English: "Accelerated"
-        "billing.enjoy_msg": "Goditi %% di spazio di archiviazione cloud e altri vantaggi.", // In English: "Enjoy %% of Cloud Storage plus other benefits."
-    }
+    "choose_publishing_option": "Scegli come vuoi pubblicare il tuo sito web:",
+    "create_desktop_shortcut": "Crea un collegamento sul desktop",
+    "create_desktop_shortcut_s": "Crea collegamenti sul desktop",
+    "create_shortcut_s": "Crea scorciatoie",
+    "minimize": "Riduci",
+    "reload_app": "Ricarica app",
+    "new_window": "Nuova finestra",
+    "open_trash": "Apri cestino",
+    "pick_name_for_worker": "Scegli un nome per il tuo worker:", // In English: "Pick a name for your worker:"
+    "publish_as_serverless_worker": "Pubblica come funzione serverless",// In English: "Publish as Worker"
+    "toolbar.enter_fullscreen": "Visualizza a schermo intero",
+    "toolbar.github": "GitHub",
+    "toolbar.refer": "Invita",
+    "toolbar.save_account": "Salva account",
+    "toolbar.search": "Cerca",
+    "toolbar.qrcode": "Codice QR",
+    "used_of": "{{used}} utilizzati su {{available}}", // In English: "{{used}} used of {{available}}"
+    "worker": "Worker", // In English: "Worker"
+    "billing.offering.basic": "Base", // In English: "Basic"
+    "too_many_attempts": "Troppi tentativi. Riprova più tardi",
+    "server_timeout": "Il server ha impiegato troppo tempo per rispondere. Riprova.",
+    "signup_error": "Si è verificato un errore durante la registrazione. Riprova.",
+    "welcome_title": "Benvenuto sul tuo computer in rete",
+    "welcome_description": "Archivia file, gioca, scopri app fantastiche, e molto altro! Tutto in un unico posto, accessibile ovunque ed in qualsiasi momento.", 
+    "welcome_get_started": "Inizia adesso",
+    "welcome_terms": "Termini e condizioni",
+    "welcome_privacy": "Privacy", 
+    "welcome_developers": "Sviluppatori", 
+    "welcome_open_source": "Open source", // it's a common use term in Italy, almost nobody translates it
+    "welcome_instant_login_title": "Accedi subito!",
+    "alert_error_title": "Errore!",
+    "alert_warning_title": "Attenzione!",
+    "alert_info_title": "Informazioni",
+    "alert_success_title": "Operazione completata!",
+    "alert_confirm_title": "Sei sicuro?",
+    "alert_yes": "Sì",
+    "alert_no": "No",
+    "alert_retry": "Riprova",
+    "alert_cancel": "Cancella",
+    "signup_confirm_password": "Conferma password",
+    "login_email_username_required": "Email o nome utente richiesti",
+    "login_password_required": "È richiesta la password",
+    "window_title_open": "Apri",
+    "window_title_change_password": "Cambia password",
+    "window_title_select_font": "Seleziona il carattere...",
+    "window_title_session_list": "Lista delle sessioni",
+    "window_title_set_new_password": "Imposta la nuova password",
+    "window_title_instant_login": "Accedi subito!", 
+    "window_title_publish_website": "Pubblica sito web", 
+    "window_title_publish_worker": "Pubblica worker", // In English: "Publish Worker"
+    "window_title_authenticating": "Autenticazione in corso...",
+    "window_title_refer_friend": "Invita un amico!",
+    "desktop_show_desktop": "Mostra desktop",
+    "desktop_show_open_windows": "Mostra finestre aperte",
+    "desktop_exit_full_screen": "Esci da schermo intero",
+    "desktop_enter_full_screen": "Visualizza a schermo intero",
+    "desktop_position": "Posizione", 
+    "desktop_position_left": "Sinistra",
+    "desktop_position_bottom": "In basso",
+    "desktop_position_right": "Destra",
+    "item_shared_with_you": "Un utente ha condiviso questo elemento con te.",
+    "item_shared_by_you": "Hai condiviso questo elemento con almeno un altro utente",
+    "item_shortcut": "Scorciatoia",
+    "item_associated_websites": "Sito web associato",
+    "item_associated_websites_plural": "Siti web associati",
+    "no_suitable_apps_found": "Non è stata trovata nessuna app adatta",
+    "window_click_to_go_back": "Clicca per tornare indietro.", 
+    "window_click_to_go_forward": "Clicca per andare avanti.",
+    "window_click_to_go_up": "Clicca per andare alla cartella superiore.", // In English: "Click to go one directory up."
+    "window_title_public": "Pubblica", 
+    "window_title_videos": "Video", // In Italian there's no translation for "videos", we use "più video" translated in "more videos"; in this case all the OSs use "video"
+    "window_title_pictures": "Foto",
+    "window_title_puter": "Puter",
+    "window_folder_empty": "Questa cartella è vuota",
+    "manage_your_subdomains": "Gestisci i tuoi sottodomini",
+    "open_containing_folder": "Apri cartella contenente", // In English: "Open Containing Folder"
+
+  }
 };
 
 export default it;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -19,8 +19,6 @@
 const { get_user } = require("../../helpers");
 const { PermissionUtil } = require("../../services/auth/PermissionService");
 const { DB_WRITE } = require("../../services/database/consts");
-const { Context } = require("../../util/context");
-const { TYPE_DIRECTORY } = require("../FSNodeContext");
 const { NodeUIDSelector } = require("../node/selectors");
 const { LLFilesystemOperation } = require("./definitions");
 const { LLReadDir } = require("./ll_readdir");
@@ -81,6 +79,7 @@ class LLReadShares extends LLFilesystemOperation {
         }
 
         for ( const node of interm_results ) {
+            if ( ! await node.exists() ) continue;
             if ( ! await svc_acl.check(actor, node, 'see') ) continue;
             results.push(node);
         }

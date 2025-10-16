@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -18,9 +18,9 @@
  */
 const APIError = require("../../api/APIError");
 const { Sequence } = require("../../codex/Sequence");
+const { MemoryFSProvider } = require("../../modules/puterfs/customfs/MemoryFSProvider");
 
 const { DB_WRITE } = require("../../services/database/consts");
-const { Context } = require("../../util/context");
 const { buffer_to_stream } = require("../../util/streamutil");
 const { TYPE_SYMLINK, TYPE_DIRECTORY } = require("../FSNodeContext");
 const { LLFilesystemOperation } = require("./definitions");
@@ -44,6 +44,7 @@ const dry_checks = [
 ];
 
 class LLRead extends LLFilesystemOperation {
+    static CONCERN = 'filesystem';
     static METHODS = {
         _run: new Sequence({
             async before_each (a, step) {
@@ -68,7 +69,7 @@ class LLRead extends LLFilesystemOperation {
             },
             ...dry_checks,
             async function calculate_has_range (a) {
-                const { offset, length } = a.values();
+                const { offset, length, range } = a.values();
                 const fsNode = a.get('fsNode');
                 const has_range = (
                     offset !== undefined &&
@@ -76,7 +77,7 @@ class LLRead extends LLFilesystemOperation {
                 ) || (
                     length !== undefined &&
                     length != await fsNode.get('size')
-                );
+                ) || range !== undefined;
                 a.set('has_range', has_range);
             },
             async function update_accessed (a) {
@@ -99,9 +100,9 @@ class LLRead extends LLFilesystemOperation {
 
                 const maybe_buffer = await svc_fileCache.try_get(fsNode, a.log);
                 if ( maybe_buffer ) {
-                    a.log.info('cache hit');
+                    a.log.cache(true, 'll_read');
                     const { has_range } = a.values();
-                    if ( has_range ) {
+                    if ( has_range && (length || offset) ) {
                         return a.stop(
                             buffer_to_stream(maybe_buffer.slice(offset, offset+length))
                         );
@@ -111,13 +112,16 @@ class LLRead extends LLFilesystemOperation {
                     );
                 }
 
-                a.log.info('cache miss');
+                a.log.cache(false, 'll_read');
             },
             async function create_S3_read_stream (a) {
                 const context = a.iget('context');
-                const storage = context.get('storage');
 
-                const { fsNode, version_id, offset, length, has_range } = a.values();
+                const { fsNode, version_id, offset, length, has_range, range } = a.values();
+
+                const svc_mountpoint = context.get('services').get('mountpoint');
+                const provider = await svc_mountpoint.get_provider(fsNode.selector);
+                const storage = svc_mountpoint.get_storage(provider.constructor.name);
 
                 // Empty object here is in the case of local fiesystem,
                 // where s3:location will return null.
@@ -130,9 +134,10 @@ class LLRead extends LLFilesystemOperation {
                     bucket_region: location.bucket_region,
                     version_id,
                     key: location.key,
-                    ...(has_range ? {
+                    memory_file: fsNode.entry,
+                    ...(range? {range} : (has_range ? {
                         range: `bytes=${offset}-${offset+length-1}`
-                    } : {}),
+                    } : {})),
                 }));
 
                 a.set('stream', stream);
@@ -141,11 +146,14 @@ class LLRead extends LLFilesystemOperation {
                 const context = a.iget('context');
                 const svc_fileCache = context.get('services').get('file-cache');
 
-                const { fsNode, stream, has_range } = a.values();
+                const { fsNode, stream, has_range, range} = a.values();
 
                 if ( ! has_range ) {
-                    const res = await svc_fileCache.maybe_store(fsNode, stream);
-                    if ( res.stream ) a.set('stream', res.stream);
+                    // only cache for non-memoryfs providers
+                    if ( ! (fsNode.provider instanceof MemoryFSProvider) ) {
+                        const res = await svc_fileCache.maybe_store(fsNode, stream);
+                        if ( res.stream ) a.set('stream', res.stream);
+                    }
                 }
             },
             async function return_stream (a) {

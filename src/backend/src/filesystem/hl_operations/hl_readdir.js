@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -17,7 +17,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 const APIError = require("../../api/APIError");
-const { chkperm } = require("../../helpers");
+const { Context } = require("../../util/context");
+const { stream_to_buffer } = require("../../util/streamutil");
+const { ECMAP } = require("../ECMAP");
 const { TYPE_DIRECTORY, TYPE_SYMLINK } = require("../FSNodeContext");
 const { LLListUsers } = require("../ll_operations/ll_listusers");
 const { LLReadDir } = require("../ll_operations/ll_readdir");
@@ -25,7 +27,15 @@ const { LLReadShares } = require("../ll_operations/ll_readshares");
 const { HLFilesystemOperation } = require("./definitions");
 
 class HLReadDir extends HLFilesystemOperation {
-    async _run () {
+    static CONCERN = 'filesystem';
+    async _run() {
+        return ECMAP.arun(async () => {
+            const ecmap = Context.get(ECMAP.SYMBOL);
+            ecmap.store_fsNodeContext(this.values.subject);
+            return await this.__run();
+        });
+    }
+    async __run () {
         const { subject: subject_let, user, no_thumbs, no_assocs, actor } = this.values;
         let subject = subject_let;
 
@@ -76,12 +86,44 @@ class HLReadDir extends HLFilesystemOperation {
         }
 
         return Promise.all(children.map(async child => {
-            // await child.fetchAll(null, user);
-            if ( ! no_assocs ) {
-                await child.fetchSuggestedApps(user);
-                await child.fetchSubdomains(user);
+            // When thumbnails are requested, fetching before the call to
+            // .getSafeEntry prevents .fetchEntry (possibly called by
+            // .fetchSuggestedApps or .fetchSubdomains)
+            if ( ! no_thumbs ) {
+                await child.fetchEntry({ thumbnail: true });
             }
-            return await child.getSafeEntry({ thumbnail: ! no_thumbs });
+
+            if ( ! no_assocs ) {
+                await Promise.all([
+                    child.fetchSuggestedApps(user),
+                    child.fetchSubdomains(user),
+                ]);
+            }
+            const entry = await child.getSafeEntry();
+            if ( ! no_thumbs && entry.associated_app ) {
+                const svc_appIcon = this.context.get('services').get('app-icon');
+                const icon_result = await svc_appIcon.get_icon_stream({
+                    app_icon: entry.associated_app.icon,
+                    app_uid: entry.associated_app.uid ?? entry.associated_app.uuid,
+                    size: 64,
+                });
+
+                if ( icon_result.data_url ) {
+                    entry.associated_app.icon = icon_result.data_url;
+                } else {
+                    try {
+                        const buffer = await stream_to_buffer(icon_result.stream);
+                        const resp_data_url = `data:${icon_result.mime};base64,${buffer.toString('base64')}`;
+                        entry.associated_app.icon = resp_data_url;
+                    } catch (e) {
+                        const svc_error = this.context.get('services').get('error-service');
+                        svc_error.report('hl_readdir:icon-stream', {
+                            source: e,
+                        });
+                    }
+                }
+            }
+            return entry;
         }));
     }
 }

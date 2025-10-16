@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -187,6 +187,7 @@ module.exports = eggspress(['/up', '/write'], {
             req.body.create_missing_parents
         ),
 
+        actor: req.actor,
         user: req.user,
         file: uploaded_file,
 

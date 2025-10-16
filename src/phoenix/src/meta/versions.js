@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -17,6 +17,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 export const SHELL_VERSIONS = [
+    {
+        v: '0.2.6',
+        changes: [
+            'add PDE execution from /admin/Public/bin',
+        ]
+    },
+    {
+        v: '0.2.5',
+        changes: [
+            'fixed app command provider exit',
+        ]
+    },
     {
         v: '0.2.4',
         changes: [

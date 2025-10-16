@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -32,6 +32,8 @@ import update_mouse_position from './helpers/update_mouse_position.js';
 import item_icon from './helpers/item_icon.js';
 import UIPopover from './UI/UIPopover.js';
 import socialLink from './helpers/socialLink.js';
+import UIWindowEmailConfirmationRequired from './UI/UIWindowEmailConfirmationRequired.js';
+import UIWindowSaveAccount from './UI/UIWindowSaveAccount.js';
 
 import { PROCESS_IPC_ATTACHED } from './definitions.js';
 
@@ -157,6 +159,55 @@ const ipc_listener = async (event, handled) => {
         // TODO: Respond to this
     }
     //--------------------------------------------------------
+    // requestEmailConfirmation
+    //--------------------------------------------------------
+    else if(event.data.msg === 'requestEmailConfirmation'){
+        // If the user has an email and it is confirmed, respond with success
+        if(window.user.email && window.user.email_confirmed){
+            target_iframe.contentWindow.postMessage({
+                original_msg_id: msg_id,
+                msg: 'requestEmailConfirmationResponded',
+                response: true,
+            }, '*');
+        }
+
+        // If the user is a temporary user, show the save account window
+        if(window.user.is_temp && 
+            !await UIWindowSaveAccount({
+                send_confirmation_code: true,
+                message: 'Please create an account to proceed.',
+                window_options: {
+                    backdrop: true,
+                    close_on_backdrop_click: false,
+                }                                
+            })){
+            target_iframe.contentWindow.postMessage({
+                original_msg_id: msg_id,
+                msg: 'requestEmailConfirmationResponded',
+                response: false,
+            }, '*');
+            return;
+        }
+        else if(!window.user.email_confirmed && !await UIWindowEmailConfirmationRequired()){
+            target_iframe.contentWindow.postMessage({
+                original_msg_id: msg_id,
+                msg: 'requestEmailConfirmationResponded',
+                response: false,
+            }, '*');
+            return;
+        }
+
+        const email_confirm_resp = await UIWindowEmailConfirmationRequired({
+            email: window.user.email,
+        });
+
+        target_iframe.contentWindow.postMessage({
+            original_msg_id: msg_id,
+            msg: 'requestEmailConfirmationResponded',
+            response: email_confirm_resp,
+        }, '*');
+    }
+    //--------------------------------------------------------
     // ALERT
     //--------------------------------------------------------
     else if(event.data.msg === 'ALERT' && event.data.message !== undefined){
@@ -193,6 +244,30 @@ const ipc_listener = async (event, handled) => {
             original_msg_id: msg_id,
             msg: 'promptResponded',
             response: prompt_resp,
+        }, '*');
+    }
+    //--------------------------------------------------------
+    // getLanguage
+    //--------------------------------------------------------
+    else if(event.data.msg === 'getLanguage'){
+        target_iframe.contentWindow.postMessage({
+            original_msg_id: msg_id,
+            msg: 'languageReceived',
+            language: window.locale || 'en',
+        }, '*');
+    }
+    //--------------------------------------------------------
+    // getInstancesOpen
+    //--------------------------------------------------------
+    else if(event.data.msg === 'getInstancesOpen'){
+        // count open windows of this app
+        let instances_open = $('.window-app[data-app_uuid="'+app_uuid+'"]').length;
+
+        // send number of open instances of this app
+        target_iframe.contentWindow.postMessage({
+            original_msg_id: msg_id,
+            msg: 'instancesOpenSucceeded',
+            instancesOpen: instances_open,
         }, '*');
     }
     //--------------------------------------------------------
@@ -381,11 +456,23 @@ const ipc_listener = async (event, handled) => {
             is_selectable_body = true;
 
         // Open dialog
+        let path = event.data.options?.path ??  '/' + window.user.username + '/Desktop';
+        if ( (''+path).toLowerCase().startsWith('%appdata%') ) {
+            path = path.slice('%appdata%'.length);
+            if ( path !== '' && ! path.startsWith('/') ) path = '/' + path;
+            path = '/' + window.user.username + '/AppData/' + app_uuid + path;
+        }
         UIWindow({
             allowed_file_types: allowed_file_types,
-            path: '/' + window.user.username + '/Desktop',
+            path,
             // this is the uuid of the window to which this dialog will return
             parent_uuid: event.data.appInstanceID,
+            onDialogCancel: () => {
+                target_iframe.contentWindow.postMessage({
+                    msg: "fileOpenCancelled", 
+                    original_msg_id: msg_id, 
+                }, '*');
+            },
             show_maximize_button: false,
             show_minimize_button: false,
             title: 'Open',
@@ -600,13 +687,9 @@ const ipc_listener = async (event, handled) => {
 
         // Show menubar
         let $menubar;
-        if(window.menubar_style === 'window')
-            $menubar = $(el_window).find('.window-menubar')
-        else{
-            $menubar = $('.window-menubar-global[data-window-id="'+$(el_window).attr('data-id')+'"]');
-            // hide all other menubars
-            $('.window-menubar-global').hide();
-        }
+        $menubar = $(el_window).find('.window-menubar')
+        // add window-with-menubar class to the window
+        $(el_window).addClass('window-with-menubar');
         
         $menubar.css('display', 'flex');
 
@@ -1078,12 +1161,15 @@ const ipc_listener = async (event, handled) => {
         // disable parent window
         event.data.options.window_options.disable_parent_window = true;
 
-        let granted = await UIWindowRequestPermission({
-            origin: event.origin,
-            permission: event.data.options.permission,
-            window_options: event.data.options.window_options,
-        });
-
+        let granted = await UIWindowRequestPermission(
+            {
+                permission: event.data.options.permission,
+                window_options: event.data.options.window_options,
+                app_uid: app_uuid, 
+                app_name: app_name, 
+            }
+        );
+        
         // send selected font to requester window
         target_iframe.contentWindow.postMessage({
             msg: "permissionGranted", 
@@ -1213,6 +1299,218 @@ const ipc_listener = async (event, handled) => {
         $el_parent_disable_mask.show();
         $el_parent_disable_mask.css('z-index', parseInt($el_parent_window.css('z-index')) + 1);
         $(target_iframe).blur();
+        
+        const tell_caller_and_update_views = async ({
+            target_path,
+            el_filedialog_window,
+            res,
+        }) => {
+            let file_signature = await puter.fs.sign(app_uuid, {uid: res.uid, action: 'write'});
+            file_signature = file_signature.items;
+
+            target_iframe.contentWindow.postMessage({
+                msg: "fileSaved", 
+                original_msg_id: msg_id, 
+                filename: res.name,
+                saved_file: {
+                    name: file_signature.fsentry_name,
+                    readURL: file_signature.read_url,
+                    writeURL: file_signature.write_url,
+                    metadataURL: file_signature.metadata_url,
+                    type: file_signature.type,
+                    uid: file_signature.uid,
+                    path: privacy_aware_path(res.path)
+                },
+            }, '*');
+
+            $(target_iframe).get(0).focus({preventScroll:true});
+            // Update matching items on open windows
+            // todo don't blanket-update, mostly files with thumbnails really need to be updated
+            // first remove overwritten items
+            $(`.item[data-uid="${res.uid}"]`).removeItems();
+            // now add new items
+            UIItem({
+                appendTo: $(`.item-container[data-path="${html_encode(path.dirname(target_path))}" i]`),
+                immutable: res.immutable || res.writable === false,
+                associated_app_name: res.associated_app?.name,
+                path: target_path,
+                icon: await item_icon(res),
+                name: path.basename(target_path),
+                uid: res.uid,
+                size: res.size,
+                modified: res.modified,
+                type: res.type,
+                is_dir: false,
+                is_shared: res.is_shared,
+                suggested_apps: res.suggested_apps,
+            });
+            // sort each window
+            $(`.item-container[data-path="${html_encode(path.dirname(target_path))}" i]`).each(function(){
+                window.sort_items(this, $(this).attr('data-sort_by'), $(this).attr('data-sort_order'))
+            });                            
+            $(el_filedialog_window).close();
+            window.show_save_account_notice_if_needed();
+        };
+
+        const tell_caller_its_cancelled = async () => {
+            target_iframe.contentWindow.postMessage({
+                msg: "fileSaveCancelled", 
+                original_msg_id: msg_id, 
+            }, '*');
+        };
+        
+        const write_file_tell_caller_and_update_views = async ({
+            target_path, el_filedialog_window,
+            file_to_upload, overwrite,
+        }) => {
+            const res = await puter.fs.write(
+                target_path,
+                file_to_upload, 
+                { 
+                    dedupeName: false,
+                    overwrite: overwrite
+                }
+            );
+            
+            await tell_caller_and_update_views({ res, el_filedialog_window, target_path });
+        }
+        
+        const handle_url_save = async ({ target_path }) => {
+            // download progress tracker
+            let dl_op_id = window.operation_id++;
+
+            // upload progress tracker defaults
+            window.progress_tracker[dl_op_id] = [];
+            window.progress_tracker[dl_op_id][0] = {};
+            window.progress_tracker[dl_op_id][0].total = 0;
+            window.progress_tracker[dl_op_id][0].ajax_uploaded = 0;
+            window.progress_tracker[dl_op_id][0].cloud_uploaded = 0;
+
+            let item_with_same_name_already_exists = true;
+            while(item_with_same_name_already_exists){
+                await download({
+                    url: event.data.url, 
+                    name: path.basename(target_path),
+                    dest_path: path.dirname(target_path),
+                    auth_token: window.auth_token,
+                    api_origin: window.api_origin,
+                    dedupe_name: false,
+                    overwrite: false,
+                    operation_id: dl_op_id,
+                    item_upload_id: 0,
+                    success: function(res){
+                    },
+                    error: function(err){
+                        UIAlert(err && err.message ? err.message : "Download failed.");
+                    }
+                });
+                item_with_same_name_already_exists = false;
+            }
+        };
+        
+        const handle_data_save = async ({ target_path, el_filedialog_window }) => {
+            let file_to_upload = new File([event.data.content], path.basename(target_path));
+            const written = await window.handle_same_name_exists({
+                action: async ({ overwrite }) => {
+                    await write_file_tell_caller_and_update_views({
+                        target_path, el_filedialog_window,
+                        file_to_upload, overwrite,
+                    });
+                },
+                parent_uuid: $(el_filedialog_window).attr('data-element_uuid'),
+            });
+
+            if ( written ) return true;
+            $(el_filedialog_window).find('.window-disable-mask, .busy-indicator').hide();
+        };
+        
+        const handle_move_save = async ({
+            // when 'source_path' has a value, 'save_type' is checked to determine
+            // if a fs.move() or fs.copy() needs to be performed.
+            save_type,
+            
+            source_path, target_path, el_filedialog_window,
+        }) => {
+            // source path must be in appdata directory
+            const stat_info = await puter.fs.stat({path: source_path, consistency: 'eventual'});
+            if ( ! stat_info.appdata_app || stat_info.appdata_app !== app_uuid ) {
+                const source_file_owner = stat_info?.appdata_app ?? 'the user';
+                if ( stat_info.appdata_app && stat_info.appdata_app !== app_uuid ) {
+                    await UIAlert({
+                        message: `apps are prohibited from accessing AppData of other apps`
+                    });
+                    return;
+                }
+                if ( save_type === 'move' ) {
+                    await UIAlert({
+                        message: `the app <b>${app_name}</b> tried to illegally move a file owned by ${source_file_owner}`,
+                    });
+                    return;
+                }
+                const FORCE_ALLOWED_APPS = [
+                    "app-dc2505ed-9844-4298-92fa-b72873b8381e", // OnlyOffice Word Processor
+                    "app-064a54ac-d07d-481e-b38c-ceb99345013d", // OnlyOffice Spreadsheet application
+                    "app-60b1382b-3367-4968-9259-23930c6fd376", // OnlyOffice Presentation Editor
+                    "app-075ddc0b-2d4e-460e-9664-a8d21b960c4a" // OnlyOffice PDF editor
+                ]
+
+                let alert_resp;
+                if (FORCE_ALLOWED_APPS.includes(app_uuid)) {
+                    alert_resp = true
+                } else {
+                    alert_resp = await UIAlert({
+                        message: `the app ${app_name} is trying to copy ${source_path}; is this okay?`,
+                        buttons: [
+                            {
+                                label: i18n('yes'),
+                                value: true,
+                                type: 'primary',
+                            },
+                            {
+                                label: i18n('no'),
+                                value: false,
+                                type: 'secondary',
+                            },
+                        ]
+                    });
+                }
+                
+                // `alert_resp` will be `"false"`, but this check is forward-compatible
+                // with a version of UIAlert that returns `false`.
+                if ( ! alert_resp || alert_resp === 'false' ) return;
+            }
+            
+            let node;
+            const written = await window.handle_same_name_exists({
+                action: async ({ overwrite }) => {
+                    if ( overwrite ) {
+                        await puter.fs.delete(target_path);
+                    }
+                    
+                    if ( save_type === 'copy' ) {
+                        const target_dir = path.dirname(target_path);
+                        const new_name = path.basename(target_path);
+                        await puter.fs.copy(source_path, target_dir, {
+                            newName: new_name,
+                        });
+                    } else {
+                        await puter.fs.move(source_path, target_path);
+                    }
+                    node = await puter.fs.stat(target_path);
+                },
+                parent_uuid: $(el_filedialog_window).attr('data-element_uuid'),
+            });
+
+            if ( node ) {
+                await tell_caller_and_update_views({ res: node, el_filedialog_window, target_path });
+                if ( written ) return true;
+            } else {
+                await tell_caller_its_cancelled();
+                return true;
+            }
+
+            $(el_filedialog_window).find('.window-disable-mask, .busy-indicator').hide();
+        };
 
         await UIWindow({
             path: '/' + window.user.username + '/Desktop',
@@ -1228,155 +1526,23 @@ const ipc_listener = async (event, handled) => {
             iframe_msg_uid: msg_id,
             center: true,
             initiating_app_uuid: app_uuid,
+            onDialogCancel: () => tell_caller_its_cancelled(),
             onSaveFileDialogSave: async function(target_path, el_filedialog_window){
                 $(el_filedialog_window).find('.window-disable-mask, .busy-indicator').show();
                 let busy_init_ts = Date.now();
 
-                // -------------------------------------
-                // URL
-                // -------------------------------------
-                if(event.data.url){
-                    // download progress tracker
-                    let dl_op_id = window.operation_id++;
-
-                    // upload progress tracker defaults
-                    window.progress_tracker[dl_op_id] = [];
-                    window.progress_tracker[dl_op_id][0] = {};
-                    window.progress_tracker[dl_op_id][0].total = 0;
-                    window.progress_tracker[dl_op_id][0].ajax_uploaded = 0;
-                    window.progress_tracker[dl_op_id][0].cloud_uploaded = 0;
-
-                    let item_with_same_name_already_exists = true;
-                    while(item_with_same_name_already_exists){
-                        await download({
-                            url: event.data.url, 
-                            name: path.basename(target_path),
-                            dest_path: path.dirname(target_path),
-                            auth_token: window.auth_token,
-                            api_origin: window.api_origin,
-                            dedupe_name: false,
-                            overwrite: false,
-                            operation_id: dl_op_id,
-                            item_upload_id: 0,
-                            success: function(res){
-                            },
-                            error: function(err){
-                                UIAlert(err && err.message ? err.message : "Download failed.");
-                            }
-                        });
-                        item_with_same_name_already_exists = false;
-                    }
+                if (event.data.url){
+                    await handle_url_save({ target_path });
+                } else if ( event.data.source_path ) {
+                    await handle_move_save({
+                        save_type: event.data.save_type,
+                        source_path: event.data.source_path,
+                        target_path,
+                    });
+                } else {
+                    await handle_data_save({ target_path, el_filedialog_window });
                 }
-                // -------------------------------------
-                // File
-                // -------------------------------------
-                else{
-                    let overwrite = false;
-                    let file_to_upload = new File([event.data.content], path.basename(target_path));
-                    let item_with_same_name_already_exists = true;
-                    while(item_with_same_name_already_exists){
-                        // overwrite?
-                        if(overwrite)
-                            item_with_same_name_already_exists = false;
-                        // upload
-                        try{
-                            const res = await puter.fs.write(
-                                target_path,
-                                file_to_upload, 
-                                { 
-                                    dedupeName: false,
-                                    overwrite: overwrite
-                                }
-                            );
-
-                            let file_signature = await puter.fs.sign(app_uuid, {uid: res.uid, action: 'write'});
-                            file_signature = file_signature.items;
-
-                            item_with_same_name_already_exists = false;
-                            target_iframe.contentWindow.postMessage({
-                                msg: "fileSaved", 
-                                original_msg_id: msg_id, 
-                                filename: res.name,
-                                saved_file: {
-                                    name: file_signature.fsentry_name,
-                                    readURL: file_signature.read_url,
-                                    writeURL: file_signature.write_url,
-                                    metadataURL: file_signature.metadata_url,
-                                    type: file_signature.type,
-                                    uid: file_signature.uid,
-                                    path: privacy_aware_path(res.path)
-                                },
-                            }, '*');
-
-                            $(target_iframe).get(0).focus({preventScroll:true});
-                            // Update matching items on open windows
-                            // todo don't blanket-update, mostly files with thumbnails really need to be updated
-                            // first remove overwritten items
-                            $(`.item[data-uid="${res.uid}"]`).removeItems();
-                            // now add new items
-                            UIItem({
-                                appendTo: $(`.item-container[data-path="${html_encode(path.dirname(target_path))}" i]`),
-                                immutable: res.immutable || res.writable === false,
-                                associated_app_name: res.associated_app?.name,
-                                path: target_path,
-                                icon: await item_icon(res),
-                                name: path.basename(target_path),
-                                uid: res.uid,
-                                size: res.size,
-                                modified: res.modified,
-                                type: res.type,
-                                is_dir: false,
-                                is_shared: res.is_shared,
-                                suggested_apps: res.suggested_apps,
-                            });
-                            // sort each window
-                            $(`.item-container[data-path="${html_encode(path.dirname(target_path))}" i]`).each(function(){
-                                window.sort_items(this, $(this).attr('data-sort_by'), $(this).attr('data-sort_order'))
-                            });                            
-                            $(el_filedialog_window).close();
-                            window.show_save_account_notice_if_needed();
-                        }
-                        catch(err){
-                            // item with same name exists
-                            if(err.code === 'item_with_same_name_exists'){
-                                const alert_resp = await UIAlert({
-                                    message: `<strong>${html_encode(err.entry_name)}</strong> already exists.`,
-                                    buttons:[
-                                        {
-                                            label: i18n('replace'),
-                                            value: 'replace',
-                                            type: 'primary',
-                                        },
-                                        {
-                                            label: i18n('cancel'),
-                                            value: 'cancel',
-                                        },
-                                    ],
-                                    parent_uuid: $(el_filedialog_window).attr('data-element_uuid'),
-                                })
-                                if(alert_resp === 'replace'){
-                                    overwrite = true;
-                                }else if(alert_resp === 'cancel'){
-                                    // enable parent window
-                                    $(el_filedialog_window).find('.window-disable-mask, .busy-indicator').hide();
-                                    return;
-                                }
-                            }
-                            else{
-                                // show error
-                                await UIAlert({
-                                    message: err.message ?? "Upload failed.",
-                                    parent_uuid: $(el_filedialog_window).attr('data-element_uuid'),
-                                });
-                                // enable parent window
-                                $(el_filedialog_window).find('.window-disable-mask, .busy-indicator').hide();
-                                return;
-                            }
-                        }
-                    }
-                }
-
-                // done
+                
                 let busy_duration = (Date.now() - busy_init_ts);
                 if( busy_duration >= window.busy_indicator_hide_delay){
                     $(el_filedialog_window).close();   
@@ -1499,6 +1665,7 @@ const ipc_listener = async (event, handled) => {
                             buttons:[
                                 {
                                     label: i18n('replace'),
+                                    value: 'replace',
                                     type: 'primary',
                                 },
                                 {
@@ -1508,7 +1675,7 @@ const ipc_listener = async (event, handled) => {
                             ],
                             parent_uuid: event.data.appInstanceID,
                         })
-                        if(alert_resp === 'Replace'){
+                        if(alert_resp === 'replace'){
                             overwrite = true;
                         }else if(alert_resp === 'cancel'){
                             item_with_same_name_already_exists = false;
@@ -1533,16 +1700,8 @@ const ipc_listener = async (event, handled) => {
         const conn = svc_ipc.get_connection(targetAppInstanceID);
         if ( conn ) {
             conn.send(contents);
-            // conn.send({
-            //     msg: 'messageToApp',
-            //     appInstanceID,
-            //     targetAppInstanceID,
-            //     contents,
-            // }, targetAppOrigin);
             return;
         }
-
-        console.log(`🔒 App ${appInstanceID} is sending to ${targetAppInstanceID} insecurely`);
 
         // pass on the message
         const target_iframe = window.iframe_for_app_instance(targetAppInstanceID);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -34,6 +34,10 @@ module.exports = {
         string: require('./src/libs/string'),
         time: require('./src/libs/time'),
         smol: require('./src/libs/smol'),
+        event: require('./src/libs/event'),
+    },
+    features: {
+        EmitterFeature: require('./src/features/EmitterFeature'),
     },
     concepts: {
         Service,

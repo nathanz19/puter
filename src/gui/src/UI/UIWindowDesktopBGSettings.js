@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -110,7 +110,7 @@ async function UIWindowDesktopBGSettings(options){
             ...options.window_options,
         })
 
-        const default_wallpaper = (window.gui_env === 'prod') ? '/dist/images/wallpaper.webp' :  '/images/wallpaper.webp';
+        const default_wallpaper = (window.gui_env === 'prod') ? 'https://puter-assets.b-cdn.net/wallpaper.webp' :  '/images/wallpaper.webp';
         $(el_window).find('.desktop-bg-settings-wrapper').hide();
 
         if(window.desktop_bg_url === default_wallpaper) {
@@ -199,7 +199,7 @@ async function UIWindowDesktopBGSettings(options){
                 allowed_file_types: ['image/*'],
                 show_maximize_button: false,
                 show_minimize_button: false,
-                title: 'Open',
+                title: i18n('window_title_open'),
                 is_dir: true,
                 is_openFileDialog: true,
                 selectable_body: false,

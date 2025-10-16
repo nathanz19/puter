@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -17,13 +17,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 const APIError = require("../../api/APIError");
+const fsCapabilities = require("../definitions/capabilities");
+const { ECMAP } = require("../ECMAP");
 const { TYPE_SYMLINK } = require("../FSNodeContext");
 const { RootNodeSelector } = require("../node/selectors");
 const { NodeUIDSelector, NodeChildSelector } = require("../node/selectors");
 const { LLFilesystemOperation } = require("./definitions");
 
 class LLReadDir extends LLFilesystemOperation {
-    async _run () {
+    static CONCERN = 'filesystem';
+    async _run() {
+        return ECMAP.arun(async () => {
+            return await this.__run();
+        });
+    }
+    async __run () {
         const { context } = this;
         const { subject: subject_let, actor, no_acl } = this.values;
         let subject = subject_let;
@@ -51,10 +59,7 @@ class LLReadDir extends LLFilesystemOperation {
             subject = target;
         }
 
-        const subject_uuid = await subject.get('uid');
-
         const svc = context.get('services');
-        const svc_fsentry = svc.get('fsEntryService');
         const svc_fs = svc.get('filesystem');
 
         if ( subject.isRoot ) {
@@ -67,16 +72,32 @@ class LLReadDir extends LLFilesystemOperation {
             ];
         }
 
-        this.checkpoint('before get direct descendants')
-        const child_uuids = await svc_fsentry
-            .fast_get_direct_descendants(subject_uuid);
-        this.checkpoint('after get direct descendants')
-        const children = await Promise.all(child_uuids.map(async uuid => {
-            return await svc_fs.node(new NodeUIDSelector(uuid));
-        }));
-        this.checkpoint('after get children');
+        const capabilities = subject.provider.get_capabilities();
 
-        return children;
+        // UUID Mode
+        if ( capabilities.has(fsCapabilities.READDIR_UUID_MODE) ) {
+            this.checkpoint('readdir uuid mode')
+            const child_uuids = await subject.provider.readdir({
+                context,
+                node: subject,
+            });
+            this.checkpoint('after get direct descendants')
+            const children = await Promise.all(child_uuids.map(async uuid => {
+                return await svc_fs.node(new NodeUIDSelector(uuid));
+            }));
+            this.checkpoint('after get children');
+            return children;
+        }
+
+        // Conventional Mode
+        const child_entries = subject.provider.readdir({
+            context,
+            node: subject,
+        });
+
+        return await Promise.all(child_entries.map(async entry => {
+            return await svc_fs.node(new NodeChildSelector(subject, entry.name));
+        }));
     }
 }
 

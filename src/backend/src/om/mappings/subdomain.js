@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -52,6 +52,21 @@ module.exports = {
                     });
                 }
             }
+        },
+        domain: {
+            type: 'string',
+            maxlen: 253,
+
+            // It turns out validating domain names kind of sucks
+            // source: https://stackoverflow.com/questions/10306690
+            regex: '^(((?!-))(xn--|_)?[a-z0-9-]{0,61}[a-z0-9]{1,1}\.)*(xn--)?([a-z0-9][a-z0-9\-]{0,60}|[a-z0-9-]{1,30}\.[a-z]{2,})$',
+
+            // TODO: can this 'adapt' be data instead?
+            async adapt (value) {
+                if (value !== null)
+                    return value.toLowerCase();
+                return null;
+            },
         },
         root_dir: {
             type: 'puter-node',

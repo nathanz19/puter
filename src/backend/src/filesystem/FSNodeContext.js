@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -19,16 +19,15 @@
 const { get_user, get_dir_size, id2path, id2uuid, is_empty, is_shared_with_anyone, suggest_app_for_fsentry, get_app } = require("../helpers");
 
 const putility = require('@heyputer/putility');
-const { MultiDetachable } = putility.libs.listener;
-const { TDetachable } = putility.traits;
 const config = require("../config");
 const _path = require('path');
 const { NodeInternalIDSelector, NodeChildSelector, NodeUIDSelector, RootNodeSelector, NodePathSelector } = require("./node/selectors");
 const { Context } = require("../util/context");
 const { NodeRawEntrySelector } = require("./node/selectors");
 const { DB_READ } = require("../services/database/consts");
-const { UserActorType } = require("../services/auth/Actor");
+const { UserActorType, AppUnderUserActorType, Actor } = require("../services/auth/Actor");
 const { PermissionUtil } = require("../services/auth/PermissionService");
+const { ECMAP } = require("./ECMAP");
 
 /**
  * Container for information collected about a node
@@ -48,6 +47,8 @@ const { PermissionUtil } = require("../services/auth/PermissionService");
  * @property {string} uid the UUID of the filesystem entry
  */
 module.exports = class FSNodeContext {
+    static CONCERN = 'filesystem';
+
     static TYPE_FILE = { label: 'File' };
     static TYPE_DIRECTORY = { label: 'Directory' };
     static TYPE_SYMLINK = {};
@@ -71,11 +72,37 @@ module.exports = class FSNodeContext {
      * @param {*} opt_identifier.id please pass mysql_id instead
      * @param {*} opt_identifier.mysql_id a MySQL ID of the filesystem entry
      */
-    constructor ({ services, selector, fs }) {
-        this.log = services.get('log-service').create('fsnode-context');
+    constructor ({
+        services,
+        selector,
+        provider,
+        fs
+    }) {
+        const ecmap = Context.get(ECMAP.SYMBOL);
+        
+        if ( ecmap ) {
+            // We might return an existing FSNodeContext
+            const maybe_node = ecmap?.
+                get_fsNodeContext_from_selector?.(selector);
+            if ( maybe_node ) return maybe_node;
+        } else {
+            if ( process.env.LOG_ECMAP ) {
+                console.log('\x1B[31;1m !!! NO ECMAP !!! \x1B[0m');
+            }
+        }
+        
+        // This will be used to avoid concurrent fetches. Whenever an entry is being fetched,
+        // a subsequent call to fetchEntry must await this promise. Usually this means the
+        // subsequent call will not perform any expensive operations.
+        this.fetching = null;
+
+        this.log = services.get('log-service').create('fsnode-context', {
+            concern: this.constructor.CONCERN,
+        });
         this.selector_ = null;
         this.selectors_ = [];
         this.selector = selector;
+        this.provider = provider;
         this.entry = {};
         this.found = undefined;
         this.found_thumbnail = undefined;
@@ -106,7 +133,11 @@ module.exports = class FSNodeContext {
             this[method] = async (...args) => {
                 const tracer = this.services.get('traceService').tracer;
                 let result;
-                await tracer.startActiveSpan(`fs:nodectx:fetch:${method}`, async span => {
+                const opts = { attributes: {
+                    selector: selector.describe(),
+                    trace: (new Error()).stack,
+                } };
+                await tracer.startActiveSpan(`fs:nodectx:fetch:${method}`, opts, async span => {
                     result = await original_method.call(this, ...args);
                     span.end();
                 });
@@ -120,6 +151,12 @@ module.exports = class FSNodeContext {
         for ( const selector of this.selectors_ ) {
             if ( selector instanceof new_selector.constructor ) return;
         }
+        
+        const ecmap = Context.get(ECMAP.SYMBOL);
+        if ( ecmap ) {
+            ecmap.store_fsNodeContext_to_selector(new_selector, this);
+        }
+
         this.selectors_.push(new_selector);
         this.selector_ = new_selector;
     }
@@ -219,8 +256,8 @@ module.exports = class FSNodeContext {
         return components.length;
     }
     
-    async exists (fetch_options = {}) {
-        await this.fetchEntry();
+    async exists ({ fetch_options } = {}) {
+        await this.fetchEntry(fetch_options);
         if ( ! this.found ) {
             this.log.debug(
                 'here\'s why it doesn\'t exist: ' +
@@ -252,6 +289,15 @@ module.exports = class FSNodeContext {
      * @void
      */
     async fetchEntry (fetch_entry_options = {}) {
+        if ( this.fetching !== null ) {
+            await Context.get('services').get('traceService').spanify('fetching', async () => {
+                // ???: does this need to be double-checked? I'm not actually sure...
+                if ( this.fetching === null ) return;
+                await this.fetching;
+            });
+        }
+        this.fetching = new putility.libs.promise.TeePromise();
+
         if (
             this.found === true &&
             ! fetch_entry_options.force &&
@@ -261,109 +307,56 @@ module.exports = class FSNodeContext {
                 this.found_thumbnail !== undefined
             )
         ) {
+            const promise = this.fetching;
+            this.fetching = null;
+            promise.resolve();
             return;
         }
+
+        const controls = {
+            log: this.log,
+            provide_selector: selector => {
+                this.selector = selector;
+            },
+        };
 
         this.log.info('fetching entry: ' + this.selector.describe());
-        // All services at the top (DEVLOG-401)
-        const {
-            traceService,
-            fsEntryService,
-            fsEntryFetcher,
-            resourceService,
-        } = Context.get('services').values;
 
-        if ( fetch_entry_options.tracer == null ) {
-            fetch_entry_options.tracer = traceService.tracer;
-        }
-
-        if ( fetch_entry_options.op ) {
-            fetch_entry_options.trace_options = {
-                parent: fetch_entry_options.op.span,
-            };
-        }
-
-        let entry;
-
-        await new Promise (rslv => {
-            const detachables = new MultiDetachable();
-
-            const callback = (resolver) => {
-                detachables.as(TDetachable).detach();
-                rslv();
-            }
-
-            // either the resource is free
-            {
-                // no detachale because waitForResource returns a
-                // Promise that will be resolved when the resource
-                // is free no matter what, and then it will be
-                // garbage collected.
-                resourceService.waitForResource(
-                    this.selector
-                ).then(callback.bind(null, 'resourceService'));
-            }
-
-            // or pending information about the resource
-            // becomes available
-            {
-                // detachable is needed here because waitForEntry keeps
-                // a map of listeners in memory, and this event may
-                // never occur. If this never occurs, waitForResource
-                // is guaranteed to resolve eventually, and then this
-                // detachable will be detached by `callback` so the
-                // listener can be garbage collected.
-                const det = fsEntryService.waitForEntry(
-                    this, callback.bind(null, 'fsEntryService'));
-                if ( det ) detachables.add(det);
-            }
+        const entry = await this.provider.stat({
+            selector: this.selector,
+            options: fetch_entry_options,
+            node: this,
+            controls,
         });
 
-        if ( resourceService.getResourceInfo(this.uid) ) {
-            entry = await fsEntryService.get(this.uid, fetch_entry_options);
-            this.log.debug('got an entry from the future');
-        } else {
-            entry = await fsEntryFetcher.find(
-                this.selector, fetch_entry_options);
-        }
-
         if ( ! entry ) {
-            this.log.info(`entry not found: ${this.selector.describe(true)}`);
-        }
-
-        if ( entry === null || typeof entry !== 'object' ) {
-            // TODO: this property shouldn't be set to false -
-            //   this is set to false to avoid regressions with
-            //   existing code.
-            this.entry = false;
-
             this.found = false;
-            return;
+            this.entry = false;
+        } else {
+            this.found = true;
+
+            if ( ! this.uid && entry.uuid ) {
+                this.uid = entry.uuid;
+            }
+
+            if ( ! this.mysql_id && entry.id ) {
+                this.mysql_id = entry.id;
+            }
+
+            if ( ! this.path && entry.path ) {
+                this.path = entry.path;
+            }
+
+            if ( ! this.name && entry.name ) {
+                this.name = entry.name;
+            }
+
+            Object.assign(this.entry, entry);
         }
 
-        this.found = true;
-
-        if ( entry.id ) {
-            this.selector = new NodeInternalIDSelector('mysql', entry.id, {
-                source: 'FSNodeContext optimization'
-            });
-        }
-
-        if ( ! this.uid && entry.uuid ) {
-            this.uid = entry.uuid;
-        }
-
-        if ( ! this.mysql_id && entry.id ) {
-            this.mysql_id = entry.id;
-        }
-
-        if ( ! this.path && entry.path ) {
-            this.path = entry.path;
-        }
-
-        if ( ! this.name && entry.name ) this.name = entry.name;
-
-        Object.assign(this.entry, entry);
+        const promise = this.fetching;
+        this.fetching = null;
+        promise.resolve();
     }
 
     /**
@@ -541,11 +534,11 @@ module.exports = class FSNodeContext {
     }
 
     async fetchIsEmpty () {
-        if ( ! this.entry ) return;
-        if ( ! this.entry.is_dir ) return;
-        if ( ! this.uid ) return;
-
-        this.entry.is_empty = await is_empty(this.uid);
+        if ( ! this.uid && ! this.path ) return;
+        this.entry.is_empty = await is_empty({
+            uid: this.uid,
+            path: this.path,
+        });
     }
 
     async fetchAll(fsEntryFetcher, user, force) {
@@ -615,6 +608,16 @@ module.exports = class FSNodeContext {
         if ( key === 'mysql-id' ) {
             await this.fetchEntry();
             return this.mysql_id;
+        }
+        
+        if ( key === 'owner' ) {
+            const user_id = await this.get('user_id');
+            const actor = new Actor({
+                type: new UserActorType({
+                    user: await get_user({ id: user_id }),
+                }),
+            });
+            return actor;
         }
 
         const values_from_entry = ['immutable', 'user_id', 'name', 'size', 'parent_uid', 'metadata'];
@@ -798,6 +801,9 @@ module.exports = class FSNodeContext {
                 username: res.owner?.username,
             };
         }
+        if ( ! ( actor.type === AppUnderUserActorType ) ) {
+            if ( fsentry.owner ) delete fsentry.owner.email;
+        }
 
         const info = this.services.get('information');
 
@@ -865,6 +871,12 @@ module.exports = class FSNodeContext {
         if ( fsentry.associated_app_id ) {
             const app = await get_app({ id: fsentry.associated_app_id });
             fsentry.associated_app = app;
+        }
+        
+        // If this file is in an appdata directory, add `appdata_app`
+        const components = await this.getPathComponents();
+        if ( components[1] === 'AppData' ) {
+            fsentry.appdata_app = components[2];
         }
 
         fsentry.is_dir = !! fsentry.is_dir;

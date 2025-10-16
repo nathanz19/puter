@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -51,13 +51,36 @@ export class ThemeService extends Service {
 
         this.save_cooldown_ = undefined;
 
-        let data = undefined;
-        try {
-            data = await puter.fs.read(PUTER_THEME_DATA_FILENAME);
-            if ( typeof data === 'object' ) {
-                data = await data.text();
+        // Load theme data using .then() for non-blocking operation
+        puter.fs.read(PUTER_THEME_DATA_FILENAME).then(async (data) => {
+            try {
+                if ( typeof data === 'object' ) {
+                    data = await data.text();
+                }
+                
+                if ( data ) {
+                    try {
+                        data = JSON.parse(data.toString());
+                        if ( data && data.colors ) {
+                            this.state = {
+                                ...this.state,
+                                ...data.colors,
+                            };
+                            this.reload_();
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        UIAlert({
+                            title: 'Error loading theme data',
+                            message: `Could not parse "${PUTER_THEME_DATA_FILENAME}": ` +
+                                e.message,
+                        });
+                    }
+                }
+            } catch (e) {
+                console.error('Error processing theme data:', e);
             }
-        } catch (e) {
+        }).catch((e) => {
             if ( e.code !== 'subject_does_not_exist' ) {
                 // TODO: once we have an event log,
                 //       log this error to the event log
@@ -66,28 +89,7 @@ export class ThemeService extends Service {
                 // We don't show an alert because it's likely
                 // other things also aren't working.
             }
-        }
-
-        if ( data ) try {
-            data = JSON.parse(data.toString());
-        } catch (e) {
-            data = undefined;
-            console.error(e);
-
-            UIAlert({
-                title: 'Error loading theme data',
-                message: `Could not parse "${PUTER_THEME_DATA_FILENAME}": ` +
-                    e.message,
-            });
-        }
-
-        if ( data && data.colors ) {
-            this.state = {
-                ...this.state,
-                ...data.colors,
-            };
-            this.reload_();
-        }
+        });
     }
 
     reset () {
@@ -121,6 +123,8 @@ export class ThemeService extends Service {
         this.root.style.setProperty('--primary-lightness', s.lig + '%');
         this.root.style.setProperty('--primary-alpha', s.alpha);
         this.root.style.setProperty('--primary-color', s.light_text ? 'white' : '#373e44');
+        this.root.style.setProperty('--primary-color-icon', s.light_text ? 'invert(1)' : 'invert(0)');
+        this.root.style.setProperty('--primary-color-sidebar-item', s.light_text ? '#5a5d61aa' : '#fefeff');
 
         // TODO: Should we debounce this to reduce traffic?
         this.#broadcastService.sendBroadcast('themeChanged', {

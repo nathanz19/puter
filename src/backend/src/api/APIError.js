@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -17,6 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 const { URLSearchParams } = require("node:url");
+const config = require("../config");
 const { quot } = require('@heyputer/putility').libs.string;
 
 /**
@@ -56,6 +57,10 @@ module.exports = class APIError {
             message: ({ name }) => {
                 return `offering ${quot(name)} was not recognized.`;
             },
+        },
+        'error_400_from_delegate': {
+            status: 400,
+            message: ({ delegate, message }) => `Error 400 from delegate ${quot(delegate)}: ${message}`,
         },
         // Things
         'disallowed_thing': {
@@ -212,7 +217,9 @@ module.exports = class APIError {
         },
         'internal_error': {
             status: 500,
-            message: 'An internal error occurred.',
+            message: ({ message }) => message
+                ? 'An internal error occurred: ' + quot(message)
+                : 'An internal error occurred.',
         },
         'response_timeout': {
             status: 504,
@@ -294,7 +301,7 @@ module.exports = class APIError {
         // Subdomains
         'subdomain_limit_reached': {
             status: 400,
-            message: ({ limit }) => `You have exceeded the number of subdomains under your current plan (${limit}).`,
+            message: ({ limit, isWorker }) => isWorker ? `You have exceeded the maximum number of workers for your plan! (${limit})`:`You have exceeded the number of subdomains under your current plan (${limit}).`,
         },
         'subdomain_reserved': {
             status: 400,
@@ -330,19 +337,15 @@ module.exports = class APIError {
             message: ({ method_name, rate_limit }) =>
                 `Rate limit exceeded for method ${quot(method_name)}: ${rate_limit.max} requests per ${rate_limit.period}ms.`,
         },
-        'monthly_limit_exceeded': {
-            status: 429,
-            message: ({ method_key, limit }) =>
-                `Monthly limit exceeded for method ${quot(method_key)}: ${limit} requests per month.`,
-        },
-        'monthly_usage_exceeded': {
-            status: 429,
-            message: ({ limit, unit }) =>
-                `Monthly limit exceeded: ${limit} ${unit} per month.`,
-        },
         'server_rate_exceeded': {
             status: 503,
             message: 'System-wide rate limit exceeded. Please try again later.',
+        },
+        
+        // New cost system
+        'insufficient_funds': {
+            status: 402,
+            message: 'Available funding is insufficient for this request.',
         },
 
         // auth
@@ -350,9 +353,17 @@ module.exports = class APIError {
             status: 401,
             message: 'Missing authentication token.',
         },
+        'unexpected_undefined': {
+            status: 401,
+            message: msg => msg ?? "unexpected string undefined"
+        },
         'token_auth_failed': {
             status: 401,
             message: 'Authentication failed.',
+        },
+        'user_not_found': {
+            status: 401,
+            message: 'User not found.',
         },
         'token_unsupported': {
             status: 401,
@@ -475,6 +486,27 @@ module.exports = class APIError {
             status: 400,
             message: 'Incorrect or missing anti-CSRF token.',
         },
+
+        'not_yet_supported': {
+            status: 400,
+            message: ({ message }) => message,
+        },
+
+        // Captcha errors
+        'captcha_required': {
+            status: 400,
+            message: ({ message }) => message || 'Captcha verification required',
+        },
+        'captcha_invalid': {
+            status: 400,
+            message: ({ message }) => message || 'Invalid captcha response',
+        },
+
+        // TTS Errors
+        'invalid_engine': {
+            status: 400,
+            message: ({ engine, valid_engines }) => `Invalid engine: ${quot(engine)}. Valid engines are: ${valid_engines.map(quot).join(', ')}.`,
+        },
     };
 
     /**
@@ -487,8 +519,9 @@ module.exports = class APIError {
      * is set to null. The first argument is used as the status code.
      *
      * @static
-     * @param {number} status
-     * @param {string|Error} message_or_source one of the following:
+     * @param {number|string} status
+     * @param {object} source
+     * @param {string|Error|object} fields one of the following:
      * - a string to use as the error message
      * - an Error object to use as the source of the error
      * - an object with a message property to use as the error message

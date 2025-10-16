@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -161,10 +161,6 @@ const de = {
         log_out: 'Abmelden',
         looks_good: "Sieht gut aus!",
         manage_sessions: "Sitzungen verwalten",
-        menubar_style: "Menüleisten-Stil",
-        menubar_style_desktop: "Desktop",
-        menubar_style_system: "System",
-        menubar_style_window: "Fenster",
         modified: 'Geändert',
         move: 'Verschieben',
         moving_file: "Verschiebe %%",
@@ -225,6 +221,12 @@ const de = {
         publish: "Veröffentlichen",
         publish_as_website: 'Als Webseite veröffentlichen',
         puter_description: `Puter ist eine datenschutzorientierte persönliche Cloud, um alle Ihre Dateien, Apps und Spiele an einem sicheren Ort zu speichern, von überall und jederzeit zugänglich.`,
+        remove: "Entfernen",
+        'account.avatar.removeButton': 'Entfernen',
+        'account.avatar.removeConfirm': "Möchten Sie Ihr Profilbild wirklich entfernen? Dadurch wird der Standard-Avatar wiederhergestellt.",
+        'account.avatar.removedToast': 'Profilbild entfernt.',
+        'confirm_remove_profile_picture': "Möchten Sie Ihr Profilbild wirklich entfernen? Dadurch wird der Standard-Avatar wiederhergestellt.",
+        'confirm_remove_profile_picture_title': 'Profilbild entfernen?',
         reading_file: "Lesen von %strong%",
         recent: "Kürzlich",
         recommended: "Empfohlen",
@@ -377,6 +379,7 @@ const de = {
         "billing.subscription_cancelled_description": "Bis zum Ende des Abrechnungszeitraums haben Sie weiterhin Zugriff auf Ihr Abonnement.", // In English: "You will still have access to your subscription until the end of this billing period."
         "billing.offering.free": "Kostenlos", // In English: "Free"
         "billing.offering.pro": "Professionell", // In English: "Professional"
+        "billing.offering.professional": "Professionell", // In English: "Professional"
         "billing.offering.business": "Unternehmen", // In English: "Business"
         "billing.cloud_storage": "Cloud Speicher", // In English: "Cloud Storage"
         "billing.ai_access": "KI Zugang", // In English: "AI Access"
@@ -408,6 +411,82 @@ const de = {
         "billing.expanded": "Erweitert", // In English: "Expanded"
         "billing.accelerated": "Beschleunigt", // In English: "Accelerated"
         "billing.enjoy_msg": "Genießen Sie %% des Cloud-Speichers und weitere Vorteile.", // In English: "Enjoy %% of Cloud Storage plus other benefits."
+        "choose_publishing_option": "Wählen Sie, wie Sie Ihre Website veröffentlichen möchten", // In English: "Choose how you want to publish your website:"
+        "create_desktop_shortcut": "Verknüpfung erstellen (Desktop)", // In English: "Create Shortcut (Desktop)"
+        "create_desktop_shortcut_s": "Verknüpfungen erstellen (Desktop)", // In English: "Create Shortcuts (Desktop)"
+        "create_shortcut_s": "Verknüpfungen erstellen", // In English: "Create Shortcuts"
+        "minimize": "Minimieren", // In English: "Minimize"
+        "reload_app": "App neu laden", // In English: "Reload App"
+        "new_window": "Neues Fenster", // In English: "New Window"
+        "open_trash": "Papierkorb öffnen", // In English: "Open Trash"
+        "pick_name_for_worker": "Wählen Sie einen Namen für Ihren Mitarbeiter:", // In English: "Pick a name for your worker:"
+        "publish_as_serverless_worker": "Als Worker veröffentlichen", // In English: "Publish as Worker"
+        "toolbar.enter_fullscreen": "Vollbildmodus aktivieren", // In English: "Enter Full Screen"
+        "toolbar.github": "GitHub", // In English: "GitHub"
+        "toolbar.refer": "Verweisen", // In English: "Refer"
+        "toolbar.save_account": "Konto speichern", // In English: "Save Account"
+        "toolbar.search": "Suchen", // In English: "Search"
+        "toolbar.qrcode": "QR-Code", // In English: "QR Code"
+        "used_of": "{{used}} verwendet von {{available}} ", // In English: "{{used}} used of {{available}}"
+        "worker": "Worker", // In English: "Worker"
+        "billing.offering.basic": "Basic", // In English: "Basic"
+        "too_many_attempts": "Zu viele Versuche. Bitte versuchen Sie es später erneut.", // In English: "Too many attempts. Please try again later."
+        "server_timeout": "Die Antwort des Servers hat zu lange gedauert. Bitte versuchen Sie es erneut.", // In English: "The server took too long to respond. Please try again."
+        "signup_error": "Bei der Anmeldung ist ein Fehler aufgetreten. Versuchen Sie es bitte noch einmal.", // In English: "An error occurred during signup. Please try again."
+        "welcome_title": "Willkommen auf Ihrem persönlichen Internetcomputer", // In English: "Welcome to your Personal Internet Computer"
+        "welcome_description": "Speichern Sie Dateien, spielen Sie Spiele, finden Sie tolle Apps und vieles mehr! Alles an einem Ort, jederzeit und überall zugänglich.", // In English: "Store files, play games, find awesome apps, and much more! All in one place, accessible from anywhere at any time."
+        "welcome_get_started": "Erste Schritte", // In English: "Get Started"
+        "welcome_terms": "Bedingungen", // In English: "Terms"
+        "welcome_privacy": "Datenschutz", // In English: "Privacy"
+        "welcome_developers": "Entwickler", // In English: "Developers"
+        "welcome_open_source": "Open Source", // In English: "Open Source"
+        "welcome_instant_login_title": "Sofortige Anmeldung!", // In English: "Instant Login!"
+        "alert_error_title": "Fehler", // In English: "Error!"
+        "alert_warning_title": "Warnung", // In English: "Warning!"
+        "alert_info_title": "Info", // In English: "Info"
+        "alert_success_title": "Erfolg!", // In English: "Success!"
+        "alert_confirm_title": "Bist du sicher?", // In English: "Are you sure?"
+        "alert_yes": "Ja", // In English: "Yes"
+        "alert_no": "Nein", // In English: "No"
+        "alert_retry": "Wiederholen", // In English: "Retry"
+        "alert_cancel": "Abbrechen", // In English: "Cancel"
+        "signup_confirm_password": "Passwort bestätigen", // In English: "Confirm Password"
+        "login_email_username_required": "E-Mail oder Benutzername ist erforderlich", // In English: "Email or username is required"
+        "login_password_required": "Passwort erforderlich", // In English: "Password is required"
+        "window_title_open": "Offen", // In English: "Open"
+        "window_title_change_password": "Kennwort ändern", // In English: "Change Password"
+        "window_title_select_font": "Schriftart auswählen…", // In English: "Select font…"
+        "window_title_session_list": "Sitzungsliste!", // In English: "Session List!"
+        "window_title_set_new_password": "Neues Passwort festlegen", // In English: "Set New Password"
+        "window_title_instant_login": "Sofortige Anmeldung!", // In English: "Instant Login!"
+        "window_title_publish_website": "Website veröffentlichen", // In English: "Publish Website"
+        "window_title_publish_worker": "Veröffentlichungsmitarbeiter", // In English: "Publish Worker"
+        "window_title_authenticating": "Authentifizierung...", // In English: "Authenticating..."
+        "window_title_refer_friend": "Empfehlen Sie uns weiter!", // In English: "Refer a friend!"
+        "desktop_show_desktop": "Desktop anzeigen", // In English: "Show Desktop"
+        "desktop_show_open_windows": "Offene Fenster anzeigen", // In English: "Show Open Windows"
+        "desktop_exit_full_screen": "Vollbildmodus beenden", // In English: "Exit Full Screen"
+        "desktop_enter_full_screen": "Vollbildmodus aktivieren", // In English: "Enter Full Screen"
+        "desktop_position": "Position", // In English: "Position"
+        "desktop_position_left": "Links", // In English: "Left"
+        "desktop_position_bottom": "Unten", // In English: "Bottom"
+        "desktop_position_right": "Rechts", // In English: "Right"
+        "item_shared_with_you": "Ein Benutzer hat diesen Artikel mit Ihnen geteilt.", // In English: "A user has shared this item with you."
+        "item_shared_by_you": "Sie haben diesen Artikel mit mindestens einem anderen Benutzer geteilt.", // In English: "You have shared this item with at least one other user."
+        "item_shortcut": "Abkürzung", // In English: "Shortcut"
+        "item_associated_websites": "Zugehörige Website", // In English: "Associated website"
+        "item_associated_websites_plural": "Zugehörige Websites", // In English: "Associated websites"
+        "no_suitable_apps_found": "Keine passenden Apps gefunden", // In English: "No suitable apps found"
+        "window_click_to_go_back": "Klicken Sie hier, um zurückzugehen.", // In English: "Click to go back."
+        "window_click_to_go_forward": "Klicken Sie, um fortzufahren.", // In English: "Click to go forward."
+        "window_click_to_go_up": "Klicken Sie, um ein Verzeichnis nach oben zu gehen.", // In English: "Click to go one directory up."
+        "window_title_public": "Öffentlich", // In English: "Public"
+        "window_title_videos": "Videos", // In English: "Videos"
+        "window_title_pictures": "Bilder", // In English: "Pictures"
+        "window_title_puter": "Puter", // In English: "Puter"
+        "window_folder_empty": "Dieser Ordner ist leer", // In English: "This folder is empty"
+        "manage_your_subdomains": "Verwalten Sie Ihre Subdomains", // In English: "Manage Your Subdomains"
+        "open_containing_folder": "Enthaltenen Ordner öffnen", // In English: "Open Containing Folder"
     }
 };
 

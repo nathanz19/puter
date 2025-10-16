@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -16,10 +16,11 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-const { chkperm } = require("../../helpers");
 const { Context } = require("../../util/context");
 const { HLFilesystemOperation } = require("./definitions");
 const APIError = require('../../api/APIError');
+const { ECMAP } = require("../ECMAP");
+const { NodeUIDSelector } = require("../node/selectors");
 
 class HLStat extends HLFilesystemOperation {
     static MODULES = {
@@ -27,15 +28,43 @@ class HLStat extends HLFilesystemOperation {
     }
 
     async _run () {
+        return await ECMAP.arun(async () => {
+            const ecmap = Context.get(ECMAP.SYMBOL);
+            ecmap.store_fsNodeContext(this.values.subject);
+            return await this.__run();
+        });
+    }
+    // async _run () {
+    //     return await this.__run();
+    // }
+    async __run () {
         const {
             subject, user,
             return_subdomains,
-            return_permissions,
+            return_permissions, // Deprecated: kept for backwards compatiable with `return_shares`
+            return_shares,
             return_versions,
             return_size,
         } = this.values;
+        
+        const maybe_uid_selector = subject.get_selector_of_type(NodeUIDSelector);
+        
+        // users created before 2025-07-30 might have fsentries with NULL paths.
+        // we can remove this check once that is fixed.
+        const user_unix_ts = Number((''+Date.parse(Context.get('actor')?.type?.user?.timestamp)).slice(0, -3));
+        const paths_are_fine = user_unix_ts >= 1722385593;
 
-        await subject.fetchEntry();
+        if ( maybe_uid_selector || paths_are_fine ) {
+            // We are able to fetch the entry and is_empty simultaneously
+            await Promise.all([
+                subject.fetchEntry(),
+                subject.fetchIsEmpty(),
+            ]);
+        } else {
+            // We need the entry first in order for is_empty to work correctly
+            await subject.fetchEntry();
+            await subject.fetchIsEmpty();
+        }
 
         // file not found
         if( ! subject.found ) throw APIError.create('subject_does_not_exist');
@@ -56,10 +85,10 @@ class HLStat extends HLFilesystemOperation {
 
         if (return_size) await subject.fetchSize(user);
         if (return_subdomains) await subject.fetchSubdomains(user)
-        if (return_permissions) await subject.fetchShares();
+        if (return_shares || return_permissions) {
+            await subject.fetchShares();
+        }
         if (return_versions) await subject.fetchVersions();
-
-        await subject.fetchIsEmpty();
 
         return await subject.getSafeEntry();
     }

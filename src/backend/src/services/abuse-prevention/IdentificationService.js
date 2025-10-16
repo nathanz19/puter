@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"mistral","model":"mistral-large-latest"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -57,6 +57,8 @@ class Requester {
             ua: req.headers['user-agent'],
             ip: req.connection.remoteAddress,
             ip_forwarded: req.headers['x-forwarded-for'],
+            ip_user: req.headers['x-forwarded-for'] ||
+                req.connection.remoteAddress,
             origin: req.headers['origin'],
             referer: req.headers['referer'],
             referer_origin,
@@ -140,13 +142,6 @@ class RequesterIdentificationExpressMiddleware extends AdvancedBase {
     install (app) {
         app.use(this.run.bind(this));
     }
-    /**
-    * Installs the middleware into the Express application.
-    * This method binds the `run` method to the current instance
-    * and uses it as a middleware function in the Express app.
-    *
-    * @param {object} app - The Express application instance.
-    */
     async run (req, res, next) {
         const x = Context.get();
 
@@ -186,13 +181,6 @@ class IdentificationService extends BaseService {
         this.mw = new RequesterIdentificationExpressMiddleware();
     }
     /**
-    * Constructor for the IdentificationService class.
-    * Initializes the middleware for requester identification.
-    */
-    _init () {
-        this.mw.log = this.log;
-    }
-    /**
     * Initializes the middleware logger.
     *
     * This method sets the logger for the `RequesterIdentificationExpressMiddleware` instance.
@@ -200,6 +188,12 @@ class IdentificationService extends BaseService {
     *
     * @method
     * @name _init
+    */
+    _init () {
+        this.mw.log = this.log;
+    }
+    /**
+    * We need to listen to this event to install a context-aware middleware
     */
     async ['__on_install.middlewares.context-aware'] (_, { app }) {
         this.mw.install(app);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -19,7 +19,6 @@
 // TODO: database access can be a service
 const { RESOURCE_STATUS_PENDING_CREATE } = require('../modules/puterfs/ResourceService.js');
 const { TraceService } = require('../services/TraceService.js');
-const FSAccessContext = require('./FSAccessContext.js');
 const PerformanceMonitor = require('../monitor/PerformanceMonitor.js');
 const { NodePathSelector, NodeUIDSelector, NodeInternalIDSelector } = require('./node/selectors.js');
 const FSNodeContext = require('./FSNodeContext.js');
@@ -35,6 +34,7 @@ const { DB_WRITE } = require("../services/database/consts");
 const { UserActorType } = require('../services/auth/Actor');
 const { get_user } = require('../helpers');
 const BaseService = require('../services/BaseService');
+const { PuterFSProvider } = require('../modules/puterfs/lib/PuterFSProvider.js');
 
 class FilesystemService extends BaseService {
     static MODULES = {
@@ -94,6 +94,7 @@ class FilesystemService extends BaseService {
         }));
         svc_permission.register_implicator(PermissionImplicator.create({
             id: 'is-owner',
+            shortcut: true,
             matcher: permission => {
                 return permission.startsWith('fs:');
             },
@@ -158,48 +159,6 @@ class FilesystemService extends BaseService {
         }));
     }
 
-    /**
-     * @deprecated - temporary migration method
-     */
-    get_systemfs () {
-        if ( ! this.systemfs_ ) {
-            this.systemfs_ = new FSAccessContext();
-            this.systemfs_.fsEntryFetcher = this.services.get('fsEntryFetcher');
-            this.systemfs_.fsEntryService = this.services.get('fsEntryService');
-            this.systemfs_.resourceService = this.services.get('resourceService');
-            this.systemfs_.sizeService = this.services.get('sizeService');
-            this.systemfs_.traceService = this.services.get('traceService');
-            this.systemfs_.services = this.services;
-        }
-        return this.systemfs_;
-    }
-
-    // NOTE: these are the parameters being passed
-    // (assuming this comment is up-to-date)
-    // {
-    // node, actor, immutable,
-    // file, tmp, fsentry_tmp,
-    // message,
-    // }
-    async owrite (parameters) {
-        const ll_owrite = new LLOWrite();
-        return await ll_owrite.run(parameters);
-    }
-
-    // REMINDER: There was an idea that FilesystemService implements
-    // an interface, and if that ever happens these arguments are
-    // important:
-    // parent, name, user, immutable, file, message
-    async cwrite (parameters) {
-        const ll_cwrite = new LLCWrite();
-        return await ll_cwrite.run(parameters);
-    }
-
-    async mkdir_2 ({parent, name, actor, immutable}) {
-        const ll_mkdir = new LLMkdir();
-        return await ll_mkdir.run({ parent, name, actor, immutable });
-    }
-
     async mkshortcut ({ parent, name, user, target }) {
 
         // Access Control
@@ -223,6 +182,7 @@ class FilesystemService extends BaseService {
 
         const { _path, uuidv4 } = this.modules;
         const svc_fsEntry = this.services.get('fsEntryService');
+        const resourceService = this.services.get('resourceService');
 
         const ts = Math.round(Date.now() / 1000);
         const uid = uuidv4();
@@ -335,13 +295,9 @@ class FilesystemService extends BaseService {
         return node;
     }
 
-    async copy_2 (...a) {
-        const ll_copy = new LLCopy();
-        return await ll_copy.run(...a);
-    }
-
     async update_child_paths (old_path, new_path, user_id) {
-        const monitor = PerformanceMonitor.createContext('update_child_paths');
+        const svc_performanceMonitor = this.services.get('performance-monitor');
+        const monitor = svc_performanceMonitor.createContext('update_child_paths');
 
         if ( ! old_path.endsWith('/') ) old_path += '/';
         if ( ! new_path.endsWith('/') ) new_path += '/';
@@ -370,12 +326,10 @@ class FilesystemService extends BaseService {
         if ( typeof selector === 'string' ) {
             if ( selector.startsWith('/') ) {
                 selector = new NodePathSelector(selector);
-            } else {
-                selector = new NodeUIDSelector(selector);
             }
         }
 
-        // TEMP: remove when these objects aren't used anymore
+        // COERCE: legacy selection objects to Node*Selector objects
         if (
             typeof selector === 'object' &&
             selector.constructor.name === 'Object'
@@ -390,11 +344,43 @@ class FilesystemService extends BaseService {
             }
         }
 
+        system_dir_check: {
+            if ( ! (selector instanceof NodePathSelector) ) break system_dir_check;
+            if ( ! selector.value.startsWith('/')) break system_dir_check;
+
+            // OPTIMIZATION: Check if the path matches a system directory pattern.
+            const systemDirRegex = /^\/([a-zA-Z0-9_]+)\/(Trash|AppData|Desktop|Documents|Pictures|Videos|Public)$/;
+            const match = selector.value.match(systemDirRegex);
+            if ( ! match ) break system_dir_check;
+            
+            const username = match[1];
+            const dirName = match[2];
+
+            // Get the user object (this is likely cached).
+            const user = await get_user({ username });
+            if ( ! user ) break system_dir_check;
+
+            let uuidKey = ( selector.value === '/' + user.username )
+                ? 'home_uuid'
+                : `${dirName.toLowerCase()}_uuid`; // e.g., 'desktop_uuid'
+
+            const cachedUUID = user[uuidKey];
+            if ( ! cachedUUID ) break system_dir_check;
+
+            // If we have a cached ID, use it for more direct lookup.
+            selector = new NodeUIDSelector(cachedUUID);
+        }
+
+        const svc_mountpoint = this.services.get('mountpoint');
+        const provider = await svc_mountpoint.get_provider(selector);
+
         let fsNode = new FSNodeContext({
+            provider,
             services: this.services,
             selector,
             fs: this
         });
+        
         return fsNode;
     }
 

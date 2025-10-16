@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -422,7 +422,7 @@ window.check_fsentry_against_allowed_file_types_string =function (fsentry, allow
 window.refresh_user_data = async (auth_token)=>{
     let whoami
     try{
-        whoami = await puter.os.user();
+        whoami = await puter.os.user({query: 'icon_size=64'});
     }catch(e){
         // Ignored
     }
@@ -524,8 +524,8 @@ window.update_auth_data = async (auth_token, user)=>{
         $('.user-options-menu-btn').show();
     }
 
-    // Search and store user templates
-    window.file_templates = await window.available_templates()
+    // Search and store user templates (non-blocking)
+    window.available_templates()
 }
 
 window.mutate_user_preferences = function(user_preferences_delta) {
@@ -870,70 +870,71 @@ window.create_file = async(options)=>{
     }
 }
 
-window.available_templates = async () => {
-    const baseRoute = `/${window.user.username}`
-    const keywords = ["template", "templates", i18n('template')]
-    //make sure all its lowercase
-    const lowerCaseKeywords = keywords.map(keywords => keywords.toLowerCase())
+window.available_templates = () => {
+    const templatesPath = `/${window.user.username}/templates`
 
-    //create file
-    try{
-        // search the folder name i18n("template"), "template" or "templates"
-        const files = await puter.fs.readdir(baseRoute)
+    // Initialize with empty array immediately
+    window.file_templates = []
 
-        const hasTemplateFolder = files.find(file => lowerCaseKeywords.includes(file.name.toLowerCase()))
+    const loadTemplates = async () => {
+        try{
+            // Directly check the templates directory
+            const hasTemplateFiles = await puter.fs.readdir(templatesPath, {consistency: 'eventual'})
 
-        if(!hasTemplateFolder){
-            return []
-        }
-
-        const hasTemplateFiles = await puter.fs.readdir(baseRoute + "/" + hasTemplateFolder.name)
-
-        if(hasTemplateFiles.length == 0) {
-            return []
-        }
-
-        let result = []
-
-        hasTemplateFiles.forEach(element => {
-            const extIndex = element.name.lastIndexOf('.');
-            const name = extIndex === -1
-                ? element.name
-                : element.name.slice(0, extIndex);
-            let extension = extIndex === -1
-                ? ''
-                : element.name.slice(extIndex + 1);
-
-            if(extension == "txt") extension = "text"
-            
-            const _path = path.join( baseRoute, hasTemplateFolder.name, element.name);
-
-            const itemStructure = {
-                path: _path,
-                html: `${extension.toUpperCase()} ${name}`,
-                extension:extension,
-                name: element.name
+            if(hasTemplateFiles.length == 0) {
+                window.file_templates = []
+                return []
             }
-            result.push(itemStructure)
-        });
-        
-        // return result
-        return result
-        
-    } catch (err) {
-        console.log(err)
+
+            let result = []
+
+            hasTemplateFiles.forEach(element => {
+                const extIndex = element.name.lastIndexOf('.');
+                const name = extIndex === -1
+                    ? element.name
+                    : element.name.slice(0, extIndex);
+                let extension = extIndex === -1
+                    ? ''
+                    : element.name.slice(extIndex + 1);
+
+                if(extension == "txt") extension = "text"
+                
+                const _path = path.join(templatesPath, element.name);
+
+                const itemStructure = {
+                    path: _path,
+                    html: `${extension.toUpperCase()} ${name}`,
+                    extension:extension,
+                    name: element.name
+                }
+                result.push(itemStructure)
+            });
+            
+            // Assign to window.file_templates when ready
+            window.file_templates = result
+            return result
+            
+        } catch (err) {
+            console.log(err)
+            window.file_templates = []
+        }
     }
+
+    // Start the async operation but don't wait for it
+    loadTemplates()
+
+    // Return the current (initially empty) templates immediately
+    return window.file_templates
 }
 
 window.create_shortcut = async(filename, is_dir, basedir, appendto_element, shortcut_to, shortcut_to_path)=>{
-    let dirname = basedir;
     const extname = path.extname(filename);
     const basename = path.basename(filename, extname) + ' - Shortcut';
     filename = basename + extname;
 
     // create file shortcut
     try{
-        await puter.fs.upload(new File([], filename), dirname, {
+        await puter.fs.upload(new File([], filename), basedir, {
             overwrite: false,
             shortcutTo: shortcut_to_path ?? shortcut_to,
             dedupeName: true,
@@ -1225,6 +1226,36 @@ window.move_clipboard_items = function (el_target_container, target_path){
     window.clipboard = [];
 }
 
+function downloadFile(url, postData = {}) {
+    // Create a hidden iframe to trigger the download
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+
+    // Create a form in the iframe for the POST request
+    const form = document.createElement('form');
+    form.action = url;
+    form.method = 'POST';
+    iframe.contentDocument.body.appendChild(form);
+
+    // Add POST data to the form
+    Object.entries(postData).forEach(([key, value]) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = value;
+        form.appendChild(input);
+    });
+
+    // Submit the form to trigger the download
+    form.submit();
+
+    // Cleanup after a short delay (to ensure download starts)
+    setTimeout(() => {
+        document.body.removeChild(iframe);
+    }, 1000);
+}
+
 /**
  * Initiates a download for multiple files provided as an array of paths.
  *
@@ -1250,7 +1281,7 @@ window.trigger_download = (paths)=>{
     let urls = [];
     for (let index = 0; index < paths.length; index++) {
         urls.push({
-            download: window.api_origin + "/down?path=" + paths[index],
+            download: window.origin + "/down?path=" + paths[index],
             filename: path.basename(paths[index]),
         });
     }
@@ -1267,6 +1298,13 @@ window.trigger_download = (paths)=>{
             const { token } = await resp.json();
             return token;
         })();
+
+        downloadFile(e.download, {
+            anti_csrf,
+            auth_token: puter.authToken,
+        });
+        return;
+
         fetch(e.download, {
             method: 'POST',
             headers: {
@@ -1281,6 +1319,7 @@ window.trigger_download = (paths)=>{
             .then(blob => {
                 saveAs(blob, e.filename);
             });
+            
     });
 }
 
@@ -1607,7 +1646,7 @@ window.move_items = async function(el_items, dest_path, is_undo = false){
 
         // check if trash is empty
         if(untrashed_at_least_one_item){
-            const trash = await puter.fs.stat(window.trash_path);
+            const trash = await puter.fs.stat({path: window.trash_path,consistency: 'eventual'});
             if(window.socket){
                 window.socket.emit('trash.is_empty', {is_empty: trash.is_empty});
             }
@@ -1623,7 +1662,6 @@ window.move_items = async function(el_items, dest_path, is_undo = false){
 
     // log stats to console
     let move_duration = (Date.now() - move_init_ts);
-    // console.log(`moved ${el_items.length} item${el_items.length > 1 ? 's':''} in ${move_duration}ms`);
 
     // -----------------------------------------------------------------------
     // DONE! close progress window with delay to allow user to see 100% progress
@@ -1671,7 +1709,7 @@ window.refresh_desktop_background = function(){
     }
     // default background
     else{
-        let wallpaper = (window.gui_env === 'prod') ? '/dist/images/wallpaper.webp' :  '/src/images/wallpaper.webp';
+        let wallpaper = (window.gui_env === 'prod') ? 'https://puter-assets.b-cdn.net/wallpaper.webp' :  '/src/images/wallpaper.webp';
         window.set_desktop_background({
             url: wallpaper,
             fit: 'cover',
@@ -2158,7 +2196,7 @@ async function readDirectoryRecursive(path, baseDir = '') {
     let allFiles = [];
 
     // Read the directory
-    const entries = await puter.fs.readdir(path);
+    const entries = await puter.fs.readdir(path, {consistency: 'eventual'});
 
     if (entries.length === 0) {
         allFiles.push({ path });
@@ -2186,6 +2224,10 @@ window.extractSubdomain = function(url) {
     return subdomain;
 }
 
+window.extractProtocol = function (url) {
+    var protocol = url.split('://')[0];
+    return protocol;
+}
 window.sleep = function(ms){
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -2666,7 +2708,7 @@ window.get_profile_picture = async function(username){
     let icon;
     // try getting profile pic
     try{
-        let stat = await puter.fs.stat('/' + username + '/Public/.profile');
+        let stat = await puter.fs.stat({path: '/' + username + '/Public/.profile', consistency: 'eventual'});
         if(stat.size > 0 && stat.is_dir === false && stat.size < 1000000){
             let profile_json = await puter.fs.read('/' + username + '/Public/.profile');
             profile_json = await blob2str(profile_json);
@@ -2680,4 +2722,96 @@ window.get_profile_picture = async function(username){
     }
 
     return icon;
+}
+
+window.format_with_units = (num, { mulUnits, divUnits, precision = 3 }) => {
+  if ( num === 0 ) return "0";
+
+  mulUnits = mulUnits ?? ["", "K", "M", "G", "T", "P", "E", "Z", "Y"];
+  divUnits = divUnits ?? ["m", "µ", "n", "p", "f", "a", "z", "y"];
+
+  const abs = Math.abs(num);
+  let exp = Math.floor(Math.log10(abs) / 3);
+  let symbol = "";
+
+  symbol = exp >= 0
+    ? mulUnits[exp]
+    : divUnits[-exp - 1] ;
+
+  if ( ! symbol ) {
+    symbol = `e${exp * 3}`;
+  }
+
+  const scaled = num / Math.pow(10, exp * 3);
+  const rounded = Number.parseFloat(scaled.toPrecision(precision));
+
+  return `${rounded}${symbol}`;
+};
+
+window.format_SI = (num) => {
+  if ( num === 0 ) return "0";
+
+  const mulUnits = ["", "K", "M", "G", "T", "P", "E", "Z", "Y"];
+  const divUnits = ["m", "µ", "n", "p", "f", "a", "z", "y"];
+  
+  return window.format_with_units(num, { mulUnits, divUnits });
+};
+
+window.format_credits = (num) => {
+  if ( num === 0 ) return "0";
+  
+  const mulUnits = ["", "K", "M", "B", "T", "Q"];
+
+  return window.format_with_units(num, { mulUnits })
+};
+
+/**
+ * This function will call the provided action function in a try...catch
+ * and handle the 'item_with_same_name_exists' error by re-calling the
+ * action with `{ overwrite: true }` if the user specifies they want to
+ * do so.
+ * 
+ * All exceptions are trapped by this function. The user will see
+ * "Upload failed." if an error occurs and the error object will
+ * be logged to the console.
+ * 
+ * A parent_uuid for a window should be specified for alert boxes to
+ * behave correctly.
+ */
+window.handle_same_name_exists = async ({
+    action, parent_uuid,
+}) => {
+    try {
+        await action({ overwrite: false });
+        return true;
+    } catch ( err ) {
+        if ( err.code !== 'item_with_same_name_exists' ) {
+            console.error(err);
+            await UIAlert({
+                message: err.message ?? "Upload failed.",
+                parent_uuid,
+            });
+            return false;
+        }
+        const alert_resp = await UIAlert({
+            message: `<strong>${html_encode(err.entry_name)}</strong> already exists.`,
+            buttons:[
+                {
+                    label: i18n('replace'),
+                    value: 'replace',
+                    type: 'primary',
+                },
+                {
+                    label: i18n('cancel'),
+                    value: 'cancel',
+                },
+            ],
+            parent_uuid,
+        });
+        if ( alert_resp === 'replace' ) {
+            await action({ overwrite: true });
+            return true;
+        }
+        return false;
+    }
 }

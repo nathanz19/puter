@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -20,10 +20,12 @@
 
 const { Kernel } = require("./Kernel");
 const CoreModule = require("./CoreModule");
+const { CaptchaModule } = require("./modules/captcha/CaptchaModule"); // Add CaptchaModule
 
 const testlaunch = () => {
     const k = new Kernel();
     k.add_module(new CoreModule());
+    k.add_module(new CaptchaModule()); // Register the CaptchaModule
     k.boot();
 }
 

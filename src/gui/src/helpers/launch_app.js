@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -27,6 +27,15 @@ import UIWindow from "../UI/UIWindow.js";
  * @param {*} options.name - The name of the app to launch.
  */
 const launch_app = async (options)=>{
+    let transaction;
+    // A transaction to trace the time it takes to launch an app and 
+    // for it to be ready.
+    // Explorer is a special case, it's not an app per se, so it doesn't need a transaction.
+    if(options?.name !== 'explorer'){
+        transaction = new window.Transaction('app-is-ready');
+        transaction.start();
+    }
+
     const uuid = options.uuid ?? window.uuidv4();
     let icon, title, file_signature;
     const window_options = options.window_options ?? {};
@@ -45,7 +54,7 @@ const launch_app = async (options)=>{
     else if(options.app_obj)
         app_info = options.app_obj;
     else
-        app_info = await puter.apps.get(options.name);
+        app_info = await puter.apps.get(options.name, {icon_size: 64});
 
     // For backward compatibility reasons we need to make sure that both `uuid` and `uid` are set
     app_info.uuid = app_info.uuid ?? app_info.uid;
@@ -132,7 +141,7 @@ const launch_app = async (options)=>{
         // if options.args.path is provided, use it as the path
         if(options.args?.path){
             // if args.path is provided, enforce the directory
-            let fsentry = await puter.fs.stat(options.args.path);
+            let fsentry = await puter.fs.stat({path: options.args.path, consistency: 'eventual'});
             if(!fsentry.is_dir){
                 let parent = path.dirname(options.args.path);
                 if(parent === options.args.path)
@@ -201,15 +210,30 @@ const launch_app = async (options)=>{
 
         // add app_id to URL
         iframe_url.searchParams.append('puter.app.id', app_info.uuid);
+        iframe_url.searchParams.append('puter.app.name', app_info.name);
 
         // add parent_app_instance_id to URL
         if (options.parent_instance_id) {
             iframe_url.searchParams.append('puter.parent_instance_id', options.parent_pseudo_id);
         }
 
+        // add source app metadata to URL
+        if (options.source_app_title) {
+            iframe_url.searchParams.append('puter.source_app.title', options.source_app_title);
+        }
+        if (options.source_app_id) {
+            iframe_url.searchParams.append('puter.source_app.id', options.source_app_id);
+        }
+        if (options.source_app_icon) {
+            iframe_url.searchParams.append('puter.source_app.icon', options.source_app_icon);
+        }
+        if (options.source_app_name) {
+            iframe_url.searchParams.append('puter.source_app.name', options.source_app_name);
+        }
+
         if(file_signature){
             iframe_url.searchParams.append('puter.item.uid', file_signature.uid);
-            iframe_url.searchParams.append('puter.item.path', privacy_aware_path(options.file_path) || file_signature.path);
+            iframe_url.searchParams.append('puter.item.path', options.file_path ? privacy_aware_path(options.file_path) : file_signature.path);
             iframe_url.searchParams.append('puter.item.name', file_signature.fsentry_name);
             iframe_url.searchParams.append('puter.item.read_url', file_signature.read_url);
             iframe_url.searchParams.append('puter.item.write_url', file_signature.write_url);
@@ -398,7 +422,7 @@ const launch_app = async (options)=>{
             // Send any saved broadcasts to the new app
             globalThis.services.get('broadcast').sendSavedBroadcastsTo(uuid);
 
-            // If `window-active` is set (meanign the window is focused), focus the window one more time
+            // If `window-active` is set (meaning the window is focused), focus the window one more time
             // this is to ensure that the iframe is `definitely` focused and can receive keyboard events (e.g. keydown)
             if($(process.references.el_win).hasClass('window-active')){
                 $(process.references.el_win).focusWindow();
@@ -412,6 +436,10 @@ const launch_app = async (options)=>{
         const svc_process = globalThis.services.get('process');
         svc_process.unregister(process.uuid);
     });
+
+    // end the transaction
+    if(transaction)
+        transaction.end();
 
 
     return process;

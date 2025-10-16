@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -16,12 +16,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-const { AppUnderUserActorType, UserActorType } = require("../../services/auth/Actor");
-const context = require("../../util/context");
+const { UserActorType } = require("../../services/auth/Actor");
 const { Context } = require("../../util/context");
-const { Eq, Or } = require("../query/query");
+const { Eq } = require("../query/query");
 const { BaseES } = require("./BaseES");
-const { Entity } = require("./Entity");
 
 class OwnerLimitedES extends BaseES {
     // Limit selection to entities owned by the app of the current actor.

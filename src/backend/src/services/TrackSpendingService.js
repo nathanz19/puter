@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"claude"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -33,13 +33,6 @@ const BaseService = require("./BaseService");
 * pricing strategies for chat completions and image generation services.
 */
 class TrackSpendingService extends BaseService {
-    /**
-    * @class TrackSpendingService
-    * @extends BaseService
-    * @description Service for tracking and monitoring API spending across different vendors and strategies.
-    * Implements cost tracking for chat completions and image generations, with configurable spending alerts.
-    * Maintains time-windowed spending metrics and triggers alarms when spending thresholds are exceeded.
-    */
     static ChatCompletionStrategy = class ChatCompletionStrategy {
         static models = {
             'gpt-4-1106-preview': {
@@ -117,6 +110,20 @@ class TrackSpendingService extends BaseService {
     */
     static ImageGenerationStrategy = class ImageGenerationStrategy {
         static models = {
+            'gemini-2.5-flash-image-preview': {
+                "1024x1024": 0.039,
+            },
+            'gpt-image-1': {
+                "low:1024x1024": 0.011,
+                "low:1024x1536": 0.016,
+                "low:1536x1024": 0.016,
+                "medium:1024x1024": 0.042,
+                "medium:1024x1536": 0.063,
+                "medium:1536x1024": 0.063,
+                "high:1024x1024": 0.167,
+                "high:1024x1536": 0.25,
+                "high:1536x1024": 0.25
+            },
             'dall-e-3': {
                 '1024x1024': 0.04,
                 '1024x1792': 0.08,
@@ -190,8 +197,8 @@ class TrackSpendingService extends BaseService {
         // How frequently we'll get repeat alarms
         const alarm_cooldown_time = 30 * MINUTE;
 
-        const alarm_at_cost = this.config.alarm_at_cost ?? 1;
-        const alarm_increment = this.config.alarm_increment ?? 1;
+        const alarm_at_cost = this.config.alarm_at_cost ?? 10;
+        const alarm_increment = this.config.alarm_increment ?? 10;
 
         for ( const k in strategies ) {
             await strategies[k].validate?.();
@@ -217,11 +224,12 @@ class TrackSpendingService extends BaseService {
 
 
         /**
-        * Records spending data for a vendor using a specified strategy
-        * @param {string} vendor - The vendor name/identifier
-        * @param {string} strategy_key - Key identifying the pricing strategy to use
-        * @param {Object} data - Data needed to calculate cost based on the strategy
-        * @throws {Error} If strategy_key is invalid/unknown
+        * Generates alarms when spending exceeds configured thresholds
+        * 
+        * Periodically checks the current spending levels across all spending windows
+        * and triggers alarms when spending exceeds configured thresholds. Alarms are
+        * triggered based on the total spending across all windows and the configured
+        * alarm thresholds.
         */
         setInterval(() => {
             const spending = this.get_window_spending_();
@@ -281,6 +289,16 @@ class TrackSpendingService extends BaseService {
         }, 0);
     }
 
+    /**
+     * Records spending for a given vendor using the specified strategy
+     * 
+     * @deprecated Use `record_cost` instead
+     * 
+     * @param {string} vendor - The vendor name/identifier
+     * @param {string} strategy_key - Key identifying the pricing strategy to use
+     * @param {Object} data - Data needed to calculate cost based on the strategy
+     * @throws {Error} If strategy_key is invalid/unknown
+     */
     record_spending (vendor, strategy_key, data) {
         const strategy = this.strategies[strategy_key];
         if ( ! strategy ) {
@@ -296,6 +314,22 @@ class TrackSpendingService extends BaseService {
 
         const id = `${vendor}:${strategy_key}`;
         const window = this.add_or_get_window_(id);
+        window.add(cost);
+    }
+
+    /**
+     * Records known cost into a specified window id.
+     * 
+     * This is simliar to `record_spending` but puts the responsibility
+     * of determining cost outside of this services.
+     */
+    record_cost (window_id, { timestamp, cost }) {
+        const window = this.add_or_get_window_(window_id);
+        this.log.info(`Spent ${format_as_usd(cost)}`, {
+            window_id,
+            timestamp,
+            cost,
+        })
         window.add(cost);
     }
 }

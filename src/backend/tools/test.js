@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"claude"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -219,6 +219,7 @@ const main = async () => {
         if ( ! ins._test || typeof ins._test !== 'function' ) {
             continue;
         }
+        ins.log = k.testLogger;
         let passed = 0;
         let failed = 0;
 

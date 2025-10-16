@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -123,7 +123,8 @@ export class ANSIShell extends EventTarget {
             env: this.env,
             locals: {
                 pwd: this.variables.pwd,
-            }
+            },
+            shell: this,
         });
         this.ctx.externs.echo.off();
         const input = await readline(

@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"claude"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -19,15 +19,6 @@
  */
 const { surrounding_box } = require("../fun/dev-console-ui-utils");
 const BaseService = require("./BaseService");
-
-const SOURCE_CODE_TIPS = `
-    Most services are registered in CoreModule.js
-    Boot sequence events are different from service events
-    ExpectationService exists to ensure Puter doesn't miss a step
-    Services are composable; StrategyService is a good example
-    API endpoints should be on a separate origin in production
-    There is some limited query-building in packages/backend/src/om
-`;
 
 const tips = (
     // CLI tips
@@ -78,19 +69,21 @@ const wordwrap = (text, width) => {
 */
 class DevTODService extends BaseService {
     /**
-    * DevTODService class - Manages "Tip of the Day" functionality for the developer console
-    * @extends BaseService
-    * @description Provides random development tips and console commands for managing tip display
-    * Integrates with the dev console to show helpful tips about source code and CLI usage
+    * Initializes the DevTODService by registering commands with the command service
+    * @private
+    * @async
+    * @returns {Promise<void>}
     */
     async _init () {
         const svc_commands = this.services.get('commands');
         this._register_commands(svc_commands);
     }
+
     /**
-    * Initializes the DevTODService by registering commands with the command service
-    * @private
-    * @async
+    * Handles the boot consolidation phase for the Tip of the Day service
+    * Selects a random tip, wraps it to fit the console width, and creates
+    * a widget function to display the formatted tip with optional header/footer
+    * 
     * @returns {Promise<void>}
     */
     async ['__on_boot.consolidation'] () {
@@ -100,13 +93,6 @@ class DevTODService extends BaseService {
             process.stdout.columns
                 ? process.stdout.columns - 6 : 50
         );
-        /**
-        * Handles the boot consolidation phase for the Tip of the Day service
-        * Selects a random tip, wraps it to fit the console width, and creates
-        * a widget function to display the formatted tip with optional header/footer
-        * 
-        * @returns {Promise<void>}
-        */
         this.tod_widget = () => {
             const lines = [
                 ...random_tip,

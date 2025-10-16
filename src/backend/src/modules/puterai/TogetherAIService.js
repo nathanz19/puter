@@ -1,3 +1,22 @@
+/*
+ * Copyright (C) 2024-present Puter Technologies Inc.
+ * 
+ * This file is part of Puter.
+ * 
+ * Puter is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 // METADATA // {"ai-commented":{"service":"claude"}}
 const { PassThrough } = require("stream");
 const BaseService = require("../../services/BaseService");
@@ -36,7 +55,6 @@ class TogetherAIService extends BaseService {
         this.kvkey = this.modules.uuidv4();
 
         const svc_aiChat = this.services.get('ai-chat');
-        console.log('registering provider', this.service_name);
         svc_aiChat.register_provider({
             service_name: this.service_name,
             alias: true,
@@ -55,19 +73,20 @@ class TogetherAIService extends BaseService {
     static IMPLEMENTS = {
         ['puter-chat-completion']: {
             /**
-            * Implements the puter-chat-completion interface for TogetherAI service
-            * Contains methods for listing models and generating chat completions
-            * @property {Object} models - Method to get available models
-            * @property {Object} list - Method to get list of model IDs
-            * @property {Object} complete - Method to generate chat completions
-            */
+             * Returns a list of available models and their details.
+             * See AIChatService for more information.
+             * 
+             * @returns Promise<Array<Object>> Array of model details
+             */
             async models () {
                 return await this.models_();
             },
+
             /**
-            * Retrieves available AI models from the Together API
-            * @returns {Promise<Array>} Array of model objects with their properties
-            * @implements {puter-chat-completion.models}
+            * Returns a list of available model names including their aliases
+            * @returns {Promise<string[]>} Array of model identifiers and their aliases
+            * @description Retrieves all available model IDs and their aliases,
+            * flattening them into a single array of strings that can be used for model selection
             */
             async list () {
                 let models = this.modules.kv.get(`${this.kvkey}:models`);
@@ -75,9 +94,9 @@ class TogetherAIService extends BaseService {
                 return models.map(model => model.id);
             },
             /**
-            * Lists available AI model IDs from the cache or fetches them if not cached
-            * @returns {Promise<string[]>} Array of model ID strings
-            */
+             * AI Chat completion method.
+             * See AIChatService for more details.
+             */
             async complete ({ messages, stream, model }) {
                 if ( model === 'model-fallback-test-1' ) {
                     throw new Error('Model Fallback Test 1');

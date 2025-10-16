@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -161,10 +161,6 @@ const nl = {
 		log_out: 'Uitloggen',
 		looks_good: 'Ziet er goed uit!',
 		manage_sessions: 'Sessies Beheren',
-		menubar_style: 'Menubalk Stijl',
-		menubar_style_desktop: 'Bureaublad',
-		menubar_style_system: 'Systeem',
-		menubar_style_window: 'Venster',
 		mobile_device: 'Mobiel apparaat',
 		modified: 'Gewijzigd',
 		move: 'Verplaatsen',
@@ -226,6 +222,13 @@ const nl = {
 		publish: 'Publiceren',
 		publish_as_website: 'Publiceer als website',
 		puter_description: `Puter is een privacy-first persoonlijke cloud om al je bestanden, apps en games op één veilige plek te bewaren, overal en altijd toegankelijk.`,
+		// nl (Dutch / Nederlands)
+		remove: "Verwijderen",
+		'account.avatar.removeButton': 'Verwijderen',
+		'account.avatar.removeConfirm': "Weet u zeker dat u uw profielfoto wilt verwijderen? Dit zal uw standaardavatar herstellen.",
+		'account.avatar.removedToast': 'Profielfoto verwijderd.',
+		'confirm_remove_profile_picture': "Weet u zeker dat u uw profielfoto wilt verwijderen? Dit zal uw standaardavatar herstellen.",
+		'confirm_remove_profile_picture_title': 'Profielfoto verwijderen?',
 		reading_file: 'Lezen %strong%',
 		recent: 'Recent',
 		recommended: 'Aanbevolen',
@@ -377,6 +380,7 @@ const nl = {
         "billing.subscription_cancelled_description": 'U behoudt toegang tot uw abonnement tot het einde van deze factureringsperiode.', // In English: 'You will still have access to your subscription until the end of this billing period."
         "billing.offering.free": 'Gratis', // In English: 'Free"
         "billing.offering.pro": 'Professioneel', // In English: 'Professional"
+        "billing.offering.professional": 'Professioneel', // In English: 'Professional"
         "billing.offering.business": 'Bedrijf', // In English: 'Business"
         "billing.cloud_storage": 'Cloudopslag', // In English: 'Cloud Storage"
         "billing.ai_access": 'AI Toegang', // In English: 'AI Access"
@@ -408,7 +412,88 @@ const nl = {
         "billing.expanded": 'Uitgebreid', // In English: 'Expanded"
         "billing.accelerated": 'Versneld', // In English: 'Accelerated"
         "billing.enjoy_msg": 'Geniet %% van Cloudopslag en meer voordelen.', // In English: 'Enjoy %% of Cloud Storage plus other benefits."
-	}
+
+		// =============================================================
+		// Missing translations
+		// =============================================================
+		"choose_publishing_option": "Kies hoe u uw website wilt publiceren:", // In English: "Choose how you want to publish your website:"
+		"create_desktop_shortcut": "Snelkoppeling maken (Bureaublad)", // In English: "Create Shortcut (Desktop)"
+		"create_desktop_shortcut_s": "Snelkoppelingen maken (Bureaublad)", // In English: "Create Shortcuts (Desktop)"
+		"create_shortcut_s": "Snelkoppelingen maken", // In English: "Create Shortcuts"
+		"minimize": "Minimaliseren", // In English: "Minimize"
+		"reload_app": "App herladen", // In English: "Reload App"
+		"new_window": "Nieuw venster", // In English: "New Window"
+		"open_trash": "Prullenbak openen", // In English: "Open Trash"
+		"pick_name_for_worker": "Kies een naam voor uw worker:", // In English: "Pick a name for your worker:"
+		"publish_as_serverless_worker": "Publiceer als Worker", // In English: "Publish as Worker"
+		"toolbar.enter_fullscreen": "Naar volledig scherm", // In English: "Enter Full Screen"
+		"toolbar.github": "GitHub", // In English: "GitHub"
+		"toolbar.refer": "Vriend uitnodigen", // In English: "Refer"
+		"toolbar.save_account": "Account opslaan", // In English: "Save Account"
+		"toolbar.search": "Zoeken", // In English: "Search"
+		"toolbar.qrcode": "QR-code", // In English: "QR Code"
+		"used_of": "{{used}} van {{available}} gebruikt", // In English: "{{used}} used of {{available}}"
+		"worker": "Worker", // In English: "Worker" (No direct Dutch equivalent, commonly used in tech context)
+		"billing.offering.basic": "Basis", // In English: "Basic"
+		"too_many_attempts": "Te veel pogingen. Probeer het later opnieuw.", // In English: "Too many attempts. Please try again later."
+		"server_timeout": "De server reageerde te langzaam. Probeer het opnieuw.", // In English: "The server took too long to respond. Please try again."
+		"signup_error": "Er is een fout opgetreden bij het aanmelden. Probeer het opnieuw.", // In English: "An error occurred during signup. Please try again."
+		"welcome_title": "Welkom bij uw Persoonlijke Internetcomputer", // In English: "Welcome to your Personal Internet Computer"
+		"welcome_description": "Sla bestanden op, speel games, vind geweldige apps en nog veel meer! Alles op één plek, overal en altijd toegankelijk.", // In English: "Store files, play games, find awesome apps, and much more! All in one place, accessible from anywhere at any time."
+		"welcome_get_started": "Aan de slag", // In English: "Get Started"
+		"welcome_terms": "Voorwaarden", // In English: "Terms"
+		"welcome_privacy": "Privacy", // In English: "Privacy"
+		"welcome_developers": "Ontwikkelaars", // In English: "Developers"
+		"welcome_open_source": "Open Source", // In English: "Open Source"
+		"welcome_instant_login_title": "Direct Inloggen!", // In English: "Instant Login!"
+		"alert_error_title": "Fout!", // In English: "Error!"
+		"alert_warning_title": "Waarschuwing!", // In English: "Warning!"
+		"alert_info_title": "Info", // In English: "Info"
+		"alert_success_title": "Succes!", // In English: "Success!"
+		"alert_confirm_title": "Weet u het zeker?", // In English: "Are you sure?"
+		"alert_yes": "Ja", // In English: "Yes"
+		"alert_no": "Nee", // In English: "No"
+		"alert_retry": "Opnieuw proberen", // In English: "Retry"
+		"alert_cancel": "Annuleren", // In English: "Cancel"
+		"signup_confirm_password": "Bevestig wachtwoord", // In English: "Confirm Password"
+		"login_email_username_required": "E-mail of gebruikersnaam is vereist", // In English: "Email or username is required"
+		"login_password_required": "Wachtwoord is vereist", // In English: "Password is required"
+		"window_title_open": "Openen", // In English: "Open"
+		"window_title_change_password": "Wachtwoord wijzigen", // In English: "Change Password"
+		"window_title_select_font": "Lettertype selecteren…", // In English: "Select font…"
+		"window_title_session_list": "Sessielijst!", // In English: "Session List!"
+		"window_title_set_new_password": "Nieuw wachtwoord instellen", // In English: "Set New Password"
+		"window_title_instant_login": "Direct Inloggen!", // In English: "Instant Login!"
+		"window_title_publish_website": "Website publiceren", // In English: "Publish Website"
+		"window_title_publish_worker": "Worker publiceren", // In English: "Publish Worker"
+		"window_title_authenticating": "Authenticatie bezig...", // In English: "Authenticating..."
+		"window_title_refer_friend": "Verwijs een vriend!", // In English: "Refer a friend!"
+		"desktop_show_desktop": "Toon bureaublad", // In English: "Show Desktop"
+		"desktop_show_open_windows": "Toon geopende vensters", // In English: "Show Open Windows"
+		"desktop_exit_full_screen": "Volledig scherm verlaten", // In English: "Exit Full Screen"
+		"desktop_enter_full_screen": "Naar volledig scherm", // In English: "Enter Full Screen"
+		"desktop_position": "Positie", // In English: "Position"
+		"desktop_position_left": "Links", // In English: "Left"
+		"desktop_position_bottom": "Onderkant", // In English: "Bottom"
+		"desktop_position_right": "Rechts", // In English: "Right"
+
+		"item_shared_with_you": "Een gebruiker heeft dit item met u gedeeld.", // In English: "A user has shared this item with you."
+		"item_shared_by_you": "U heeft dit item met ten minste één andere gebruiker gedeeld.", // In English: "You have shared this item with at least one other user."
+		"item_shortcut": "Snelkoppeling", // In English: "Shortcut"
+		"item_associated_websites": "Geassocieerde website", // In English: "Associated website"
+		"item_associated_websites_plural": "Geassocieerde websites", // In English: "Associated websites"
+		"no_suitable_apps_found": "Geen geschikte apps gevonden", // In English: "No suitable apps found"
+		"window_click_to_go_back": "Klik om terug te gaan.", // In English: "Click to go back."
+		"window_click_to_go_forward": "Klik om vooruit te gaan.", // In English: "Click to go forward."
+		"window_click_to_go_up": "Klik om naar de bovenliggende map te gaan.", // In English: "Click to go one directory up."
+		"window_title_public": "Openbaar", // In English: "Public"
+		"window_title_videos": "Video's", // In English: "Videos"
+		"window_title_pictures": "Afbeeldingen", // In English: "Pictures"
+		"window_title_puter": "Puter", // In English: "Puter"
+		"window_folder_empty": "Deze map is leeg", // In English: "This folder is empty"
+		"manage_your_subdomains": "Beheer uw subdomeinen", // In English: "Manage Your Subdomains"
+		"open_containing_folder": "Bestandslocatie openen", // In English: "Open Containing Folder"
+}
 };
 
 export default nl;

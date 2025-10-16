@@ -1,10 +1,29 @@
+/*
+ * Copyright (C) 2024-present Puter Technologies Inc.
+ * 
+ * This file is part of Puter.
+ * 
+ * Puter is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 const {
     default_implicit_user_app_permissions,
     implicit_user_app_permissions,
     hardcoded_user_group_permissions,
 } = require("../data/hardcoded-permissions");
 const { get_user } = require("../helpers");
-const { Actor, UserActorType, AppUnderUserActorType } = require("../services/auth/Actor");
+const { Actor, UserActorType, AppUnderUserActorType, AccessTokenActorType } = require("../services/auth/Actor");
 const { reading_has_terminal } = require("./permission-scan-lib");
 
 /*
@@ -42,6 +61,8 @@ const PERMISSION_SCANNERS = [
 
             for ( const permission of permission_options )
             for ( const implicator of _permission_implicators ) {
+                if ( implicator.options?.shortcut ) continue;
+                
                 if ( ! implicator.matches(permission) ) {
                     continue;
                 }
@@ -56,8 +77,55 @@ const PERMISSION_SCANNERS = [
                         source: 'implied',
                         by: implicator.id,
                         data: implied,
+                        ...((!!actor.type.user)
+                            ? { holder_username: actor.type.user.username }
+                            : {}),
                     });
+                    if ( implicator.options?.shortcut ) {
+                        a.stop();
+                        return;
+                    }
                 }
+            }
+        }
+    },
+    {
+        name: 'access-token',
+        documentation: `
+            Permissoins for access tokens
+        `,
+        async scan (a) {
+            const { reading, actor, permission_options, state } = a.values();
+
+            if ( !(actor.type instanceof AccessTokenActorType) ) return;
+            
+            const { authorizer: issuer_actor, token } = actor.type;
+
+            for ( const permission of permission_options ) {
+                const issuer_reading =
+                    await a.icall('scan', issuer_actor, permission)
+                const has_terminal = reading_has_terminal({ reading: issuer_reading });
+
+                const db = a.iget('db');
+                const rows = await db.read(
+                    'SELECT * FROM `access_token_permissions` ' +
+                    'WHERE `token_uid` = ? AND `permission` = ?',
+                    [
+                        token,
+                        permission,
+                    ]
+                );
+
+                // Token must have permission
+                if ( ! rows[0] ) continue;
+
+                reading.push({
+                    $: 'path',
+                    via: 'access-token',
+                    has_terminal,
+                    permission,
+                    reading: issuer_reading,
+                });
             }
         }
     },
@@ -373,6 +441,57 @@ const PERMISSION_SCANNERS = [
                 reading.push({
                     $: 'path',
                     via: 'user-app',
+                    permission: row.permission,
+                    has_terminal,
+                    data: row.extra,
+                    issuer_username: actor.type.user.username,
+                    reading: issuer_reading,
+                });
+            }
+        }
+    },
+    {
+        name: 'user-app',
+        documentation: `
+            If the actor is an app, this scans for permissions granted to the app
+            because any other user has the permission and granted it to the app
+            for all users of the app.
+        `,
+        async scan (a) {
+            const { reading, actor, permission_options } = a.values();
+            if ( !(actor.type instanceof AppUnderUserActorType)  ) {
+                return;
+            }
+            const db = a.iget('db');
+            
+            let sql_perm = permission_options.map(() =>
+                `\`permission\` = ?`).join(' OR ');
+            if ( permission_options.length > 1 ) sql_perm = '(' + sql_perm + ')';
+            
+            // SELECT permission
+            const rows = await db.read(
+                'SELECT * FROM `dev_to_app_permissions` ' +
+                'WHERE `app_id` = ? AND ' +
+                sql_perm,
+                [
+                    actor.type.app.id,
+                    ...permission_options,
+                ]
+            );
+            
+            if ( rows[0] ) {
+                const row = rows[0];
+                row.extra = db.case({
+                    mysql: () => row.extra,
+                    otherwise: () => JSON.parse(row.extra ?? '{}')
+                })();
+                const issuer_user = await get_user({ id: row.user_id });
+                const issuer_actor = Actor.adapt(issuer_user);
+                const issuer_reading = await a.icall('scan', issuer_actor, row.permission);
+                const has_terminal = reading_has_terminal({ reading: issuer_reading });
+                reading.push({
+                    $: 'path',
+                    via: 'dev-app',
                     permission: row.permission,
                     has_terminal,
                     data: row.extra,

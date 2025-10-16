@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -17,12 +17,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 const APIError = require("../../api/APIError");
-const { chkperm } = require("../../helpers");
-const { TYPE_SYMLINK } = require("../FSNodeContext");
 const { LLRead } = require("../ll_operations/ll_read");
 const { HLFilesystemOperation } = require("./definitions");
 
 class HLRead extends HLFilesystemOperation {
+    static CONCERN = 'filesystem';
     static MODULES = {
         'stream': require('stream'),
     }
@@ -32,7 +31,7 @@ class HLRead extends HLFilesystemOperation {
             fsNode, actor,
             line_count, byte_count,
             offset,
-            version_id,
+            version_id, range
         } = this.values;
 
         if ( ! await fsNode.exists() ) {
@@ -43,6 +42,7 @@ class HLRead extends HLFilesystemOperation {
         let stream = await ll_read.run({
             fsNode, actor,
             version_id,
+            range,
             ...(byte_count !== undefined ? {
                 offset: offset ?? 0,
                 length: byte_count

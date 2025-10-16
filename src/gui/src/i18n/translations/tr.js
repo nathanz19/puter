@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -161,10 +161,6 @@ const tr = {
         log_out: "Çıkış Yap",
         looks_good: "İyi görünüyor!",
         manage_sessions: "Oturumları Yönet",
-        menubar_style: "Menü Çubuğu Stili",
-        menubar_style_desktop: "Masaüstü",
-        menubar_style_system: "Sistem",
-        menubar_style_window: "Pencere",
         modified: "Değiştirilmiş",
         move: "Taşı",
         moving_file: "%% Taşınıyor",
@@ -225,6 +221,13 @@ const tr = {
         publish: "Yayınla",
         publish_as_website: "Web sitesi olarak yayınla",
         puter_description: "Puter, tüm dosyalarınızı, uygulamalarınızı ve oyunlarınızı tek bir güvenli yerde tutmak için gizliliğe öncelik veren kişisel bir buluttur ve her yerden her zaman erişilebilir.",
+        // tr (Turkish / Türkçe)
+        remove: "Kaldır",
+        'account.avatar.removeButton': 'Kaldır',
+        'account.avatar.removeConfirm': "Profil resminizi kaldırmak istediğinizden emin misiniz? Bu işlem varsayılan avatarınızı geri yükleyecektir.",
+        'account.avatar.removedToast': 'Profil resmi kaldırıldı.',
+        'confirm_remove_profile_picture': "Profil resminizi kaldırmak istediğinizden emin misiniz? Bu işlem varsayılan avatarınızı geri yükleyecektir.",
+        'confirm_remove_profile_picture_title': 'Profil resmini kaldır?',
         reading_file: "%strong% okunuyor",
         recent: "En son",
         recommended: "Önerilen",
@@ -381,6 +384,7 @@ const tr = {
         "billing.subscription_cancelled_description": "Bu fatura döneminin sonuna kadar aboneliğinizi kullanmaya devam edebilirsiniz.", // In English: "You will still have access to your subscription until the end of this billing period."
         "billing.offering.free": "Ücretsiz", // In English: "Free"
         "billing.offering.pro": "Profesyonel", // In English: "Professional"
+        "billing.offering.professional": "Profesyonel", // In English: "Professional"
         "billing.offering.business": "İşletme", // In English: "Business"
         "billing.cloud_storage": "Bulut Depolama", // In English: "Cloud Storage"
         "billing.ai_access": "Yapay Zeka Erişimi", // In English: "AI Access"
@@ -412,6 +416,82 @@ const tr = {
         "billing.expanded": "Genişletilmiş", // In English: "Expanded"
         "billing.accelerated": "Hızlandırılmış", // In English: "Accelerated"
         "billing.enjoy_msg": "Diğer avantajların yanı sıra %% Bulut Depolamanın keyfini çıkarın.", // In English: "Enjoy %% of Cloud Storage plus other benefits."
+        "choose_publishing_option": "Web sitenizi nasıl yayınlamak istediğinizi seçin:",
+        "create_desktop_shortcut": "Kısayol Oluştur (Masaüstü)",
+        "create_desktop_shortcut_s": "Kısayollar Oluştur (Masaüstü)",
+        "create_shortcut_s": "Kısayollar Oluştur",
+        "minimize": "Küçült",
+        "reload_app": "Uygulamayı Yeniden Yükle",
+        "new_window": "Yeni Pencere",
+        "open_trash": "Çöp Kutusunu Aç",
+        "pick_name_for_worker": "Worker'ınız için bir ad seçin:",
+        "publish_as_serverless_worker": "Worker olarak Yayınla",
+        "toolbar.enter_fullscreen": "Tam Ekrana Geç",
+        "toolbar.github": "GitHub",
+        "toolbar.refer": "Yönlendir",
+        "toolbar.save_account": "Hesabı Kaydet",
+        "toolbar.search": "Ara",
+        "toolbar.qrcode": "QR Kod",
+        "used_of": "{{available}} alanın {{used}} kullanılıyor",
+        "worker": "Worker",
+        "billing.offering.basic": "Temel",
+        "too_many_attempts": "Çok fazla deneme. Lütfen daha sonra tekrar deneyin.",
+        "server_timeout": "Sunucu yanıt vermekte çok uzun sürdü. Lütfen tekrar deneyin.",
+        "signup_error": "Kayıt sırasında bir hata oluştu. Lütfen tekrar deneyin.",
+        "welcome_title": "Kişisel İnternet Bilgisayarınıza Hoş Geldiniz",
+        "welcome_description": "Dosyaları saklayın, oyunlar oynayın, harika uygulamalar bulun ve daha fazlası! Her şey tek yerde, her yerden her zaman erişilebilir.",
+        "welcome_get_started": "Başlayın",
+        "welcome_terms": "Şartlar",
+        "welcome_privacy": "Gizlilik",
+        "welcome_developers": "Geliştiriciler",
+        "welcome_open_source": "Açık Kaynak",
+        "welcome_instant_login_title": "Anında Giriş!",
+        "alert_error_title": "Hata!",
+        "alert_warning_title": "Uyarı!",
+        "alert_info_title": "Bilgi",
+        "alert_success_title": "Başarılı!",
+        "alert_confirm_title": "Emin misiniz?",
+        "alert_yes": "Evet",
+        "alert_no": "Hayır",
+        "alert_retry": "Tekrar Dene",
+        "alert_cancel": "İptal",
+        "signup_confirm_password": "Parolayı Onayla",
+        "login_email_username_required": "E-posta veya kullanıcı adı gerekli",
+        "login_password_required": "Parola gerekli",
+        "window_title_open": "Aç",
+        "window_title_change_password": "Parolayı Değiştir",
+        "window_title_select_font": "Yazı tipi seç…",
+        "window_title_session_list": "Oturum Listesi!",
+        "window_title_set_new_password": "Yeni Parola Belirle",
+        "window_title_instant_login": "Anında Giriş!",
+        "window_title_publish_website": "Web Sitesi Yayınla",
+        "window_title_publish_worker": "Worker Yayınla",
+        "window_title_authenticating": "Kimlik doğrulanıyor...",
+        "window_title_refer_friend": "Bir arkadaşını yönlendir!",
+        "desktop_show_desktop": "Masaüstünü Göster",
+        "desktop_show_open_windows": "Açık Pencereleri Göster",
+        "desktop_exit_full_screen": "Tam Ekrandan Çık",
+        "desktop_enter_full_screen": "Tam Ekrana Geç",
+        "desktop_position": "Konum",
+        "desktop_position_left": "Sol",
+        "desktop_position_bottom": "Alt",
+        "desktop_position_right": "Sağ",
+        "item_shared_with_you": "Bir kullanıcı bu öğeyi sizinle paylaştı.",
+        "item_shared_by_you": "Bu öğeyi en az bir kullanıcıyla paylaştınız.",
+        "item_shortcut": "Kısayol",
+        "item_associated_websites": "İlişkilendirilmiş web sitesi",
+        "item_associated_websites_plural": "İlişkilendirilmiş web siteleri",
+        "no_suitable_apps_found": "Uygun uygulama bulunamadı",
+        "window_click_to_go_back": "Geri gitmek için tıklayın.",
+        "window_click_to_go_forward": "İleri gitmek için tıklayın.",
+        "window_click_to_go_up": "Bir dizin yukarı çıkmak için tıklayın.",
+        "window_title_public": "Genel",
+        "window_title_videos": "Videolar",
+        "window_title_pictures": "Resimler",
+        "window_title_puter": "Puter",
+        "window_folder_empty": "Bu klasör boş",
+        "manage_your_subdomains": "Alt Alan Adlarınızı Yönetin",
+        "open_containing_folder": "İçeren Klasörü Aç",
     }
 };
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -16,10 +16,11 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-const { AdvancedBase } = require("@heyputer/putility");
 const { BaseES } = require("./BaseES");
 
 const APIError = require("../../api/APIError");
+const { Context } = require("../../util/context");
+const { SKIP_ES_VALIDATION } = require("./consts");
 
 class ValidationES extends BaseES {
     async _on_context_provided () {
@@ -53,7 +54,6 @@ class ValidationES extends BaseES {
                 ? await (await extra.old_entity.clone()).apply(entity)
                 : entity
                 ;
-            console.log('VALID ENT', valid_entity)
             await this.validate_(
                 valid_entity,
                 extra.old_entity ? entity : undefined
@@ -62,7 +62,7 @@ class ValidationES extends BaseES {
             return await out_entity.get_client_safe();
         },
         async validate_ (entity, diff) {
-            const processed = {};
+            if ( Context.get(SKIP_ES_VALIDATION) ) return;
 
             for ( const prop of Object.values(this.om.properties) ) {
                 let value = await entity.get(prop.name);
@@ -97,8 +97,6 @@ class ValidationES extends BaseES {
                     }
                     throw e;
                 }
-
-                processed[prop.name] = value;
             }
 
         },

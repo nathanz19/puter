@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -18,8 +18,6 @@
  */
 const APIError = require("../../api/APIError");
 const eggspress = require("../../api/eggspress");
-const config = require("../../config");
-
 
 module.exports = eggspress('/clearItems', {
     subdomain: 'api',

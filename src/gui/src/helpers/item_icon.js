@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -74,7 +74,7 @@ const item_icon = async (fsentry)=>{
         let trash_img = $(`.item[data-path="${html_encode(window.trash_path)}" i] .item-icon-icon`).attr('src')
         // if trash_img is undefined that's probably because trash wasn't added anywhere, do a direct lookup to see if trash is empty or no
         if(!trash_img){
-            let trashstat = await puter.fs.stat(window.trash_path);
+            let trashstat = await puter.fs.stat({path: window.trash_path, consistency: 'eventual'});
             if(trashstat.is_empty !== undefined && trashstat.is_empty === true)
                 trash_img = window.icons['trash.svg'];
             else
@@ -193,6 +193,10 @@ const item_icon = async (fsentry)=>{
     // *.xlsx
     else if(fsentry.name.toLowerCase().endsWith('.xlsx')){
         return {image: window.icons['file-xlsx.svg'], type: 'icon'};
+    }
+    // *.weblink
+    else if(fsentry.name.toLowerCase().endsWith('.weblink')){
+        return {image: window.icons['link.svg'], type: 'icon'};
     }
     // --------------------------------------------------
     // Determine icon by set or derived mime type

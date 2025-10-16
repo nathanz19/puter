@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -17,6 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 const APIError = require("../../api/APIError");
+const { MemoryFSProvider } = require("../../modules/puterfs/customfs/MemoryFSProvider");
 const { ParallelTasks } = require("../../util/otelutil");
 const FSNodeContext = require("../FSNodeContext");
 const { NodeUIDSelector } = require("../node/selectors");
@@ -31,6 +32,9 @@ class LLRmDir extends LLFilesystemOperation {
             actor,
             descendants_only,
             recursive,
+            
+            // internal use only - not for clients
+            ignore_not_empty,
 
             max_tasks = 8,
         } = this.values;
@@ -61,7 +65,7 @@ class LLRmDir extends LLFilesystemOperation {
             await target.get('uid')
         );
 
-        if ( children.length > 0 && ! recursive ) {
+        if ( children.length > 0 && ! recursive && ! ignore_not_empty ) {
             throw APIError.create('not_empty');
         }
 
@@ -98,17 +102,29 @@ class LLRmDir extends LLFilesystemOperation {
             });
         }
 
-        if ( ! descendants_only ) {
-            tasks.add(`fs:rm:rm-self`, async () => {
-                const ll_rm = new LLRmNode();
-                await ll_rm.run({
-                    target,
-                    user,
-                });
-            });
-        }
-
         await tasks.awaitAll();
+
+        // TODO (xiaochen): consolidate these two branches
+        if ( target.provider instanceof MemoryFSProvider ) {
+            await target.provider.rmdir( {
+                context,
+                node: target,
+                options: {
+                    recursive,
+                    descendants_only,
+                },
+            } );
+        } else {
+            if ( ! descendants_only ) {
+                await target.provider.rmdir( {
+                    context,
+                    node: target,
+                    options: {
+                        ignore_not_empty: true,
+                    },
+                } );
+            }
+        }
     }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-const { stream_to_buffer } = require("../../util/streamutil");
 const { HLFilesystemOperation } = require("./definitions");
 const { chkperm } = require('../../helpers');
 const { LLRead } = require('../ll_operations/ll_read');

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -78,12 +78,11 @@ async function UIWindowNewPassword(options){
         }
 
         const response_data = await response.json();
-        console.log('response_data', response_data);
         let time_remaining = response_data.time_remaining;
 
 
         const el_window = await UIWindow({
-            title: 'Set New Password',
+            title: i18n('window_title_set_new_password'),
             app: 'change-passowrd',
             single_instance: true,
             icon: null,

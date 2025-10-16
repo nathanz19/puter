@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -222,6 +222,7 @@ class RuntimeEnvironment extends AdvancedBase {
         const environment = {};
         environment.source = this.modules.path_.dirname(
             this.entry_path || require.main.filename);
+        environment.repo = this.modules.path_.dirname(environment.source);
 
         const config_path_entry = this.get_first_suitable_path_(
             { pathFor: 'configuration' },
@@ -320,6 +321,8 @@ class RuntimeEnvironment extends AdvancedBase {
                 );
             }
         }
+
+        environment.config_path = path_.join(config_path_entry.path, config_to_load);
 
         const loader = new ConfigLoader(this.logger, config_path_entry.path, config);
         loader.enable(config_to_load);

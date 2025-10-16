@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -43,6 +43,7 @@ module.exports = eggspress('/stat', {
         user: req.user,
         return_subdomains: req.body.return_subdomains,
         return_permissions: req.body.return_permissions,
+        return_shares: req.body.return_shares,
         return_versions: req.body.return_versions,
         return_size: req.body.return_size,
     });

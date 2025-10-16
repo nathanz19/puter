@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"xai"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-const { invalidate_cached_user, get_user } = require("../helpers");
+const { get_user } = require("../helpers");
 const { asyncSafeSetInterval } = require('@heyputer/putility').libs.promise;
 const { MINUTE, SECOND } = require("@heyputer/putility").libs.time;
 const BaseService = require("./BaseService");
@@ -45,13 +45,6 @@ class SessionService extends BaseService {
     }
 
 
-    /**
-    * Initializes the SessionService by setting up the database connection and scheduling periodic session updates.
-    * @async
-    * @memberof SessionService
-    * @instance
-    * @returns {Promise<void>}
-    */
     _construct () {
         this.sessions = {};
     }
@@ -89,12 +82,11 @@ class SessionService extends BaseService {
 
 
     /**
-    * Initializes the session service by setting up the database connection and scheduling periodic session updates.
+    * Creates a new session for the specified user and records metadata about
+    * the requestor.
     * 
     * @async
-    * @private
-    * @returns {Promise<void>} A promise that resolves when initialization is complete.
-    * @note This method is called internally during the service setup. It does not need to be invoked manually.
+    * @returns {Promise<Session>} A new session object
     */
     async create_session (user, meta) {
         const unix_ts = Math.floor(Date.now() / 1000);
@@ -195,6 +187,12 @@ class SessionService extends BaseService {
         return sessions.map(this.remove_internal_values_.bind(this));
     }
 
+    /**
+    * Removes a session from the in-memory cache and the database.
+    * 
+    * @param {string} uuid - The UUID of the session to remove.
+    * @returns {Promise} A promise that resolves to the result of the database write operation.
+    */
     remove_session (uuid) {
         delete this.sessions[uuid];
         return this.db.write(
@@ -204,12 +202,6 @@ class SessionService extends BaseService {
     }
 
 
-    /**
-    * Removes a session from the in-memory cache and the database.
-    * 
-    * @param {string} uuid - The UUID of the session to remove.
-    * @returns {Promise} A promise that resolves to the result of the database write operation.
-    */
     async _update_sessions () {
         this.log.tick('UPDATING SESSIONS');
         const now = Date.now();

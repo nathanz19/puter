@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -210,10 +210,6 @@ const fi = {
     log_out: "Kirjaudu ulos",
     looks_good: "Näyttää hyvältä!",
     manage_sessions: "Hallitse istuntoja",
-    menubar_style: "Valikkopalkin tyyli",
-    menubar_style_desktop: "Työpöytä",
-    menubar_style_system: "Järjestelmä",
-    menubar_style_window: "Ikkuna",
     modified: "Muokattu",
     move: "Siirrä",
     moving_file: "Siirretään %%",
@@ -292,6 +288,12 @@ const fi = {
     publish: "Julkaise",
     publish_as_website: "Julkaise verkkosivustona",
     puter_description: `Puter on yksityisyyttä korostava henkilökohtainen pilvipalvelu, jossa voit säilyttää kaikki tiedostosi, sovelluksesi ja pelisi yhdessä turvallisessa paikassa, ja jotka ovat saatavilla mistä tahansa milloin tahansa.`,
+    remove: "Poista",
+    'account.avatar.removeButton': 'Poista',
+    'account.avatar.removeConfirm': "Oletko varma, että haluat poistaa profiilikuvasi? Tämä palauttaa oletusavataresi.",
+    'account.avatar.removedToast': 'Profiilikuva poistettu.',
+    'confirm_remove_profile_picture': "Oletko varma, että haluat poistaa profiilikuvasi? Tämä palauttaa oletusavataresi.",
+    'confirm_remove_profile_picture_title': 'Poista profiilikuva?',
     reading_file: "Luetaan %strong%",
     recent: "Viimeisimmät",
     recommended: "Suositellut",
@@ -470,6 +472,7 @@ const fi = {
     "billing.subscription_cancelled_description": "Voit jatkaa tilauksesi käyttöä laskutuskauden loppuun asti.", // In English: "You will still have access to your subscription until the end of this billing period."
     "billing.offering.free": "Ilmainen", // In English: "Free"
     "billing.offering.pro": "Ammattilainen", // In English: "Professional"
+    "billing.offering.professional": "Ammattilainen", // In English: "Professional"
     "billing.offering.business": "Yritys", // In English: "Business"
     "billing.cloud_storage": "Pilvitallennustila", // In English: "Cloud Storage"
     "billing.ai_access": "Tekoälykäyttö", // In English: "AI Access"
@@ -501,6 +504,83 @@ const fi = {
     "billing.expanded": "Laajennettu", // In English: "Expanded"
     "billing.accelerated": "Nopeutettu", // In English: "Accelerated"
     "billing.enjoy_msg": "Nauti %% pilvitallennustilasta ja muista eduista.", // In English: "Enjoy %% of Cloud Storage plus other benefits."
+
+    "choose_publishing_option": "Valitse, miten haluat julkaista verkkosivustosi:",
+    "create_desktop_shortcut": "Luo pikakuvake (Työpöydälle)",
+    "create_desktop_shortcut_s": "Luo pikakuvakkeita (Työpöydälle)",
+    "create_shortcut_s": "Luo pikakuvakkeita",
+    "minimize": "Pienennä",
+    "reload_app": "Lataa sovellus uudelleen",
+    "new_window": "Uusi ikkuna",
+    "open_trash": "Avaa roskakori",
+    "pick_name_for_worker": "Valitse nimi työntekijälle:",
+    "publish_as_serverless_worker": "Julkaise työntekijänä",
+    "toolbar.enter_fullscreen": "Koko näyttöön",
+    "toolbar.github": "GitHub",
+    "toolbar.refer": "Suosittele",
+    "toolbar.save_account": "Tallenna tili",
+    "toolbar.search": "Haku",
+    "toolbar.qrcode": "QR-koodi",
+    "used_of": "{{used}} käytetty {{available}}:sta",
+    "worker": "Työntekijä",
+    "billing.offering.basic": "Perus",
+    "too_many_attempts": "Liian monta yritystä. Yritä myöhemmin uudelleen.",
+    "server_timeout": "Palvelimen vastaus kesti liian kauan. Yritä uudelleen.",
+    "signup_error": "Rekisteröitymisen aikana tapahtui virhe. Yritä uudelleen.",
+    "welcome_title": "Tervetuloa henkilökohtaiseen Internet-tietokoneeseesi",
+    "welcome_description": "Tallenna tiedostoja, pelaa pelejä, löydä upeita sovelluksia ja paljon muuta! Kaikki yhdessä paikassa, käytettävissä mistä tahansa ja milloin tahansa.",
+    "welcome_get_started": "Aloita",
+    "welcome_terms": "Ehdot",
+    "welcome_privacy": "Tietosuoja",
+    "welcome_developers": "Kehittäjät",
+    "welcome_open_source": "Avoin lähdekoodi",
+    "welcome_instant_login_title": "Välitön kirjautuminen!",
+    "alert_error_title": "Virhe!",
+    "alert_warning_title": "Varoitus!",
+    "alert_info_title": "Info",
+    "alert_success_title": "Onnistui!",
+    "alert_confirm_title": "Oletko varma?",
+    "alert_yes": "Kyllä",
+    "alert_no": "Ei",
+    "alert_retry": "Yritä uudelleen",
+    "alert_cancel": "Peruuta",
+    "signup_confirm_password": "Vahvista salasana",
+    "login_email_username_required": "Sähköposti tai käyttäjänimi vaaditaan",
+    "login_password_required": "Salasana vaaditaan",
+    "window_title_open": "Avaa",
+    "window_title_change_password": "Vaihda salasana",
+    "window_title_select_font": "Valitse fontti…",
+    "window_title_session_list": "Istuntolista",
+    "window_title_set_new_password": "Aseta uusi salasana",
+    "window_title_instant_login": "Välitön kirjautuminen!",
+    "window_title_publish_website": "Julkaise verkkosivusto",
+    "window_title_publish_worker": "Julkaise työntekijä",
+    "window_title_authenticating": "Todennetaan...",
+    "window_title_refer_friend": "Suosittele ystävälle!",
+    "desktop_show_desktop": "Näytä työpöytä",
+    "desktop_show_open_windows": "Näytä avoimet ikkunat",
+    "desktop_exit_full_screen": "Poistu koko näytöstä",
+    "desktop_enter_full_screen": "Koko näyttöön",
+    "desktop_position": "Sijainti",
+    "desktop_position_left": "Vasen",
+    "desktop_position_bottom": "Ala",
+    "desktop_position_right": "Oikea",
+    "item_shared_with_you": "Käyttäjä on jakanut tämän kohteen kanssasi.",
+    "item_shared_by_you": "Olet jakanut tämän kohteen ainakin yhden muun käyttäjän kanssa.",
+    "item_shortcut": "Pikakuvake",
+    "item_associated_websites": "Liittyvä verkkosivusto",
+    "item_associated_websites_plural": "Liittyvät verkkosivustot",
+    "no_suitable_apps_found": "Sopivia sovelluksia ei löytynyt",
+    "window_click_to_go_back": "Napsauta palataksesi takaisin.",
+    "window_click_to_go_forward": "Napsauta siirtyäksesi eteenpäin.",
+    "window_click_to_go_up": "Napsauta siirtyäksesi yhtä kansiotasoa ylöspäin.",
+    "window_title_public": "Julkinen",
+    "window_title_videos": "Videot",
+    "window_title_pictures": "Kuvat",
+    "window_title_puter": "Puter",
+    "window_folder_empty": "Tämä kansio on tyhjä",
+    "manage_your_subdomains": "Hallitse aliverkkotunnuksiasi",
+    "open_containing_folder": "Avaa sisältävä kansio"
   },
 };
 

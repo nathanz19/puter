@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -19,7 +19,6 @@
 const FSNodeParam = require("../../api/filesystem/FSNodeParam");
 const StringParam = require("../../api/filesystem/StringParam");
 const { HLFilesystemOperation } = require("./definitions");
-const { chkperm } = require("../../helpers");
 const APIError = require("../../api/APIError");
 const { TYPE_DIRECTORY } = require("../FSNodeContext");
 

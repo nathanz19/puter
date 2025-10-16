@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -46,7 +46,7 @@ window.puter_gui_enabled = true;
  * });
  */
 
-window.gui = async function(options){
+window.gui = async (options) => {
     options = options ?? {};
     // app_origin is deprecated, use gui_origin instead
     window.gui_params = options;
@@ -77,6 +77,9 @@ window.gui = async function(options){
         // Load the minified bundles
         await window.loadCSS('/dist/bundle.min.css');
     }
+
+    // Load Cloudflare Turnstile script
+    await window.loadScript('https://challenges.cloudflare.com/turnstile/v0/api.js', { defer: true });
 
     // 🚀 Launch the GUI 🚀
     window.initgui(options);

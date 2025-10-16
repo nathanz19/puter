@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -36,4 +36,12 @@ export class BuiltinCommandProvider {
         return Object.keys(builtins)
             .filter(commandName => commandName.startsWith(query));
     }
+
+    async list() {
+        return Object.entries(builtins).map(([name, command]) => ({
+            name,
+            ...command
+        }));
+    }
+
 }

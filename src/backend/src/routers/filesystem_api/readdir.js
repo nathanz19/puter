@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -33,9 +33,12 @@ module.exports = eggspress('/readdir', {
     fs: true,
     json: true,
     allowedMethods: ['POST'],
-    alias: { uid: 'path' },
+    alias: {
+        path: 'subject',
+        uid: 'subject',
+    },
     parameters: {
-        subject: new FSNodeParam('path'),
+        subject: new FSNodeParam('subject'),
         recursive: new FlagParam('recursive', { optional: true }),
         no_thumbs: new FlagParam('no_thumbs', { optional: true }),
         no_assocs: new FlagParam('no_assocs', { optional: true }),
@@ -43,8 +46,10 @@ module.exports = eggspress('/readdir', {
 }, async (req, res, next) => {
     let log; {
         const x = Context.get();
-        log = x.get('services').get('log-service').create('readdir');
-        log.info(`readdir: ${req.body.path}`);
+        log = x.get('services').get('log-service').create('readdir', {
+            concern: 'filesystem',
+        });
+        log.info(`readdir: ${req.body.subject || req.body.path || req.body.uid}`);
     }
 
     const subject = req.values.subject;

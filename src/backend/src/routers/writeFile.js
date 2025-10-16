@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -17,19 +17,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 "use strict"
-const {uuid2fsentry, validate_signature_auth, get_url_from_req, sign_file, get_user} = require('../helpers');
-const { NodePathSelector, NodeUIDSelector } = require('../filesystem/node/selectors');
+const {uuid2fsentry, validate_signature_auth, get_url_from_req, get_user} = require('../helpers');
 const eggspress = require('../api/eggspress');
-const { HLWrite } = require('../filesystem/hl_operations/hl_write');
-const { TYPE_DIRECTORY } = require('../filesystem/FSNodeContext');
 const { Context } = require('../util/context');
 const { Actor } = require('../services/auth/Actor');
-const { DB_WRITE } = require('../services/database/consts');
 const FSNodeParam = require('../api/filesystem/FSNodeParam');
-const { HLMove } = require('../filesystem/hl_operations/hl_move');
-const { HLCopy } = require('../filesystem/hl_operations/hl_copy');
-const { HLMkdir } = require('../filesystem/hl_operations/hl_mkdir');
-const { HLRemove } = require('../filesystem/hl_operations/hl_remove');
 
 // TODO: eggspressify
 
@@ -37,7 +29,6 @@ const { HLRemove } = require('../filesystem/hl_operations/hl_remove');
 // POST /writeFile
 // -----------------------------------------------------------------------//
 module.exports = eggspress('/writeFile', {
-    fs: true,
     files: ['file'],
     allowedMethods: ['POST'],
 }, async (req, res, next) => {

@@ -1,3 +1,22 @@
+/*
+ * Copyright (C) 2024-present Puter Technologies Inc.
+ * 
+ * This file is part of Puter.
+ * 
+ * Puter is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 // METADATA // {"ai-commented":{"service":"claude"}}
 const BaseService = require("../../services/BaseService");
 
@@ -56,9 +75,13 @@ class AIInterfaceService extends BaseService {
                     description: 'Get completions for a chat log.',
                     parameters: {
                         messages: { type: 'json' },
+                        tools: { type: 'json' },
                         vision: { type: 'flag' },
                         stream: { type: 'flag' },
+                        response: { type: 'json' },
                         model: { type: 'string' },
+                        temperature: { type: 'number' },
+                        max_tokens: { type: 'number' },
                     },
                     result: { type: 'json' },
                 }
@@ -72,6 +95,11 @@ class AIInterfaceService extends BaseService {
                     description: 'Generate an image from a prompt.',
                     parameters: {
                         prompt: { type: 'string' },
+                        quality: { type: 'string' },
+                        model: { type: 'string' },
+                        ratio: { type: 'json' },
+                        input_image: { type: 'string', optional: true },
+                        input_image_mime_type: { type: 'string', optional: true },
                     },
                     result_choices: [
                         {
@@ -102,7 +130,14 @@ class AIInterfaceService extends BaseService {
             methods: {
                 list_voices: {
                     description: 'List available voices.',
+                    parameters: {
+                        engine: { type: 'string', optional: true },
+                    },
+                },
+                list_engines: {
+                    description: 'List available TTS engines with pricing information.',
                     parameters: {},
+                    result: { type: 'json' },
                 },
                 synthesize: {
                     description: 'Synthesize speech from text.',
@@ -111,6 +146,7 @@ class AIInterfaceService extends BaseService {
                         voice: { type: 'string' },
                         language: { type: 'string' },
                         ssml: { type: 'flag' },
+                        engine: { type: 'string', optional: true },
                     },
                     result_choices: [
                         {

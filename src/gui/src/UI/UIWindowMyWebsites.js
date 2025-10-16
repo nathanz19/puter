@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -44,11 +44,7 @@ async function UIWindowMyWebsites(options){
         allow_native_ctxmenu: true,
         allow_user_select: true,
         width: 400,
-        dominant: true,
-        onAppend: function(el_window){
-        },
-        window_css:{
-        },
+        dominant: false,
         body_css: {
             padding: '10px',
             width: 'initial',

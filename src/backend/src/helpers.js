@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -16,39 +16,49 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-const { v4: uuidv4 } = require('uuid');
 const _path = require('path');
 const micromatch = require('micromatch');
 const config = require('./config')
 const mime = require('mime-types');
-const PerformanceMonitor = require('./monitor/PerformanceMonitor.js');
 const { ManagedError } = require('./util/errorutil.js');
 const { spanify } = require('./util/otelutil.js');
 const APIError = require('./api/APIError.js');
 const { DB_READ, DB_WRITE } = require('./services/database/consts.js');
 const { BaseDatabaseAccessService } = require('./services/database/BaseDatabaseAccessService.js');
-const { LLRmNode } = require('./filesystem/ll_operations/ll_rmnode');
 const { Context } = require('./util/context');
 const { NodeUIDSelector } = require('./filesystem/node/selectors');
-const { PathBuilder } = require('./util/pathutil');
+const { object_returned_by_get_app } = require('./annotatedobjects.js');
 
-let systemfs = null;
 let services = null;
 const tmp_provide_services = async ss => {
     services = ss;
     await services.ready;
-    systemfs = services.get('filesystem').get_systemfs();
 }
 
 async function is_empty(dir_uuid){
     /** @type BaseDatabaseAccessService */
     const db = services.get('database').get(DB_READ, 'filesystem');
+    
+    let rows;
 
-    // first check if this entry is shared
-    let rows = await db.read(
-        `SELECT EXISTS(SELECT 1 FROM fsentries WHERE parent_uid = ? LIMIT 1) AS not_empty`,
-        [dir_uuid]
-    );
+    if ( typeof dir_uuid === 'object' ) {
+        if ( typeof dir_uuid.path === 'string' && dir_uuid.path !== '' ) {
+            rows = await db.read(
+                `SELECT EXISTS(SELECT 1 FROM fsentries WHERE path LIKE ${db.case({
+                    sqlite: `? || '%'`,
+                    otherwise: `CONCAT(?, '%')`,
+                })} LIMIT 1) AS not_empty`,
+                [dir_uuid.path + '/']
+            );
+        } else dir_uuid = dir_uuid.uid;
+    }
+    
+    if ( typeof dir_uuid === 'string' ) {
+        rows = await db.read(
+            `SELECT EXISTS(SELECT 1 FROM fsentries WHERE parent_uid = ? LIMIT 1) AS not_empty`,
+            [dir_uuid]
+        );
+    }
 
     return !rows[0].not_empty;
 }
@@ -82,6 +92,24 @@ async function is_shared_with(fsentry_id, recipient_user_id){
  */
  async function is_shared_with_anyone(fsentry_id){
     return false;
+}
+
+/**
+ * Checks to see if temp_users is disabled and return a boolean
+ * @returns {boolean}
+ */
+async function is_temp_users_disabled() {
+    const svc_feature_flag = await services.get("feature-flag");
+    return await svc_feature_flag.check("temp-users-disabled");
+}
+
+/**
+ * Checks to see if user_signup is disabled and return a boolean
+ * @returns {boolean}
+ */
+async function is_user_signup_disabled() {
+    const svc_feature_flag = await services.get("feature-flag");
+    return await svc_feature_flag.check("user-signup-disabled");
 }
 
 const chkperm = spanify('chkperm', async (target_fsentry, requester_user_id, action) => {
@@ -209,8 +237,10 @@ function invalidate_cached_user_by_id (id) {
  * @returns {Promise}
  */
 async function refresh_apps_cache(options, override){
+    return;
     /** @type BaseDatabaseAccessService */
     const db = services.get('database').get(DB_READ, 'apps');
+    const svc_event = services.get('event');
 
     const log = services.get('log-service').create('refresh_apps_cache');
     log.tick('refresh apps cache');
@@ -223,6 +253,9 @@ async function refresh_apps_cache(options, override){
             kv.set('apps:id:' + app.id, app);
             kv.set('apps:uid:' + app.uid, app);
         }
+        svc_event.emit('apps.invalidate', {
+            options, apps,
+        });
     }
     // refresh only apps that are approved for listing
     else if(options.only_approved_for_listing){
@@ -233,6 +266,9 @@ async function refresh_apps_cache(options, override){
             kv.set('apps:id:' + app.id, app);
             kv.set('apps:uid:' + app.uid, app);
         }
+        svc_event.emit('apps.invalidate', {
+            options, apps,
+        });
     }
     // if options is provided, refresh only the app specified
     else{
@@ -261,6 +297,10 @@ async function refresh_apps_cache(options, override){
             kv.set('apps:id:' + app.id, app);
             kv.set('apps:uid:' + app.uid, app);
         }
+
+        svc_event.emit('apps.invalidate', {
+            options, app,
+        });
     }
 }
 
@@ -268,8 +308,8 @@ async function refresh_associations_cache(){
     /** @type BaseDatabaseAccessService */
     const db = services.get('database').get(DB_READ, 'apps');
 
-    const log = services.get('log-service').create('refresh_apps_cache');
-    log.tick('refresh associations cache');
+    const log = services.get('log-service').create('helpers.js');
+    log.tick('refresh file associations');
     const associations = await db.read('SELECT * FROM app_filetype_association');
     const lists = {};
     for ( const association of associations ) {
@@ -299,6 +339,20 @@ async function refresh_associations_cache(){
 
     const log = services.get('log-service').create('get_app');
     let app = [];
+
+    // This condition should be updated if the code below is re-ordered.
+    if ( options.follow_old_names && ! options.uid && options.name ) {
+        const svc_oldAppName = services.get('old-app-name');
+        const old_name = await svc_oldAppName.check_app_name(options.name);
+        if ( old_name ) {
+            options.uid = old_name.app_uid;
+
+            // The following line is technically pointless, but may avoid a bug
+            // if the if...else chain below is re-ordered.
+            delete options.name;
+        }
+    }
+
     if(options.uid){
         // try cache first
         app[0] = kv.get(`apps:uid:${options.uid}`);
@@ -328,11 +382,15 @@ async function refresh_associations_cache(){
     app = app && app[0] ? app[0] : null;
 
     if ( app === null ) return null;
+    
+    // kv.set(`apps:uid:${app.uid}`, app, { EX: 30 });
+    // kv.set(`apps:name:${app.name}`, app, { EX: 30 });
+    // kv.set(`apps:id:${app.id}`, app, { EX: 30 });
 
     // shallow clone because we use the `delete` operator
     // and it corrupts the cache otherwise
     app = { ...app };
-    return app;
+    return new object_returned_by_get_app(app);
 }
 
 /**
@@ -372,7 +430,10 @@ async function refresh_associations_cache(){
     // update username
     await db.write("UPDATE `user` SET username = ? WHERE `id` = ? LIMIT 1", [new_username, user_id]);
     // update root directory name for this user
-    await db.write("UPDATE `fsentries` SET `name` = ? WHERE `user_id` = ? AND parent_uid IS NULL LIMIT 1", [new_username, user_id]);
+    await db.write("UPDATE `fsentries` SET `name` = ?, `path` = ? " +
+        "WHERE `user_id` = ? AND parent_uid IS NULL LIMIT 1",
+        [new_username, '/' + new_username, user_id]
+    );
 
     const log = services.get('log-service').create('change_username');
     log.noticeme(`User ${old_username} changed username to ${new_username}`);
@@ -926,7 +987,38 @@ const body_parser_error_handler = (err, req, res, next) => {
     next();
 }
 
+/**
+ * Given a uid, returns a file node.
+ * 
+ * TODO (xiaochen): It only works for MemoryFSProvider currently.
+ * 
+ * @param {string} uid - The uid of the file to get.
+ * @returns {Promise<MemoryFile|null>} The file node, or null if the file does not exist.
+ */
+async function get_entry(uid) {
+    const svc_mountpoint = Context.get('services').get('mountpoint');
+    const uid_selector = new NodeUIDSelector(uid);
+    const provider = await svc_mountpoint.get_provider(uid_selector);
+
+    // NB: We cannot import MemoryFSProvider here because it will cause a circular dependency.
+    if ( provider.constructor.name !== 'MemoryFSProvider' ) {
+        return null;
+    }
+
+    return provider.stat({
+        selector: uid_selector,
+    });
+}
+
 async function is_ancestor_of(ancestor_uid, descendant_uid){
+    const ancestor = await get_entry(ancestor_uid);
+    const descendant = await get_entry(descendant_uid);
+
+    if ( ancestor && descendant ) {
+        return descendant.path.startsWith(ancestor.path);
+    }
+
+
     /** @type BaseDatabaseAccessService */
     const db = services.get('database').get(DB_READ, 'filesystem');
 
@@ -1044,28 +1136,34 @@ async function gen_public_token(file_uuid, ttl = 24 * 60 * 60){
 }
 
 async function deleteUser(user_id){
-    console.log('THIS IS deleteUser ---');
     /** @type BaseDatabaseAccessService */
     const db = services.get('database').get(DB_READ, 'filesystem');
 
-    // get a list of all files owned by this user
-    let files = await db.read(
-        `SELECT uuid, bucket, bucket_region FROM fsentries WHERE user_id = ? AND is_dir = 0`,
-        [user_id]
-    );
+    // get a list of up to 5000 files owned by this user
+    for ( let offset=0; true; offset += 5000 ) {
+        let files = await db.read(
+            `SELECT uuid, bucket, bucket_region FROM fsentries WHERE user_id = ? AND is_dir = 0 LIMIT 5000 OFFSET `+offset,
+            [user_id]
+        );
+        
+        if ( !files || files.length == 0 ) break;
 
-    // delete all files from S3
-    if(files !== null && files.length > 0){
-        for(let i=0; i<files.length; i++){
-            // init S3 SDK
-            const svc_fs = Context.get('services').get('filesystem');
-            const svc_mountpoint =
-                Context.get('services').get('mountpoint');
-            const storage = svc_mountpoint.get_storage();
-            const op_delete = storage.create_delete();
-            await op_delete.run({
-                node: await svc_fs.node(new NodeUIDSelector(files[i].uuid))
-            });
+        // delete all files from S3
+        if(files !== null && files.length > 0){
+            for(let i=0; i<files.length; i++){
+                // init S3 SDK
+                const svc_fs = Context.get('services').get('filesystem');
+                const svc_mountpoint =
+                    Context.get('services').get('mountpoint');
+                // NB: We use a hard-coded string to avoid circular dependency.
+                // 
+                // TODO (xiaochen): what if the provider is not PuterFSProvider?
+                const storage = svc_mountpoint.get_storage('PuterFSProvider');
+                const op_delete = storage.create_delete();
+                await op_delete.run({
+                    node: await svc_fs.node(new NodeUIDSelector(files[i].uuid))
+                });
+            }
         }
     }
 
@@ -1154,37 +1252,6 @@ async function jwt_auth(req){
     return ancestors;
 }
 
-function is_valid_uuid ( uuid ) {
-    let s = "" + uuid;
-    s = s.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
-    return !! s;
-}
-
-function is_valid_uuid4 ( uuid ) {
-    return is_valid_uuid(uuid);
-}
-
-function is_specifically_uuidv4 ( uuid ) {
-    let s = "" + uuid;
-
-    s = s.match(/^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i);
-    if (!s) {
-      return false;
-    }
-    return true;
-}
-
-function is_valid_url ( url ) {
-    let s = "" + url;
-
-    try {
-        new URL(s);
-        return true;
-    } catch (e) {
-        return false;
-    }
-}
-
 function hyphenize_confirm_code(email_confirm_code){
     email_confirm_code = email_confirm_code.toString();
     email_confirm_code =
@@ -1214,6 +1281,10 @@ async function app_name_exists(name){
     let rows = await db.read(`SELECT EXISTS(SELECT 1 FROM apps WHERE apps.name=?) AS app_name_exists`, [name]);
     if(rows[0].app_name_exists)
         return true;
+
+    const svc_oldAppName = services.get('old-app-name');
+    const name_info = await svc_oldAppName.check_app_name(name);
+    if ( name_info ) return true;
 }
 
 function send_email_verification_code(email_confirm_code, email){
@@ -1263,8 +1334,9 @@ function seconds_to_string(seconds) {
  * @param {*} options
  */
 async function suggest_app_for_fsentry(fsentry, options){
-    const monitor = PerformanceMonitor.createContext("suggest_app_for_fsentry");
-    const suggested_apps = [];
+    const svc_performanceMonitor = services.get('performance-monitor');
+    const monitor = svc_performanceMonitor.createContext("suggest_app_for_fsentry");
+    const suggested_apps_promises = [];
 
     let content_type = mime.contentType(fsentry.name);
     if( ! content_type ) content_type = '';
@@ -1349,8 +1421,8 @@ async function suggest_app_for_fsentry(fsentry, options){
     ];
 
     if ( any_of(exts_code, fsname) || !fsname.includes('.') ) {
-        suggested_apps.push(await get_app({name: 'code'}))
-        suggested_apps.push(await get_app({name: 'editor'}))
+        suggested_apps_promises.push(get_app({name: 'code'}))
+        suggested_apps_promises.push(get_app({name: 'editor'}))
     }
 
     //---------------------------------------------
@@ -1361,14 +1433,14 @@ async function suggest_app_for_fsentry(fsentry, options){
         // files with no extension
         !fsname.includes('.')
     ){
-        suggested_apps.push(await get_app({name: 'editor'}))
-        suggested_apps.push(await get_app({name: 'code'}))
+        suggested_apps_promises.push(get_app({name: 'editor'}))
+        suggested_apps_promises.push(get_app({name: 'code'}))
     }
     //---------------------------------------------
     // Markus
     //---------------------------------------------
     if(fsname.endsWith('.md')){
-        suggested_apps.push(await get_app({name: 'markus'}))
+        suggested_apps_promises.push(get_app({name: 'markus'}))
     }
     //---------------------------------------------
     // Viewer
@@ -1381,7 +1453,7 @@ async function suggest_app_for_fsentry(fsentry, options){
         fsname.endsWith('.bmp') ||
         fsname.endsWith('.jpeg')
     ){
-        suggested_apps.push(await get_app({name: 'viewer'}));
+        suggested_apps_promises.push(get_app({name: 'viewer'}));
     }
     //---------------------------------------------
     // Draw
@@ -1390,13 +1462,13 @@ async function suggest_app_for_fsentry(fsentry, options){
         fsname.endsWith('.bmp') ||
         content_type.startsWith('image/')
     ){
-        suggested_apps.push(await get_app({name: 'draw'}));
+        suggested_apps_promises.push(get_app({name: 'draw'}));
     }
     //---------------------------------------------
     // PDF
     //---------------------------------------------
     if(fsname.endsWith('.pdf')){
-        suggested_apps.push(await get_app({name: 'pdf'}));
+        suggested_apps_promises.push(get_app({name: 'pdf'}));
     }
     //---------------------------------------------
     // Player
@@ -1410,7 +1482,7 @@ async function suggest_app_for_fsentry(fsentry, options){
         fsname.endsWith('.m4a') ||
         fsname.endsWith('.ogg')
     ){
-        suggested_apps.push(await get_app({name: 'player'}));
+        suggested_apps_promises.push(get_app({name: 'player'}));
     }
 
     //---------------------------------------------
@@ -1420,18 +1492,21 @@ async function suggest_app_for_fsentry(fsentry, options){
 
     monitor.label("third party associations");
     for ( const app_id of apps ) {
-        // retrieve app from DB
-        const third_party_app = await get_app({id: app_id})
-        if ( ! third_party_app ) continue;
-        // only add if the app is approved for opening items or the app is owned by this user
-        if( third_party_app.approved_for_opening_items ||
-            (options !== undefined && options.user !== undefined && options.user.id === third_party_app.owner_user_id))
-            suggested_apps.push(third_party_app)
+        suggested_apps_promises.push((async () => {
+            // retrieve app from DB
+            const third_party_app = await get_app({id: app_id})
+            if ( ! third_party_app ) return;
+            // only add if the app is approved for opening items or the app is owned by this user
+            if( third_party_app.approved_for_opening_items ||
+                (options !== undefined && options.user !== undefined && options.user.id === third_party_app.owner_user_id))
+                return third_party_app;
+        })());
     }
     monitor.stamp();
     monitor.end();
 
     // return list
+    const suggested_apps = await Promise.all(suggested_apps_promises);
     return suggested_apps.filter((suggested_app, pos, self) => {
         // Remove any null values caused by calling `get_app()` for apps that don't exist.
         // This happens on self-host because we don't include `code`, among others.
@@ -1443,7 +1518,7 @@ async function suggest_app_for_fsentry(fsentry, options){
     });
 }
 
-async function get_taskbar_items(user) {
+async function get_taskbar_items(user, { icon_size, no_icons } = {}) {
     /** @type BaseDatabaseAccessService */
     const db = services.get('database').get(DB_WRITE, 'filesystem');
 
@@ -1453,13 +1528,11 @@ async function get_taskbar_items(user) {
     if(!user.taskbar_items){
         taskbar_items_from_db = [
             {name: 'app-center', type: 'app'},
-            {name: 'editor', type: 'app'},
             {name: 'dev-center', type: 'app'},
-            {name: 'draw', type: 'app'},
+            {name: 'editor', type: 'app'},
             {name: 'code', type: 'app'},
             {name: 'camera', type: 'app'},
             {name: 'recorder', type: 'app'},
-            {name: 'terminal', type: 'app'},
         ];
         await db.write(
             `UPDATE user SET taskbar_items = ? WHERE id = ?`,
@@ -1483,29 +1556,43 @@ async function get_taskbar_items(user) {
     let taskbar_items = [];
     for (let index = 0; index < taskbar_items_from_db.length; index++) {
         const taskbar_item_from_db = taskbar_items_from_db[index];
-        if(taskbar_item_from_db.type === 'app' && taskbar_item_from_db.name !== 'explorer'){
-            let item = {};
-            if(taskbar_item_from_db.name)
-                item = await get_app({name: taskbar_item_from_db.name});
-            else if(taskbar_item_from_db.id)
-                item = await get_app({id: taskbar_item_from_db.id});
-            else if(taskbar_item_from_db.uid)
-                item = await get_app({uid: taskbar_item_from_db.uid});
+        if ( taskbar_item_from_db.type !== 'app' ) continue;
+        if ( taskbar_item_from_db.name === 'explorer' ) continue;
 
-            // if item not found, skip it
-            if(!item) continue;
+        let item = {};
+        if(taskbar_item_from_db.name)
+            item = await get_app({name: taskbar_item_from_db.name});
+        else if(taskbar_item_from_db.id)
+            item = await get_app({id: taskbar_item_from_db.id});
+        else if(taskbar_item_from_db.uid)
+            item = await get_app({uid: taskbar_item_from_db.uid});
 
-            // delete sensitive attributes
-            delete item.id;
-            delete item.owner_user_id;
-            delete item.timestamp;
-            // delete item.godmode;
-            delete item.approved_for_listing;
-            delete item.approved_for_opening_items;
+        // if item not found, skip it
+        if(!item) continue;
 
-            // add to final object
-            taskbar_items.push(item)
+        // delete sensitive attributes
+        delete item.id;
+        delete item.owner_user_id;
+        delete item.timestamp;
+        // delete item.godmode;
+        delete item.approved_for_listing;
+        delete item.approved_for_opening_items;
+
+        if ( no_icons ) {
+            delete item.icon;
+        } else {
+            const svc_appIcon = services.get('app-icon');
+            const icon_result = await svc_appIcon.get_icon_stream({
+                app_icon: item.icon,
+                app_uid: item.uid,
+                size: icon_size,
+            });
+
+            item.icon = await icon_result.get_data_url();
         }
+
+        // add to final object
+        taskbar_items.push(item)
     }
 
     return taskbar_items;
@@ -1622,10 +1709,9 @@ module.exports = {
     is_empty,
     is_shared_with,
     is_shared_with_anyone,
-    is_valid_uuid4,
-    is_valid_uuid,
-    is_specifically_uuidv4,
-    is_valid_url,
+    ...require('@heyputer/backend-core-0').validation,
+    is_temp_users_disabled,
+    is_user_signup_disabled,
     jwt_auth,
     mv,
     number_format,

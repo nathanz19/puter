@@ -1,3 +1,22 @@
+/*
+ * Copyright (C) 2024-present Puter Technologies Inc.
+ * 
+ * This file is part of Puter.
+ * 
+ * Puter is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 // METADATA // {"ai-commented":{"service":"claude"}}
 const { TextractClient, AnalyzeDocumentCommand, InvalidS3ObjectException } = require("@aws-sdk/client-textract");
 
@@ -123,6 +142,24 @@ class AWSTextractService extends BaseService {
         const {
             client, document, using_s3
         } = await this._get_client_and_document(file_facade);
+        
+        const min_cost = 150 // cents per 1000 pages
+            * Math.pow(10,6) // microcents per cent
+            / 1000 // pages
+            ; // works out to 150,000 microcents per page
+            
+        const svc_cost = this.services.get('cost');
+        const usageAllowed = await svc_cost.get_funding_allowed({
+            minimum: min_cost,
+        });
+        
+        if ( ! usageAllowed ) {
+            throw APIError.create('insufficient_funds');
+        }
+        
+        // Note: we are using the synchronous command, so cost
+        // should always be the same (only 1 page allowed)
+        await svc_cost.record_cost({ cost: min_cost });
 
         const command = new AnalyzeDocumentCommand({
             Document: document,

@@ -1,12 +1,26 @@
+/*
+ * Copyright (C) 2024-present Puter Technologies Inc.
+ * 
+ * This file is part of Puter.
+ * 
+ * Puter is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 // METADATA // {"ai-commented":{"service":"claude"}}
-const { PassThrough } = require("stream");
 const BaseService = require("../../services/BaseService");
-const { TypedValue } = require("../../services/drivers/meta/Runtime");
-const { nou } = require("../../util/langutil");
-
 const axios = require('axios');
-const { TeePromise } = require('@heyputer/putility').libs.promise;
-
+const OpenAIUtil = require("./lib/OpenAIUtil");
 
 /**
 * MistralAIService class extends BaseService to provide integration with the Mistral AI API.
@@ -28,70 +42,188 @@ class MistralAIService extends BaseService {
     _construct () {
         this.costs_ = {
             'mistral-large-latest': {
-                currency: 'usd-cents',
-                tokens: 1_000_000,
-                input: 200,
-                output: 600,
+                aliases: ['mistral-large-2411'],
+                cost:{
+                    currency: 'usd-cents',
+                    tokens: 1_000_000,
+                    input: 200,
+                    output: 600,
+                },
+                max_tokens: 128000,
             },
             'pixtral-large-latest': {
-                currency: 'usd-cents',
-                tokens: 1_000_000,
-                input: 200,
-                output: 600,
+                aliases: ['pixtral-large-2411'],
+                cost: {
+                    currency: 'usd-cents',
+                    tokens: 1_000_000,
+                    input: 200,
+                    output: 600,
+                },
+                max_tokens: 128000,
             },
             'mistral-small-latest': {
-                currency: 'usd-cents',
-                tokens: 1_000_000,
-                input: 20,
-                output: 60,
+                aliases: ['mistral-small-2506'],
+                license: 'Apache-2.0',
+                cost: {
+                    currency: 'usd-cents',
+                    tokens: 1_000_000,
+                    input: 20,
+                    output: 60,
+                },
+                max_tokens: 128000,
             },
             'codestral-latest': {
-                currency: 'usd-cents',
-                tokens: 1_000_000,
-                input: 20,
-                output: 60,
+                aliases: ['codestral-2501'],
+                cost: {
+                    currency: 'usd-cents',
+                    tokens: 1_000_000,
+                    input: 30,
+                    output: 90,
+                },
+                max_tokens: 256000,
             },
             'ministral-8b-latest': {
-                currency: 'usd-cents',
-                tokens: 1_000_000,
-                input: 10,
-                output: 10,
+                aliases: ['ministral-8b-2410'],
+                cost: {
+                    currency: 'usd-cents',
+                    tokens: 1_000_000,
+                    input: 10,
+                    output: 10,
+                },
+                max_tokens: 128000,
             },
             'ministral-3b-latest': {
-                currency: 'usd-cents',
-                tokens: 1_000_000,
-                input: 4,
-                output: 4,
+                aliases: ['ministral-3b-2410'],
+                cost: {
+                    currency: 'usd-cents',
+                    tokens: 1_000_000,
+                    input: 4,
+                    output: 4,
+                },
+                max_tokens: 128000,
             },
             'pixtral-12b': {
-                currency: 'usd-cents',
-                tokens: 1_000_000,
-                input: 15,
-                output: 15,
+                aliases: ['pixtral-12b-2409'],
+                license: 'Apache-2.0',
+                cost: {
+                    currency: 'usd-cents',
+                    tokens: 1_000_000,
+                    input: 15,
+                    output: 15,
+                },
+                max_tokens: 128000,
             },
             'mistral-nemo': {
-                currency: 'usd-cents',
-                tokens: 1_000_000,
-                input: 15,
-                output: 15,
+                cost: {
+                    currency: 'usd-cents',
+                    tokens: 1_000_000,
+                    input: 15,
+                    output: 15,
+                },
             },
             'open-mistral-7b': {
-                currency: 'usd-cents',
-                tokens: 1_000_000,
-                input: 25,
-                output: 25,
+                cost: {
+                    currency: 'usd-cents',
+                    tokens: 1_000_000,
+                    input: 25,
+                    output: 25,
+                },
             },
             'open-mixtral-8x7b': {
-                currency: 'usd-cents',
-                tokens: 1_000_000,
-                input: 7,
-                output: 7,
+                cost: {
+                    currency: 'usd-cents',
+                    tokens: 1_000_000,
+                    input: 7,
+                    output: 7,
+                },
             },
             'open-mixtral-8x22b': {
-                currency: 'usd-cents',
-                tokens: 1_000_000,
-                input: 2,
-                output: 6,
+                cost: {
+                    currency: 'usd-cents',
+                    tokens: 1_000_000,
+                    input: 2,
+                    output: 6,
+                },
+            },
+            'magistral-medium-latest': {
+                aliases: ['magistral-medium-2506'],
+                cost: {
+                    currency: 'usd-cents',
+                    tokens: 1_000_000,
+                    input: 200,
+                    output: 500,
+                },
+                max_tokens: 40000,
+            },
+            'magistral-small-latest': {
+                aliases: ['magistral-small-2506'],
+                license: 'Apache-2.0',
+                cost: {
+                    currency: 'usd-cents',
+                    tokens: 1_000_000,
+                    input: 10,
+                    output: 10,
+                },
+                max_tokens: 40000,
+            },
+            'mistral-medium-latest': {
+                aliases: ['mistral-medium-2505'],
+                cost: {
+                    currency: 'usd-cents',
+                    tokens: 1_000_000,
+                    input: 40,
+                    output: 200,
+                },
+                max_tokens: 128000,
+            },
+            'mistral-moderation-latest': {
+                aliases: ['mistral-moderation-2411'],
+                cost: {
+                    currency: 'usd-cents',
+                    tokens: 1_000_000,
+                    input: 10,
+                    output: 10,
+                },
+                max_tokens: 8000,
+            },
+            'devstral-small-latest': {
+                aliases: ['devstral-small-2505'],
+                license: 'Apache-2.0',
+                cost: {
+                    currency: 'usd-cents',
+                    tokens: 1_000_000,
+                    input: 10,
+                    output: 10,
+                },
+                max_tokens: 128000,
+            },
+            'mistral-saba-latest': {
+                aliases: ['mistral-saba-2502'],
+                cost: {
+                    currency: 'usd-cents',
+                    tokens: 1_000_000,
+                    input: 20,
+                    output: 60,
+                },
+            },
+            'open-mistral-nemo': {
+                aliases: ['open-mistral-nemo-2407'],
+                license: 'Apache-2.0',
+                cost: {
+                    currency: 'usd-cents',
+                    tokens: 1_000_000,
+                    input: 10,
+                    output: 10,
+                },
+            },
+            'mistral-ocr-latest': {
+                aliases: ['mistral-ocr-2505'],
+                cost: {
+                    currency: 'usd-cents',
+                    tokens: 1_000_000,
+                    input: 100,
+                    output: 300,
+                },
             },
         };
     }
@@ -146,13 +278,13 @@ class MistralAIService extends BaseService {
             }
             if ( ! cost ) continue;
             const model = {
+                ...cost,
                 id: api_model.id,
                 name: api_model.description,
                 aliases: api_model.aliases,
                 context: api_model.max_context_length,
                 capabilities: api_model.capabilities,
                 vision: api_model.capabilities.vision,
-                cost,
             };
 
             this.models_array_.push(model);
@@ -173,92 +305,80 @@ class MistralAIService extends BaseService {
     static IMPLEMENTS = {
         'puter-chat-completion': {
             /**
-            * Implements the puter-chat-completion interface for MistralAI service
-            * Provides methods for listing models and generating chat completions
-            * @interface
-            * @property {Function} models - Returns array of available model details
-            * @property {Function} list - Returns array of model IDs
-            * @property {Function} complete - Generates chat completion with optional streaming
-            */
+             * Returns a list of available models and their details.
+             * See AIChatService for more information.
+             * 
+             * @returns Promise<Array<Object>> Array of model details
+             */
             async models () {
                 return this.models_array_;
             },
+
             /**
-            * Returns an array of available AI models with their details
-            * @returns {Promise<Array>} Array of model objects containing id, name, aliases, context window size, capabilities, and cost information
+            * Returns a list of available model names including their aliases
+            * @returns {Promise<string[]>} Array of model identifiers and their aliases
+            * @description Retrieves all available model IDs and their aliases,
+            * flattening them into a single array of strings that can be used for model selection
             */
             async list () {
                 return this.models_array_.map(m => m.id);
             },
+
             /**
-            * Returns an array of model IDs supported by the MistralAI service
-            * @returns {Promise<string[]>} Array of model identifier strings
-            */
-            async complete ({ messages, stream, model }) {
+             * AI Chat completion method.
+             * See AIChatService for more details.
+             */
+            async complete ({ messages, stream, model, tools, max_tokens, temperature }) {
 
-                for ( let i = 0; i < messages.length; i++ ) {
-                    const message = messages[i];
-                    if ( ! message.role ) message.role = 'user';
+                messages = await OpenAIUtil.process_input_messages(messages);
+                for ( const message of messages ) {
+                    if ( message.tool_calls ) {
+                        message.toolCalls = message.tool_calls;
+                        delete message.tool_calls;
+                    }
+                    if ( message.tool_call_id ) {
+                        message.toolCallId = message.tool_call_id;
+                        delete message.tool_call_id;
+                    }
                 }
 
-                if ( stream ) {
-                    let usage_promise = new TeePromise();
+                console.log('MESSAGES TO MISTRAL', messages);
 
-                    const stream = new PassThrough();
-                    const retval = new TypedValue({
-                        $: 'stream',
-                        content_type: 'application/x-ndjson',
-                        chunked: true,
-                    }, stream);
-                    const completion = await this.client.chat.stream({
-                        model: model ?? this.get_default_model(),
-                        messages,
-                    });
-                    (async () => {
-                        for await ( let chunk of completion ) {
-                            // just because Mistral wants to be different
-                            chunk = chunk.data;
-
-                            if ( chunk.usage ) {
-                                usage_promise.resolve({
-                                    input_tokens: chunk.usage.promptTokens,
-                                    output_tokens: chunk.usage.completionTokens,
-                                });
-                                continue;
-                            }
-
-                            if ( chunk.choices.length < 1 ) continue;
-                            if ( chunk.choices[0].finish_reason ) {
-                                stream.end();
-                                break;
-                            }
-                            if ( nou(chunk.choices[0].delta.content) ) continue;
-                            const str = JSON.stringify({
-                                text: chunk.choices[0].delta.content
-                            });
-                            stream.write(str + '\n');
-                        }
-                        stream.end();
-                    })();
-
-                    return new TypedValue({ $: 'ai-chat-intermediate' }, {
-                        stream: true,
-                        response: retval,
-                        usage_promise: usage_promise,
-                    });
-                }
-
-                const completion = await this.client.chat.complete({
+                const completion = await this.client.chat[
+                    stream ? 'stream' : 'complete'
+                ]({
                     model: model ?? this.get_default_model(),
+                    ...(tools ? { tools } : {}),
                     messages,
+                    max_tokens: max_tokens,
+                    temperature
                 });
-                // Expected case when mistralai/client-ts#23 is fixed
-                const ret = completion.choices[0];
-                ret.usage = {
-                    input_tokens: completion.usage.promptTokens,
-                    output_tokens: completion.usage.completionTokens,
-                };
-                return ret;
+            
+                return await OpenAIUtil.handle_completion_output({
+                    deviations: {
+                        index_usage_from_stream_chunk: chunk => {
+                            if ( ! chunk.usage ) return;
+
+                            const snake_usage = {};
+                            for ( const key in chunk.usage ) {
+                                const snakeKey = key.replace(/([A-Z])/g, "_$1").toLowerCase();
+                                snake_usage[snakeKey] = chunk.usage[key];
+                            }
+
+                            return snake_usage;
+                        },
+                        chunk_but_like_actually: chunk => chunk.data,
+                        index_tool_calls_from_stream_choice: choice => choice.delta.toolCalls,
+                        coerce_completion_usage: completion => ({
+                            prompt_tokens: completion.usage.promptTokens,
+                            completion_tokens: completion.usage.completionTokens,
+                        }),
+                    },
+                    completion, stream,
+                    usage_calculator: OpenAIUtil.create_usage_calculator({
+                        model_details: this.models_array_.find(m => m.id === model),
+                    }),
+                });
             }
         }
     }

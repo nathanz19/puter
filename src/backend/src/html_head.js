@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -29,6 +29,7 @@ function html_head(options) {
 			html += `<meta charset="utf-8">`;
 			html += `<meta name="viewport" content="width=device-width, initial-scale=1">`;
 			html += `<meta name="description" content="${encode(options.meta_description ?? '')}">`;
+			html += `<meta name="referrer" content="no-referrer">`;
 			// title
 			html += `<title>${encode(options.title ?? 'Puter')}</title>`;
 			// favicons

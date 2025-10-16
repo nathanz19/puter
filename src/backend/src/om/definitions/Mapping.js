@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 const { AdvancedBase } = require("@heyputer/putility");
-const { instance_ } = require("../../monitor/PerformanceMonitor");
 const { WeakConstructorFeature } = require("../../traits/WeakConstructorFeature");
 const { Property } = require("./Property");
 const { Entity } = require("../entitystorage/Entity");
@@ -76,6 +75,10 @@ class Mapping extends AdvancedBase {
             }
 
             if ( value instanceof FSNodeContext ) {
+                if ( ! await value.exists() ) {
+                    value = undefined;
+                    continue;
+                }
                 value = await value.getSafeEntry();
                 sanitized = true;
             }

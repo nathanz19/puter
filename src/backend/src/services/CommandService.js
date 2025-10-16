@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"claude"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -17,6 +17,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+const { Context } = require("../util/context");
 const BaseService = require("./BaseService");
 
 
@@ -78,20 +79,16 @@ class Command {
 */
 class CommandService extends BaseService {
     /**
-    * Service for managing and executing commands in the system.
-    * Extends BaseService to provide command registration, execution and lookup functionality.
-    * Commands are stored internally with unique IDs and can be executed with arguments.
-    * Built-in 'help' command is registered during initialization.
+    * Initializes the command service's internal state
+    * Called during service construction to set up the empty commands array
     */
     async _construct () {
         this.commands_ = [];
     }
+    
     /**
-    * Initializes the command service's internal state
-    * Called during service construction to set up the empty commands array
-    * @private
-    * @returns {Promise<void>}
-    */
+     * Add the help command to the list of commands on init
+     */
     async _init () {
         this.commands_.push(new Command({
             id: 'help',
@@ -103,6 +100,30 @@ class CommandService extends BaseService {
                 }
             }
         }));
+    }
+    
+    async ['__on_boot.consolidation'] () {
+        const svc_event = this.services.get('event');
+        const svc_command = this;
+        const event = {
+            createCommand (name, command) {
+                const serviceName = Context.get('extension_name') ?? '%missing%';
+                const commandSpec = typeof command === 'function'
+                    ? { handler: command }
+                    : command;
+                if ( typeof commandSpec !== 'object' ) {
+                    throw new Error('command must be either a function or an object');
+                }
+                if ( ! (typeof command.handler === 'function') ) {
+                    throw new Error('command should have a handler function');
+                }
+                svc_command.registerCommands(serviceName, [{
+                    id: name,
+                    ...commandSpec,
+                }]);
+            },
+        };
+        svc_event.emit('create.commands', event);
     }
 
     registerCommands(serviceName, commands) {
@@ -138,7 +159,9 @@ class CommandService extends BaseService {
         * @returns {Promise<void>}
         * @throws {Error} If command execution fails
         */
-        await globalThis.root_context.arun(async () => {
+        await globalThis.root_context.sub({
+            injected_logger: log,
+        }).arun(async () => {
             await command.execute(commandArgs, log);
         });
     }

@@ -1,9 +1,26 @@
+/*
+ * Copyright (C) 2024-present Puter Technologies Inc.
+ * 
+ * This file is part of Puter.
+ * 
+ * Puter is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 // METADATA // {"ai-commented":{"service":"claude"}}
-const { PassThrough } = require("stream");
 const BaseService = require("../../services/BaseService");
 const { TypedValue } = require("../../services/drivers/meta/Runtime");
-const { nou } = require("../../util/langutil");
-const { TeePromise } = require('@heyputer/putility').libs.promise;
+const OpenAIUtil = require("./lib/OpenAIUtil");
 
 
 /**
@@ -51,21 +68,19 @@ class GroqAIService extends BaseService {
     static IMPLEMENTS = {
         'puter-chat-completion': {
             /**
-            * Defines the interface implementations for the puter-chat-completion service
-            * Contains methods for listing models and handling chat completions
-            * @property {Object} models - Returns available AI models
-            * @property {Object} list - Lists raw model data from the Groq API
-            * @property {Object} complete - Handles chat completion requests with optional streaming
-            * @returns {Object} Interface implementation object
-            */
+             * Returns a list of available models and their details.
+             * See AIChatService for more information.
+             * 
+             * @returns Promise<Array<Object>> Array of model details
+             */
             async models () {
                 return await this.models_();
             },
             /**
-            * Lists available AI models from the Groq API
-            * @returns {Promise<Array>} Array of model objects from the API's data field
-            * @description Unwraps and returns the model list from the Groq API response,
-            * which comes wrapped in an object with {object: "list", data: [...]}
+            * Returns a list of available model names including their aliases
+            * @returns {Promise<string[]>} Array of model identifiers and their aliases
+            * @description Retrieves all available model IDs and their aliases,
+            * flattening them into a single array of strings that can be used for model selection
             */
             async list () {
                 // They send: { "object": "list", data }
@@ -80,67 +95,36 @@ class GroqAIService extends BaseService {
             * @param {boolean} [options.stream] - Whether to stream the response
             * @returns {TypedValue|Object} Returns either a TypedValue with streaming response or completion object with usage stats
             */
-            async complete ({ messages, model, stream }) {
-                for ( let i = 0; i < messages.length; i++ ) {
-                    const message = messages[i];
-                    if ( ! message.role ) message.role = 'user';
-                }
-
+            async complete ({ messages, model, stream, tools, max_tokens, temperature }) {
                 model = model ?? this.get_default_model();
+
+                messages = await OpenAIUtil.process_input_messages(messages);
+                for ( const message of messages ) {
+                    // Curiously, DeepSeek has the exact same deviation
+                    if ( message.tool_calls && Array.isArray(message.content) ) {
+                        message.content = "";
+                    }
+                }
 
                 const completion = await this.client.chat.completions.create({
                     messages,
                     model,
                     stream,
+                    tools,
+                    max_completion_tokens: max_tokens, // max_tokens has been deprecated
+                    temperature
                 });
 
-                if ( stream ) {
-                    const usage_promise = new TeePromise();
-
-                    const stream = new PassThrough();
-                    const retval = new TypedValue({
-                        $: 'stream',
-                        content_type: 'application/x-ndjson',
-                        chunked: true,
-                    }, stream);
-                    (async () => {
-                        for await ( const chunk of completion ) {
-                            let usage = chunk?.x_groq?.usage ?? chunk.usage;
-                            if ( usage ) {
-                                usage_promise.resolve({
-                                    input_tokens: usage.prompt_tokens,
-                                    output_tokens: usage.completion_tokens,
-                                });
-                                continue;
-                            }
-
-                            if ( chunk.choices.length < 1 ) continue;
-                            if ( chunk.choices[0].finish_reason ) {
-                                stream.end();
-                                break;
-                            }
-                            if ( nou(chunk.choices[0].delta.content) ) continue;
-                            const str = JSON.stringify({
-                                text: chunk.choices[0].delta.content
-                            });
-                            stream.write(str + '\n');
-                        }
-                        stream.end();
-                    })();
-
-                    return new TypedValue({ $: 'ai-chat-intermediate' }, {
-                        stream: true,
-                        response: retval,
-                        usage_promise: usage_promise,
-                    });
-                }
-                
-                const ret = completion.choices[0];
-                ret.usage = {
-                    input_tokens: completion.usage.prompt_tokens,
-                    output_tokens: completion.usage.completion_tokens,
-                };
-                return ret;
+                return OpenAIUtil.handle_completion_output({
+                    deviations: {
+                        index_usage_from_stream_chunk: chunk =>
+                            chunk.x_groq?.usage,
+                    },
+                    usage_calculator: OpenAIUtil.create_usage_calculator({
+                        model_details: (await this.models_()).find(m => m.id === model),
+                    }),
+                    stream, completion,
+                });
             }
         }
     };
@@ -168,7 +152,8 @@ class GroqAIService extends BaseService {
                     tokens: 1_000_000,
                     input: 20,
                     output: 20,
-                }
+                },
+                max_tokens: 8192,
             },
             {
                 id: 'gemma-7b-it',
@@ -230,13 +215,38 @@ class GroqAIService extends BaseService {
             {
                 "id": "llama-3.1-8b-instant",
                 "name": "Llama 3.1 8B Instant 128k",
-                "context": 128000,
+                "context": 131072,
                 "cost": {
                     "currency": "usd-cents",
                     "tokens": 1000000,
                     "input": 5,
                     "output": 8
-                }
+                },
+                max_tokens: 131072,
+            },
+            {
+                id: 'meta-llama/llama-guard-4-12b',
+                name: 'Llama Guard 4 12B',
+                context: 131072,
+                cost: {
+                    currency: 'usd-cents',
+                    tokens: 1000000,
+                    input: 20,
+                    output: 20,
+                },
+                max_tokens:1024,
+            },
+            {
+                id: 'meta-llama/llama-prompt-guard-2-86m',
+                name: 'Prompt Guard 2 86M',
+                context: 512,
+                cost: {
+                    currency: 'usd-cents',
+                    tokens: 1000000,
+                    input: 4,
+                    output: 4,
+                },
+                max_tokens:512,
             },
             {
                 "id": "llama-3.2-1b-preview",
@@ -247,7 +257,7 @@ class GroqAIService extends BaseService {
                     "tokens": 1000000,
                     "input": 4,
                     "output": 4
-                }
+                },
             },
             {
                 "id": "llama-3.2-3b-preview",

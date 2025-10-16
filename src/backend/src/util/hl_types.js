@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -42,6 +42,12 @@ const hl_type_definitions = {
 
             if ( typeof v === 'boolean' ) {
                 return v;
+            }
+
+            if ( v === 1 ) return true;
+            if ( v === 0 ) return false
+            if ( typeof v === 'object' ) {
+                return v !== null;
             }
 
             throw new Error(`could not adapt value to boolean: ${quot(v)}`);

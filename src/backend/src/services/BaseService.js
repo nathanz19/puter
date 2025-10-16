@@ -1,6 +1,6 @@
 // METADATA // {"ai-params":{"service":"xai"},"ai-refs":["../../doc/contributors/boot-sequence.md"],"ai-commented":{"service":"xai"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -40,13 +40,20 @@ const NOOP = async () => {};
 */
 class BaseService extends concepts.Service {
     constructor (service_resources, ...a) {
-        const { services, config, my_config, name, args, context } = service_resources;
+        const { services, config, name, args, context } = service_resources;
         super(service_resources, ...a);
 
         this.args = args;
         this.service_name = name || this.constructor.name;
         this.services = services;
-        this.config = my_config;
+        let configOverride = undefined;
+        Object.defineProperty(this, 'config', {
+            get: () => configOverride ?? config.services?.[name] ?? {},
+            set: why => {
+                console.warn('replacing config like this is probably a bad idea');
+                configOverride = why;
+            },
+        });
         this.global_config = config;
         this.context = context;
 
@@ -54,17 +61,18 @@ class BaseService extends concepts.Service {
             this.global_config.server_id = 'local';
         }
     }
-
+    
+    async run_as_early_as_possible () {
+        await (this._run_as_early_as_possible || NOOP).call(this, this.args);
+    }
 
     /**
-    * Initializes the service with configuration and dependencies.
-    * This method sets up logging and error handling, and calls a custom `_init` method if defined.
+    * Creates the service's data structures and initial values.
+    * This method sets up logging and error handling, and calls a custom `_construct` method if defined.
     * 
-    * @param {Object} args - Arguments passed to the service for initialization.
-    * @returns {Promise<void>} A promise that resolves when initialization is complete.
+    * @returns {Promise<void>} A promise that resolves when construction is complete.
     */
     async construct () {
-        console.log('CLASS', this.constructor.name);
         const useapi = this.context.get('useapi');
         const use = this._get_merged_static_object('USE');
         for ( const [key, value] of Object.entries(use) ) {
@@ -86,7 +94,11 @@ class BaseService extends concepts.Service {
     */
     async init () {
         const services = this.services;
-        this.log = services.get('log-service').create(this.service_name);
+        const log_fields = {};
+        if ( this.constructor.CONCERN ) {
+            log_fields.concern = this.constructor.CONCERN;
+        }
+        this.log = services.get('log-service').create(this.service_name, log_fields);
         this.errors = services.get('error-service').create(this.log);
 
         await (this._init || NOOP).call(this, this.args);

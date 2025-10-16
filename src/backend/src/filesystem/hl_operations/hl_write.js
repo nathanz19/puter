@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -32,6 +32,7 @@ const { is_valid_node_name } = require("../validation");
 const { HLFilesystemOperation } = require("./definitions");
 const { MkTree } = require("./hl_mkdir");
 const { Actor } = require("../../services/auth/Actor");
+const { LLCWrite, LLOWrite } = require("../ll_operations/ll_write");
 
 class WriteCommonFeature {
     install_in_instance (instance) {
@@ -301,7 +302,7 @@ class HLWrite extends HLFilesystemOperation {
         this.checkpoint('before thumbnail');
 
         let thumbnail_promise = new TeePromise();
-        if ( await destination.isAppDataDirectory() || values.no_thumbnail ) {
+        if ( await parent.isAppDataDirectory() || values.no_thumbnail ) {
             thumbnail_promise.resolve(undefined);
         } else (async () => {
             const reason = await (async () => {
@@ -381,7 +382,8 @@ class HLWrite extends HLFilesystemOperation {
         }
 
         if ( is_overwrite ) {
-            this.written = await fs.owrite({
+            const ll_owrite = new LLOWrite();
+            this.written = await ll_owrite.run({
                 node: destination,
                 actor: values.actor,
                 file: values.file,
@@ -396,7 +398,8 @@ class HLWrite extends HLFilesystemOperation {
                 message: values.message,
             });
         } else {
-            this.written = await fs.cwrite({
+            const ll_cwrite = new LLCWrite();
+            this.written = await ll_cwrite.run({
                 parent,
                 name: target_name,
                 actor: values.actor,

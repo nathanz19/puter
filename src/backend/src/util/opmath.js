@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -100,7 +100,6 @@ class StreamReducer {
 class EWMA extends StreamReducer {
     constructor ({ initial, alpha }) {
         super(initial ?? 0);
-        console.log('VALL', this.value)
         this.alpha = Getter.adapt(alpha);
     }
 
@@ -143,16 +142,17 @@ class MovingMode extends StreamReducer {
 }
 
 class TimeWindow {
-    constructor ({ window_duration, reducer }) {
+    constructor ({ window_duration, reducer, now }) {
         this.window_duration = window_duration;
         this.reducer = reducer;
         this.entries_ = [];
+        this.now = now ?? Date.now;
     }
 
     add (value) {
         this.remove_stale_entries_();
 
-        const timestamp = Date.now();
+        const timestamp = this.now();
         this.entries_.push({
             timestamp,
             value,
@@ -174,7 +174,7 @@ class TimeWindow {
 
     remove_stale_entries_ () {
         let i = 0;
-        const current_ts = Date.now();
+        const current_ts = this.now();
         for ( ; i < this.entries_.length ; i++ ) {
             const entry = this.entries_[i];
             // as soon as an entry is in the window we can break,
@@ -188,6 +188,13 @@ class TimeWindow {
     }
 }
 
+const normalize = ({
+    high_value,
+}, value) => {
+    const k = -1 * (1 / high_value);
+    return 1 - Math.pow(Math.E, k * value);
+};
+
 module.exports = {
     Getter,
     LinearByCountGetter,
@@ -198,4 +205,5 @@ module.exports = {
     EWMA,
     MovingMode,
     TimeWindow,
+    normalize,
 }

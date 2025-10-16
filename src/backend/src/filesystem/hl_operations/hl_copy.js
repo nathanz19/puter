@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -23,7 +23,7 @@ const { NodePathSelector, RootNodeSelector } = require("../node/selectors");
 const { HLFilesystemOperation } = require("./definitions");
 const { MkTree } = require("./hl_mkdir");
 const { HLRemove } = require("./hl_remove");
-const config = require("../../config");
+const { LLCopy } = require("../ll_operations/ll_copy");
 
 class HLCopy extends HLFilesystemOperation {
     static DESCRIPTION = `
@@ -159,8 +159,8 @@ class HLCopy extends HLFilesystemOperation {
             throw APIError.create('source_and_dest_are_the_same');
         }
 
-        if ( await is_ancestor_of(source.mysql_id, parent.mysql_id) ) {
-            throw APIError('cannot_copy_item_into_itself');
+        if ( await is_ancestor_of(source.uid, parent.uid) ) {
+            throw APIError.create('cannot_copy_item_into_itself');
         }
 
         let overwritten;
@@ -206,7 +206,8 @@ class HLCopy extends HLFilesystemOperation {
             }
         }
 
-        this.copied = await fs.copy_2({
+        const ll_copy = new LLCopy();
+        this.copied = await ll_copy.run({
             source,
             parent,
             user: values.user,

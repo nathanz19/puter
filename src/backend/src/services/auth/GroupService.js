@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"xai"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -33,6 +33,7 @@ const { DB_WRITE } = require("../database/consts");
 */
 class GroupService extends BaseService {
     static MODULES = {
+        kv: globalThis.kv,
         uuidv4: require('uuid').v4,
     };
 
@@ -46,6 +47,7 @@ class GroupService extends BaseService {
     */
     _init () {
         this.db = this.services.get('database').get(DB_WRITE, 'permissions');
+        this.kvkey = this.modules.uuidv4();
 
         const svc_anomaly = this.services.get('anomaly');
         svc_anomaly.register('groups-user-hour', {
@@ -103,8 +105,11 @@ class GroupService extends BaseService {
 
         const [{ n_groups }] = await this.db.read(
             "SELECT COUNT(*) AS n_groups FROM `group` WHERE " +
-            "owner_user_id=? AND " +
-            "created_at >= datetime('now', '-1 hour')",
+            "owner_user_id=? AND created_at >= " +
+            this.db.case({
+                sqlite: "datetime('now', '-1 hour')",
+                otherwise: "NOW() - INTERVAL 1 HOUR"
+            }),
             [owner_user_id]
         );
 
@@ -190,6 +195,42 @@ class GroupService extends BaseService {
 
 
     /**
+     * Lists public groups. May get groups from kv.js cache.
+     */
+    async list_public_groups () {
+        const public_group_uids = [
+            this.global_config.default_user_group,
+            this.global_config.default_temp_group,
+        ];
+
+        let groups = this.modules.kv.get(`${this.kvkey}:public-groups`);
+        if ( groups ) {
+            return groups;
+        }
+
+        groups = await this.db.read(
+            'SELECT * FROM `group` WHERE uid IN (' +
+                public_group_uids.map(() => '?').join(', ') +
+            ')',
+            public_group_uids,
+        );
+        for ( const group of groups ) {
+            group.extra = this.db.case({
+                mysql: () => group.extra,
+                otherwise: () => JSON.parse(group.extra),
+            })();
+            group.metadata = this.db.case({
+                mysql: () => group.metadata,
+                otherwise: () => JSON.parse(group.metadata),
+            })();
+        }
+        groups = groups.map(g => Group(g));
+        this.modules.kv.set(`${this.kvkey}:public-groups`, groups, 60);
+        return groups;
+    }
+
+
+    /**
     * Lists the members of a group by their username.
     * 
     * @param {Object} options - The options object.
@@ -206,6 +247,7 @@ class GroupService extends BaseService {
         );
         return users.map(u => u.username);
     }
+
     
 
     /**

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -38,18 +38,21 @@ const fr = {
         browse: "Parcourir",
         cancel: 'Annuler',
         center: 'Centrer',
+        change: 'Changer',
+        change_always_open_with: "Voulez-vous toujours ouvrir ce type de fichier avec",
         change_desktop_background: 'Changer l’arrière-plan du bureau…',
         change_email: "Changer l'e-mail",
         change_language: "Changer de langue",
         change_password: "Changer le mot de passe",
         change_ui_colors: "Changer les couleurs de l'interface",
         change_username: "Changer le nom d'utilisateur",
+        clock_visibility: "Visibilité de l'horloge",
         close: 'Fermer',
         close_all_windows: "Fermer toutes les fenêtres",
         close_all_windows_confirm: "Êtes-vous sûr de vouloir fermer toutes les fenêtres ?",
         close_all_windows_and_log_out: 'Fermer les fenêtres et se déconnecter',
-        change_always_open_with: "Voulez-vous toujours ouvrir ce type de fichier avec",
         color: 'Couleur',
+        confirm: 'Confirmer',
         confirm_2fa_setup: "J'ai ajouté le code à mon application d'authentification",
         confirm_2fa_recovery: "J'ai enregistré mes codes de récupération dans un emplacement sécurisé",
         confirm_account_for_free_referral_storage_c2a: 'Créez un compte et confirmez votre adresse e-mail pour recevoir 1 Go de stockage gratuit. Votre ami bénéficiera également de 1 Go de stockage gratuit.',
@@ -68,7 +71,8 @@ const fr = {
         confirm_delete_user: "Êtes-vous sûr de vouloir supprimer votre compte ? Tous vos fichiers et données seront définitivement supprimés. Cette action est irréversible.",
         confirm_delete_user_title: "Supprimer le compte ?",
         confirm_session_revoke: "Êtes-vous sûr de vouloir révoquer cette session ?",
-        confirm_your_email_address: "Confirm Your Email Address",
+        confirm_your_email_address: "Confirmez votre adresse e-mail",
+        choose_publishing_option: "Choisissez comment vous voulez publier votre site web:",
         contact_us: "Nous contacter",
         contact_us_verification_required: "Vous devez disposer d'une adresse e-mail vérifiée pour pouvoir utiliser ceci.",
         contain: 'Contenir',
@@ -80,7 +84,10 @@ const fr = {
         cover: 'Couverture',
         create_account: "Créer un compte",
         create_free_account: "Créer un compte gratuitement",
+        create_desktop_shortcut: "Créer un raccourci (Bureau)",
+        create_desktop_shortcut_s: "Créer des raccourcis (Bureau)",
         create_shortcut: "Créer un raccourci",
+        create_shortcut_s: "Créer des raccourcis",
         credits: "Crédits",
         current_password: "Mot de passe actuel",
         cut: 'Couper',
@@ -89,7 +96,7 @@ const fr = {
         clock_visible_show: 'Afficher - Toujours visible',
         clock_visible_auto: 'Auto - Par défaut, visible uniquement en mode plein écran.',
         close_all: 'Fermer tout',
-        created: 'Crée',
+        created: 'Créé',
         date_modified: 'Date de modification',
         default: 'Par défaut',
         delete: 'Supprimer',
@@ -161,14 +168,12 @@ const fr = {
         log_out: 'Se déconnecter',
         looks_good: "Ça a l'air bien !",
         manage_sessions: "Gérer les sessions",
-        menubar_style: "Style barre de menu",
-        menubar_style_desktop: "Bureau",
-        menubar_style_system: "Système",
-        menubar_style_window: "Fenêtre",
         modified: 'Modifié',
         move: 'Déplacer',
         moving_file: "Déplacement de %%",
         my_websites: "Mes sites internet",
+        minimize: "Minimiser",
+        reload_app: "Recharger l'application",
         name: 'Nom',
         name_cannot_be_empty: 'Le nom ne peut pas être vide.',
         name_cannot_contain_double_period: "Le nom ne peut pas être le caractère '..'.",
@@ -183,11 +188,13 @@ const fr = {
         new_username: "Nouveau nom d'utilisateur",
         no: 'Non',
         no_dir_associated_with_site: 'Aucun répertoire associé à cette adresse.',
-        no_websites_published: "Vous n'avez pas encore publié de sites internet.",
+        no_websites_published: "Vous n'avez pas encore publié de sites internet. Faites un clic droit sur un dossier pour commencer.",
         ok: 'OK',
         open: "Ouvrir",
+        new_window: "Nouvelle fenêtre",
         open_in_new_tab: "Ouvrir dans un nouvel onglet",
         open_in_new_window: "Ouvrir dans une nouvelle fenêtre",
+        open_trash: "Ouvrir la corbeille",
         open_with: "Ouvrir avec",
         original_name: "Nom d'origine",
         original_path: "Chemin d'origine",
@@ -205,7 +212,15 @@ const fr = {
         path: 'Chemin',
         personalization: "Personnalisation",
         pick_name_for_website: "Choisissez un nom pour votre site internet :",
+        pick_name_for_worker: "Choisissez un nom pour votre worker :",
         picture: "Image",
+        // Avatar removal translations
+        remove: "Supprimer",
+        'account.avatar.removeButton': 'Supprimer',
+        'account.avatar.removeConfirm': "Êtes-vous sûr de vouloir supprimer votre photo de profil ? Cela restaurera votre avatar par défaut.",
+        'account.avatar.removedToast': 'Photo de profil supprimée.',
+        'confirm_remove_profile_picture': "Êtes-vous sûr de vouloir supprimer votre photo de profil ? Cela restaurera votre avatar par défaut.",
+        'confirm_remove_profile_picture_title': 'Supprimer la photo de profil ?',
         pictures: 'Images',
         plural_suffix: 's',
         powered_by_puter_js: `Propulsé par {{link=docs}}Puter.js{{/link}}`,
@@ -221,11 +236,13 @@ const fr = {
         process_type_init: 'Init',
         process_type_ui: 'IU',
         properties: "Propriétés",
+        public: 'Publique',
         publish: "Publier",
         publish_as_website: 'Publier en tant que site internet',
-        puter_description: `Puter est un cloud personnel axé sur la confidentialité pour conserver tous vos fichiers, applications et jeux en un seul
-        endroit sécurisé, accessible de partout et à tout moment.`,
-        reading_file: "Lecture de %strong%",
+        publish_as_serverless_worker: "Publier en tant que Worker",
+        puter_description: `Puter est un cloud personnel axé sur la confidentialité pour conserver tous vos fichiers, applications et jeux en un seul endroit sécurisé, accessible de partout et à tout moment.`,
+        reading: 'lecture de %strong%',
+        writing: 'écriture de %strong%',
         recent: "Récent",
         recommended: "Recommandé",
         recover_password: "Récupérer le mot de passe",
@@ -250,7 +267,7 @@ const fr = {
         save_session: 'Sauvegarder la session',
         save_session_c2a: 'Créez un compte pour enregistrer votre session actuelle et éviter de perdre votre travail.',
         scan_qr_c2a: 'Scannez le code ci-dessous\npour vous connecter à cette session depuis d\'autres appareils',
-        scan_qr_2fa: 'Scan the QR code with your authenticator app',
+        scan_qr_2fa: 'Scannez le code QR avec votre application d\'authentification',
         scan_qr_generic: 'Scannez ce code QR à l\'aide de votre téléphone ou d\'un autre appareil',
         search: 'Rechercher',
         seconds: 'secondes',
@@ -266,7 +283,7 @@ const fr = {
         set_new_password: "Definir un nouveau mot de passe",
         share: "Partager",
         share_to: "Partager à",
-        share_with: "Partager avec",
+        share_with: "Partager avec :",
         shortcut_to: "Raccourci vers",
         show_all_windows: "Afficher toutes les fenêtres",
         show_hidden: 'Afficher les fichiers cachés',
@@ -288,6 +305,12 @@ const fr = {
         taskmgr_header_type: "Type",
         terms: "Termes",
         text_document: 'Document texte',
+        'toolbar.enter_fullscreen': 'Passer en plein écran',
+        'toolbar.github': 'GitHub',
+        'toolbar.refer': 'Parrainer',
+        'toolbar.save_account': 'Sauvegarder le compte',
+        'toolbar.search': 'Rechercher',
+        'toolbar.qrcode': 'Code QR',
         tos_fineprint: `En cliquant sur "Créer un compte gratuit", vous acceptez les {{link=terms}}Conditions d'utilisation{{/link}} et la {{link=privacy}}Politique de confidentialité{{/link}} de Puter.`,
         transparency: "Transparence",
         trash: 'Corbeille',
@@ -302,8 +325,10 @@ const fr = {
         undo: 'Annuler',
         unlimited: 'Illimité',
         unzip: "Décompresser",
+        unzipping: 'décompression de %strong%',
         upload: 'Importer',
         upload_here: 'Importer ici',
+        used_of: '{{used}} utilisé sur {{available}}',
         usage: 'Usage',
         username: "Nom d'utilisateur",
         username_changed: 'Nom d\'utilisateur mis à jour avec succès.',
@@ -315,7 +340,9 @@ const fr = {
         yes_release_it: 'Oui, libérez-la',
         you_have_been_referred_to_puter_by_a_friend: "Vous avez été recommandé à Puter par un ami !",
         zip: "Compresser",
-        zipping_file: "Compression de %strong%",
+        sequencing: 'séquençage de %strong%',
+        worker: "Worker",
+        zipping: 'compression de %strong%',
 
         // === 2FA Setup ===
         setup2fa_1_step_heading: 'Ouvrez votre application d\'authentification',
@@ -346,72 +373,139 @@ const fr = {
         login2fa_recovery_back: 'Retour',
         login2fa_recovery_placeholder: 'XXXXXXXX',
 
-        "change": 'changer',
-        "clock_visibility": "visibilité de l'horloge",
-        "confirm": 'Confirmer',
-        "public": 'Publique',
-        "reading": 'lecture de %strong%',
-        "writing": 'écriture de %strong%',
-        "unzipping": 'décompression de %strong%',
-        "sequencing": 'séquençage de %strong%',
-        "zipping": 'compression de %strong%',
-        "Editor": 'Éditeur',
-        "Viewer": 'Lecteur',
-        "People with access": 'Utilisateurs avec accès',
-        "Share With…": 'Partager avec...',
-        "Owner": 'Propriétaire',
+        // Sharing
+        'Editor': 'Éditeur',
+        'Viewer': 'Lecteur',
+        'People with access': 'Utilisateurs avec accès',
+        'Share With…': 'Partager avec...',
+        'Owner': 'Propriétaire',
         "You can't share with yourself.": 'Vous ne pouvez pas partager avec vous-même',
-        "This user already has access to this item": 'Cet utilisateur à déja accès à cet élément',
+        'This user already has access to this item': 'Cet utilisateur à déja accès à cet élément',
+        
+        // Billing
+        "billing.change_payment_method": "Modifier", 
+        "billing.cancel": "Annuler", 
+        "billing.download_invoice": "Télécharger", 
+        "billing.payment_method": "Mode de paiement", 
+        "billing.payment_method_updated": "Mode de paiement mis à jour !", 
+        "billing.confirm_payment_method": "Confirmer le mode de paiement", 
+        "billing.payment_history": "Historique des paiements", 
+        "billing.refunded": "Remboursé", 
+        "billing.paid": "Payé", 
+        "billing.ok": "OK", 
+        "billing.resume_subscription": "Reprendre l'abonnement", 
+        "billing.subscription_cancelled": "Votre abonnement a été annulé.", 
+        "billing.subscription_cancelled_description": "Vous aurez toujours accès à votre abonnement jusqu'à la fin de cette période de facturation.", 
+        "billing.offering.free": "Gratuit", 
+        "billing.offering.basic": "De base",
+        "billing.offering.pro": "Professionnel",
+        "billing.offering.professional": "Professionnel",
+        "billing.offering.business": "Entreprise", 
+        "billing.cloud_storage": "Stockage Cloud", 
+        "billing.ai_access": "Accès IA", 
+        "billing.bandwidth": "Bande passante", 
+        "billing.apps_and_games": "Applications & Jeux", 
+        "billing.upgrade_to_pro": "Mettre à niveau vers %strong%", 
+        "billing.switch_to": "Passer à %strong%", 
+        "billing.payment_setup": "Configuration du paiement",
+        "billing.back": "Retour",
+        "billing.you_are_now_subscribed_to": "Vous êtes maintenant abonné au niveau %strong%.", 
+        "billing.you_are_now_subscribed_to_without_tier": "Vous êtes maintenant abonné", 
+        "billing.subscription_cancellation_confirmation": "Êtes-vous sûr de vouloir annuler votre abonnement ?", 
+        "billing.subscription_setup": "Configuration de l'abonnement", 
+        "billing.cancel_it": "L'annuler", 
+        "billing.keep_it": "Le garder",
+        "billing.subscription_resumed": "Votre abonnement %strong% a été repris !", 
+        "billing.upgrade_now": "Mettre à niveau maintenant", 
+        "billing.upgrade": "Mettre à niveau", 
+        "billing.currently_on_free_plan": "Vous êtes actuellement sur le plan gratuit.",
+        "billing.download_receipt": "Télécharger le reçu", 
+        "billing.subscription_check_error": "Un problème est survenu lors de la vérification de l'état de votre abonnement.", 
+        "billing.email_confirmation_needed": "Votre e-mail n'a pas été confirmé. Nous allons vous envoyer un code pour le confirmer maintenant.", 
+        "billing.sub_cancelled_but_valid_until": "Vous avez annulé votre abonnement, et il passera automatiquement au niveau gratuit à la fin de la période de facturation. Vous ne serez pas facturé à nouveau, sauf si vous vous réabonnez.", 
+        "billing.current_plan_until_end_of_period": "Votre plan actuel jusqu'à la fin de cette période de facturation.", 
+        "billing.current_plan": "Plan actuel", 
+        "billing.cancelled_subscription_tier": "Abonnement annulé (%%)",
+        "billing.manage": "Gérer", 
+        "billing.limited": "Limité", 
+        "billing.expanded": "Étendu", 
+        "billing.accelerated": "Accéléré", 
+        "billing.enjoy_msg": "Profitez de %% de stockage Cloud ainsi que d'autres avantages.", 
+        'too_many_attempts': 'Trop de tentatives. Veuillez réessayer plus tard.',
+        'server_timeout': 'Le serveur a mis trop de temps à répondre. Veuillez réessayer.',
+        'signup_error': 'Une erreur est survenue lors de l\'inscription. Veuillez réessayer.',
 
-        // ----------------------------------------
-        // translations:
-        // ----------------------------------------
-        "billing.change_payment_method": "Modifier le mode de paiement", // In English: "Change"
-        "billing.cancel": "Annuler", // In English: "Cancel"
-        "billing.download_invoice": "Télécharger la facture", // In English: "Download"
-        "billing.payment_method": "Mode de paiement", // In English: "Payment Method"
-        "billing.payment_method_updated": "Mode de paiement mis à jour !", // In English: "Payment method updated!"
-        "billing.confirm_payment_method": "Confirmer le mode de paiement", // In English: "Confirm Payment Method"
-        "billing.payment_history": "Historique des paiements", // In English: "Payment History"
-        "billing.refunded": "Remboursé", // In English: "Refunded"
-        "billing.paid": "Payé", // In English: "Paid"
-        "billing.ok": "OK", // In English: "OK"
-        "billing.resume_subscription": "Reprendre l'abonnement", // In English: "Resume Subscription"
-        "billing.subscription_cancelled": "Votre abonnement a été annulé.", // In English: "Your subscription has been canceled."
-        "billing.subscription_cancelled_description": "Vous aurez toujours accès à votre abonnement jusqu'à la fin de cette période de facturation.", // In English: "You will still have access to your subscription until the end of this billing period."
-        "billing.offering.free": "Gratuit", // In English: "Free"
-        "billing.offering.pro": "Professionnel", // In English: "Professional"
-        "billing.offering.business": "Entreprise", // In English: "Business"
-        "billing.cloud_storage": "Stockage Cloud", // In English: "Cloud Storage"
-        "billing.ai_access": "Accès à l'IA", // In English: "AI Access"
-        "billing.bandwidth": "Bande passante", // In English: "Bandwidth"
-        "billing.apps_and_games": "Applications et jeux", // In English: "Apps & Games"
-        "billing.upgrade_to_pro": "Passer à %strong%", // In English: "Upgrade to %strong%"
-        "billing.switch_to": "Passer à %strong%", // In English: "Switch to %strong%"
-        "billing.payment_setup": "Configuration du paiement", // In English: "Payment Setup"
-        "billing.back": "Retour", // In English: "Back"
-        "billing.you_are_now_subscribed_to": "Vous êtes maintenant abonné au niveau %strong%.", // In English: "You are now subscribed to %strong% tier."
-        "billing.you_are_now_subscribed_to_without_tier": "Vous êtes maintenant abonné", // In English: "You are now subscribed"
-        "billing.subscription_cancellation_confirmation": "Êtes-vous sûr de vouloir annuler votre abonnement ?", // In English: "Are you sure you want to cancel your subscription?"
-        "billing.subscription_setup": "Configuration de l'abonnement", // In English: "Subscription Setup"
-        "billing.cancel_it": "L'annuler", // In English: "Cancel It"
-        "billing.keep_it": "Le conserver", // In English: "Keep It"
-        "billing.subscription_resumed": "Votre abonnement %strong% a été repris !", // In English: "Your %strong% subscription has been resumed!"
-        "billing.upgrade_now": "Mettre à niveau maintenant", // In English: "Upgrade Now"
-        "billing.upgrade": "Mettre à niveau", // In English: "Upgrade"
-        "billing.currently_on_free_plan": "Vous êtes actuellement sur le plan gratuit.", // In English: "You are currently on the free plan."
-        "billing.download_receipt": "Télécharger le reçu", // In English: "Download Receipt"
-        "billing.subscription_check_error": "Un problème est survenu lors de la vérification de votre statut d'abonnement.", // In English: "A problem occurred while checking your subscription status."
-        "billing.email_confirmation_needed": "Votre e-mail n'a pas été confirmé. Nous allons vous envoyer un code pour le confirmer maintenant.", // In English: "Your email has not been confirmed. We'll send you a code to confirm it now."
-        "billing.sub_cancelled_but_valid_until": "Vous avez annulé votre abonnement et il passera automatiquement au niveau gratuit à la fin de la période de facturation. Vous ne serez pas facturé à nouveau sauf si vous vous réabonnez.", // In English: "You have cancelled your subscription and it will automatically switch to the free tier at the end of the billing period. You will not be charged again unless you re-subscribe."
-        "billing.current_plan_until_end_of_period": "Votre plan actuel jusqu'à la fin de cette période de facturation.", // In English: "Your current plan until the end of this billing period."
-        "billing.current_plan": "Plan actuel", // In English: "Current plan"
-        "billing.cancelled_subscription_tier": "Abonnement annulé (%%)", // In English: "Cancelled Subscription (%%)"
-        "billing.manage": "Gérer", // In English: "Manage"
-        "billing.limited": "Limité", // In English: "Limited"
-        "billing.expanded": "Étendu", // In English: "Expanded"
-        "billing.accelerated": "Accéléré", // In English: "Accelerated"
-        "billing.enjoy_msg": "Profitez de %% de stockage cloud et d'autres avantages.", // In English: "Enjoy %% of Cloud Storage plus other benefits."
+        // Welcome Window
+        'welcome_title': 'Bienvenue sur votre ordinateur personnel Internet',
+        'welcome_description': 'Stockez des fichiers, jouez à des jeux, trouvez des applications géniales, et bien plus encore ! Tout en un seul endroit, accessible partout et à tout moment.',
+        'welcome_get_started': 'Commencer',
+        'welcome_terms': 'Conditions',
+        'welcome_privacy': 'Confidentialité',
+        'welcome_developers': 'Développeurs',
+        'welcome_open_source': 'Open Source',
+        'welcome_instant_login_title': 'Connexion instantanée !',
+
+        // Alert Window
+        'alert_error_title': 'Erreur !',
+        'alert_warning_title': 'Avertissement !',
+        'alert_info_title': 'Info',
+        'alert_success_title': 'Succès !',
+        'alert_confirm_title': 'Êtes-vous sûr ?',
+        'alert_yes': 'Oui',
+        'alert_no': 'Non',
+        'alert_retry': 'Réessayer',
+        'alert_cancel': 'Annuler',
+        
+        // Signup Window
+        'signup_confirm_password': 'Confirmer le mot de passe',
+        
+        // Login Window
+        'login_email_username_required': 'E-mail ou nom d\'utilisateur requis',
+        'login_password_required': 'Mot de passe requis',
+
+        // Various Window Titles
+        'window_title_open': 'Ouvrir',
+        'window_title_change_password': 'Changer le mot de passe',
+        'window_title_select_font': 'Sélectionner la police…',
+        'window_title_session_list': 'Liste des sessions !',
+        'window_title_set_new_password': 'Définir un nouveau mot de passe',
+        'window_title_instant_login': 'Connexion instantanée !',
+        'window_title_publish_website': 'Publier le site web',
+        'window_title_publish_worker': 'Publier le worker',
+        'window_title_authenticating': 'Authentification en cours...',
+        'window_title_refer_friend': 'Parrainer un ami !',
+        
+        // Desktop UI
+        'desktop_show_desktop': 'Afficher le bureau',
+        'desktop_show_open_windows': 'Afficher les fenêtres ouvertes',
+        'desktop_exit_full_screen': 'Quitter le mode plein écran',
+        'desktop_enter_full_screen': 'Passer en plein écran',
+        'desktop_position': 'Position',
+        'desktop_position_left': 'Gauche',
+        'desktop_position_bottom': 'Bas',
+        'desktop_position_right': 'Droite',
+
+        // Item UI
+        'item_shared_with_you': 'Un utilisateur a partagé cet élément avec vous.',
+        'item_shared_by_you': 'Vous avez partagé cet élément avec au moins un autre utilisateur.',
+        'item_shortcut': 'Raccourci',
+        'item_associated_websites': 'Site web associé',
+        'item_associated_websites_plural': 'Sites web associés',
+        'no_suitable_apps_found': 'Aucune application appropriée trouvée',
+        
+        // Window UI
+        'window_click_to_go_back': 'Cliquez pour revenir en arrière.',
+        'window_click_to_go_forward': 'Cliquez pour avancer.',
+        'window_click_to_go_up': 'Cliquez pour remonter d\'un répertoire.',
+        'window_title_public': 'Publique',
+        'window_title_videos': 'Vidéos',
+        'window_title_pictures': 'Images',
+        'window_title_puter': 'Puter',
+        'window_folder_empty': 'Ce dossier est vide',
+        
+        // Website Management
+        'manage_your_subdomains': 'Gérer vos sous-domaines',
+        'open_containing_folder': 'Ouvrir le dossier conteneur',
     }
 };
 

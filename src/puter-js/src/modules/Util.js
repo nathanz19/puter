@@ -1,4 +1,4 @@
-import { $SCOPE, CallbackManager, Dehydrator, Hydrator } from "../lib/xdrpc";
+import { $SCOPE, CallbackManager, Dehydrator, Hydrator } from "../lib/xdrpc.js";
 
 /**
  * The Util module exposes utilities within puter.js itself.
@@ -17,7 +17,7 @@ export default class Util {
 class UtilRPC {
     constructor () {
         this.callbackManager = new CallbackManager();
-        this.callbackManager.attach_to_source(window);
+        this.callbackManager.attach_to_source(globalThis);
     }
 
     getDehydrator () {

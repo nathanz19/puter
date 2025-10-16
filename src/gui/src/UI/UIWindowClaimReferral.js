@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -47,8 +47,6 @@ async function UIWindowClaimReferral(options){
         init_center: true,
         allow_native_ctxmenu: true,
         allow_user_select: true,
-        onAppend: function(el_window){
-        },
         width: 400,
         dominant: true,
         window_css: {

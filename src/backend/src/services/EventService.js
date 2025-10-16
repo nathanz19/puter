@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"openai-completion","model":"gpt-4o-mini"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -22,19 +22,18 @@ const BaseService = require("./BaseService");
 
 
 /**
-* EventService class extends BaseService to provide a mechanism for 
-* emitting and listening to events within the application. It manages
-* event listeners scoped to specific keys and allows global listeners
-* for broader event handling.
-*/
+ * A proxy to EventService or another scoped event bus, allowing for
+ * emitting or listening on a prefix (ex: `a.b.c`) without the user
+ * of the scoped bus needed to know what the prefix is.
+ */
 class ScopedEventBus {
     constructor (event_bus, scope) {
         this.event_bus = event_bus;
         this.scope = scope;
     }
 
-    emit (key, data) {
-        this.event_bus.emit(this.scope + '.' + key, data);
+    async emit (key, data) {
+        await this.event_bus.emit(this.scope + '.' + key, data);
     }
 
     on (key, callback) {
@@ -62,8 +61,12 @@ class EventService extends BaseService {
         this.listeners_ = {};
         this.global_listeners_ = [];
     }
+    
+    async ['__on_boot.ready'] () {
+        this.emit('ready', {}, {});
+    }
 
-    emit (key, data, meta) {
+    async emit (key, data, meta) {
         meta = meta ?? {};
         const parts = key.split('.');
         for ( let i = 0; i < parts.length; i++ ) {
@@ -77,7 +80,7 @@ class EventService extends BaseService {
             for ( const callback of listeners ) {
                 // IIAFE wrapper to catch errors without blocking
                 // event dispatch.
-                Context.arun(async () => {
+                await Context.arun(async () => {
                     try {
                         await callback(key, data, meta);
                     } catch (e) {
@@ -104,7 +107,7 @@ class EventService extends BaseService {
             * @param {Object} [meta={}] - Optional metadata related to the event.
             * @returns {void}
             */
-            Context.arun(async () => {
+            await Context.arun(async () => {
                 try {
                     await callback(key, data, meta);
                 } catch (e) {
@@ -119,6 +122,17 @@ class EventService extends BaseService {
 
     }
 
+    /**
+    * Registers a callback function for the specified event selector.
+    * 
+    * This method will push the provided callback onto the list of listeners
+    * for the event specified by the selector. It returns an object containing
+    * a detach method, which can be used to remove the listener.
+    *
+    * @param {string} selector - The event selector to listen for.
+    * @param {Function} callback - The function to be invoked when the event is emitted.
+    * @returns {Object} An object with a detach method to unsubscribe the listener.
+    */
     on (selector, callback) {
         const listeners = this.listeners_[selector] ||
             (this.listeners_[selector] = []);
@@ -126,17 +140,6 @@ class EventService extends BaseService {
         listeners.push(callback);
 
         const det = {
-            /**
-            * Registers a callback function for the specified event selector.
-            * 
-            * This method will push the provided callback onto the list of listeners
-            * for the event specified by the selector. It returns an object containing
-            * a detach method, which can be used to remove the listener.
-            *
-            * @param {string} selector - The event selector to listen for.
-            * @param {Function} callback - The function to be invoked when the event is emitted.
-            * @returns {Object} An object with a detach method to unsubscribe the listener.
-            */
             detach: () => {
                 const idx = listeners.indexOf(callback);
                 if ( idx !== -1 ) {

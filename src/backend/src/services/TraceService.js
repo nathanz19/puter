@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"openai-completion","model":"gpt-4o"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -28,12 +28,6 @@ const opentelemetry = require("@opentelemetry/api");
 * operations and measuring performance within the application.
 */
 class TraceService {
-    /**
-     * Retrieves the tracer instance used for creating spans.
-     * This method is a getter that returns the current tracer object.
-     * 
-     * @returns {Tracer} The tracer instance for the TraceService.
-     */
     constructor () {
         this.tracer_ = opentelemetry.trace.getTracer(
             'puter-filesystem-tracer'
@@ -42,7 +36,8 @@ class TraceService {
 
 
     /**
-     * Returns the tracer instance used by the TraceService.
+     * Retrieves the tracer instance used for creating spans.
+     * This method is a getter that returns the current tracer object.
      * 
      * @returns {import("@opentelemetry/api").Tracer} The tracer instance for this service.
      */
@@ -58,10 +53,15 @@ class TraceService {
      *
      * @param {string} name - The name of the span.
      * @param {Function} fn - The asynchronous function to execute within the span.
+     * @param {opentelemetry.SpanOptions} [options] - The opentelemetry options object
      * @returns {Promise} - A promise that resolves to the return value of `fn`.
      */
-    async spanify (name, fn) {
-        return await this.tracer.startActiveSpan(name, async span => {
+    async spanify (name, fn, options) {
+        const args = [name];
+        if ( options !== null && typeof options === 'object' ) {
+            args.push(options);
+        }
+        args.push(async span => {
             try {
                 return await fn({ span });
             } catch (error) {
@@ -71,6 +71,8 @@ class TraceService {
                 span.end();
             }
         });
+        this.tracer.startActiveSpan('name', {  }, () => {})
+        return await this.tracer.startActiveSpan(...args);
     }
 }
 

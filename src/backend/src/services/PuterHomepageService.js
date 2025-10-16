@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"openai-completion","model":"gpt-4o"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -20,28 +20,19 @@
 const { PathBuilder } = require("../util/pathutil");
 const BaseService = require("./BaseService");
 const {is_valid_url} = require('../helpers');
+const { Endpoint } = require("../util/expressutil");
+const { Context } = require("../util/context");
 
 /**
  * PuterHomepageService serves the initial HTML page that loads the Puter GUI
  * and all of its assets.
  */
-/**
-* This class serves the initial HTML page that loads the Puter GUI and all of its assets.
-* It extends the BaseService class to provide common functionality.
-*/
 class PuterHomepageService extends BaseService {
     static MODULES = {
         fs: require('node:fs'),
     }
 
 
-    /**
-    * This method sets a parameter for the GUI.
-    * It takes a key and value as arguments and adds them to the `gui_params` object.
-    *
-    * @param {string} key - The key for the parameter.
-    * @param {any} val - The value for the parameter.
-    */
     _construct () {
         this.service_scripts = [];
         this.gui_params = {};
@@ -77,10 +68,35 @@ class PuterHomepageService extends BaseService {
     }
 
 
+    async ['__on_install.routes'] (_, { app }) {
+        Endpoint({
+            route: '/whoarewe',
+            methods: ['GET'],
+            handler: async (req, res) => {
+                // Get basic configuration information
+                const responseData = {
+                    disable_user_signup: this.global_config.disable_user_signup,
+                    disable_temp_users: this.global_config.disable_temp_users,
+                    environmentInfo: {
+                        env: this.global_config.env,
+                        version: process.env.VERSION || 'development'
+                    }
+                };
+
+                // Add captcha requirement information
+                responseData.captchaRequired = {
+                    login: req.captchaRequired,
+                    signup: req.captchaRequired,
+                };
+                
+                res.json(responseData);
+            }
+        }).attach(app);
+    }
+
+
     /**
-    * @description This method sets a GUI parameter. It allows you to assign a value to a key within the `gui_params` object.
-    * @param {string} key - The key for the parameter.
-    * @param {any} val - The value for the parameter.
+    * This method sends the initial HTML page that loads the Puter GUI and its assets.
     */
     async send ({ req, res }, meta, launch_options) {
         const config = this.global_config;
@@ -103,6 +119,15 @@ class PuterHomepageService extends BaseService {
                 message,
             }));
         }
+        
+        // checkCaptcha middleware (in CaptchaService) sets req.captchaRequired
+        const captchaRequired = {
+            login: req.captchaRequired,
+            signup: req.captchaRequired,
+        };
+
+        // cloudflare turnstile site key
+        const turnstileSiteKey = config.services?.['cloudflare-turnstile']?.enabled ? config.services?.['cloudflare-turnstile']?.site_key : null;
         
         return res.send(this.generate_puter_page_html({
             env: config.env,
@@ -142,6 +167,9 @@ class PuterHomepageService extends BaseService {
                 long_description: config.long_description,
                 disable_temp_users: config.disable_temp_users,
                 co_isolation_enabled: req.co_isolation_enabled,
+                // Add captcha requirements to GUI parameters
+                captchaRequired: captchaRequired,
+                turnstileSiteKey: turnstileSiteKey,
             },
         }));
     }
@@ -192,18 +220,19 @@ class PuterHomepageService extends BaseService {
 
         const bundled = env != 'dev' || use_bundled_gui;
 
-        // if social media image is not a valid absolute URL, set it to null
-        if (social_media_image && !is_valid_url(social_media_image)) {
-            social_media_image = null;
+        // check if social media image is a valid absolute URL
+        let is_social_media_image_valid = !!social_media_image;
+        if (is_social_media_image_valid && !is_valid_url(social_media_image)) {
+            is_social_media_image_valid = false;
         }
 
-        // social media image must end with a valid image extension
-        if (social_media_image && !/\.(png|jpg|jpeg|gif|webp)$/.test(social_media_image.toLowerCase())) {
-            social_media_image = null;
+        // check if social media image ends with a valid image extension
+        if (is_social_media_image_valid && !/\.(png|jpg|jpeg|gif|webp)$/.test(social_media_image.toLowerCase())) {
+            is_social_media_image_valid = false;
         }
 
         // set social media image to default if it is not valid
-        const social_media_image_url = social_media_image || `${asset_dir}/images/screenshot.png`;
+        const social_media_image_url = is_social_media_image_valid ? social_media_image : `${asset_dir}/images/screenshot.png`;
 
         // Custom script tags to be added to the homepage by extensions
         // an event is emitted to allow extensions to add their own script tags
@@ -262,7 +291,7 @@ class PuterHomepageService extends BaseService {
         <meta name="theme-color" content="#ffffff">
 
         <!-- Preload images when applicable -->
-        <link rel="preload" as="image" href="${asset_dir}/images/wallpaper.webp">
+        <link rel="preload" as="image" href="https://puter-assets.b-cdn.net/wallpaper.webp">
 
         <script>
             if ( ! window.service_script ) {

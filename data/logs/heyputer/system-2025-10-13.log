@@ -1,0 +1,4 @@
+{"label":"log-service","level":"system","log_directory":"/var/puter/logs/heyputer","message":"log service started","output_lvl":{"esc":"36;1","label":"INFO","ordinal":2,"winst":"info"},"timestamp":"2025-10-13T01:33:07.669Z"}
+{"label":"init","level":"system","message":"server ready","timestamp":"2025-10-13T01:33:08.148Z"}
+{"label":"log-service","level":"system","log_directory":"/var/puter/logs/heyputer","message":"log service started","output_lvl":{"esc":"36;1","label":"INFO","ordinal":2,"winst":"info"},"timestamp":"2025-10-13T01:35:27.194Z"}
+{"label":"init","level":"system","message":"server ready","timestamp":"2025-10-13T01:35:27.636Z"}

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -27,6 +27,8 @@ router.get('/healthcheck', async (req, res) => {
     const svc_serverHealth = req.services.get('server-health');
 
     const status = await svc_serverHealth.get_status();
-    res.json(status);
+    res.status(
+        (req.query['return-http-error'] && !status.ok) ? 500 : 200
+    ).json(status);
 })
 module.exports = router

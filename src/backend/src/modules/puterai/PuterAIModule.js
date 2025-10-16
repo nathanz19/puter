@@ -1,3 +1,22 @@
+/*
+ * Copyright (C) 2024-present Puter Technologies Inc.
+ * 
+ * This file is part of Puter.
+ * 
+ * Puter is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 // METADATA // {"ai-commented":{"service":"claude"}}
 const { AdvancedBase } = require("@heyputer/putility");
 const config = require("../../config");
@@ -68,9 +87,22 @@ class PuterAIModule extends AdvancedBase {
         if ( !! config?.services?.['xai'] ) {
             const { XAIService } = require('./XAIService');
             services.registerService('xai', XAIService);
+        }
 
-            // const { ClaudeEnoughService } = require('./ClaudeEnoughService');
-            // services.registerService('claude', ClaudeEnoughService);
+        if ( !! config?.services?.['deepseek'] ) {
+            const { DeepSeekService } = require('./DeepSeekService');
+            services.registerService('deepseek', DeepSeekService);
+        }
+        if ( !! config?.services?.['gemini'] ) {
+            const { GeminiService } = require('./GeminiService');
+            const { GeminiImageGenerationService } = require('./GeminiImageGenerationService');
+
+            services.registerService('gemini', GeminiService);
+            services.registerService('gemini-image-generation', GeminiImageGenerationService);
+        }
+        if ( !! config?.services?.['openrouter'] ) {
+            const { OpenRouterService } = require('./OpenRouterService');
+            services.registerService('openrouter', OpenRouterService);
         }
 
         const { AIChatService } = require('./AIChatService');
@@ -81,6 +113,9 @@ class PuterAIModule extends AdvancedBase {
 
         const{ AITestModeService } = require('./AITestModeService');
         services.registerService('ai-test-mode', AITestModeService);
+
+        const { UsageLimitedChatService } = require('./UsageLimitedChatService');
+        services.registerService('usage-limited-chat', UsageLimitedChatService);
     }
 }
 

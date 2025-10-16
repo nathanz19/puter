@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"mistral","model":"mistral-large-latest"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -32,15 +32,6 @@ const BaseService = require("./BaseService");
 * @extends BaseService
 */
 class SystemValidationService extends BaseService {
-    /**
-     * Marks the server is being in an invalid state.
-     *
-     * This is a very serious error. The server will do whatever it can to get
-     * our attention, and then it will shut down after 25 minutes.
-     *
-     * @param {*} message - why mark_invalid was called
-     * @param {*} source - the error that caused the invalid state, if any
-     */
     /**
     * Marks the server as being in an invalid state.
     *

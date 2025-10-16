@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -80,14 +80,82 @@ module.exports = eggspress('/token-read', {
         });
     }
 
+    // Helper function to parse Range header
+    const parseRangeHeader = (rangeHeader) => {
+        // Check if this is a multipart range request
+        if (rangeHeader.includes(',')) {
+            // For now, we'll only serve the first range in multipart requests
+            // as the underlying storage layer doesn't support multipart responses
+            const firstRange = rangeHeader.split(',')[0].trim();
+            const matches = firstRange.match(/bytes=(\d+)-(\d*)/);
+            if (!matches) return null;
+            
+            const start = parseInt(matches[1], 10);
+            const end = matches[2] ? parseInt(matches[2], 10) : null;
+            
+            return { start, end, isMultipart: true };
+        }
+        
+        // Single range request
+        const matches = rangeHeader.match(/bytes=(\d+)-(\d*)/);
+        if (!matches) return null;
+        
+        const start = parseInt(matches[1], 10);
+        const end = matches[2] ? parseInt(matches[2], 10) : null;
+        
+        return { start, end, isMultipart: false };
+    };
+
+    if (req.headers["range"]) {
+        res.status(206);
+        
+        // Parse the Range header and set Content-Range
+        const rangeInfo = parseRangeHeader(req.headers["range"]);
+        if (rangeInfo) {
+            const { start, end, isMultipart } = rangeInfo;
+            
+            // For open-ended ranges, we need to calculate the actual end byte
+            let actualEnd = end;
+            let fileSize = null;
+            
+            try {
+                fileSize = await req.values.fsNode.get('size');
+                if (end === null) {
+                    actualEnd = fileSize - 1; // File size is 1-based, end byte is 0-based
+                }
+            } catch (e) {
+                // If we can't get file size, we'll let the storage layer handle it
+                // and not set Content-Range header
+                actualEnd = null;
+                fileSize = null;
+            }
+            
+            if (actualEnd !== null) {
+                const totalSize = fileSize !== null ? fileSize : '*';
+                const contentRange = `bytes ${start}-${actualEnd}/${totalSize}`;
+                res.set("Content-Range", contentRange);
+            }
+            
+            // If this was a multipart request, modify the range header to only include the first range
+            if (isMultipart) {
+                req.headers["range"] = end !== null 
+                    ? `bytes=${start}-${end}`
+                    : `bytes=${start}-`;
+            }
+        }
+    }
+    res.set({ "Accept-Ranges": "bytes" });
+
     const hl_read = new HLRead();
     const stream = await context.arun(async () => await hl_read.run({
+        ...(req.headers["range"] ? { range: req.headers["range"] } : {
+            line_count,
+            byte_count,
+            offset
+        }),
         fsNode: req.values.fsNode,
         user: req.user,
         actor,
-        line_count,
-        byte_count,
-        offset,
         version_id: req.query.version_id,
     }));
 

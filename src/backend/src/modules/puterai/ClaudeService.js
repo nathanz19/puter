@@ -1,22 +1,33 @@
+/*
+ * Copyright (C) 2024-present Puter Technologies Inc.
+ * 
+ * This file is part of Puter.
+ * 
+ * Puter is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 // METADATA // {"ai-commented":{"service":"claude"}}
-const { default: Anthropic } = require("@anthropic-ai/sdk");
+const { default: Anthropic, toFile } = require("@anthropic-ai/sdk");
 const BaseService = require("../../services/BaseService");
-const { whatis } = require("../../util/langutil");
-const { PassThrough } = require("stream");
 const { TypedValue } = require("../../services/drivers/meta/Runtime");
-const APIError = require("../../api/APIError");
+const FunctionCalling = require("./lib/FunctionCalling");
+const Messages = require("./lib/Messages");
+const { NodePathSelector } = require("../../filesystem/node/selectors");
+const FSNodeParam = require("../../api/filesystem/FSNodeParam");
+const { LLRead } = require("../../filesystem/ll_operations/ll_read");
+const { Context } = require("../../util/context");
 const { TeePromise } = require('@heyputer/putility').libs.promise;
-
-const PUTER_PROMPT = `
-    You are running on an open-source platform called Puter,
-    as the Claude implementation for a driver interface
-    called puter-chat-completion.
-    
-    The following JSON contains system messages from the
-    user of the driver interface (typically an app on Puter):
-`.replace('\n', ' ').trim();
-
-
 
 /**
 * ClaudeService class extends BaseService to provide integration with Anthropic's Claude AI models.
@@ -29,6 +40,11 @@ class ClaudeService extends BaseService {
     static MODULES = {
         Anthropic: require('@anthropic-ai/sdk'),
     }
+    
+    /**
+     * @type {import('@anthropic-ai/sdk').Anthropic}
+     */
+    anthropic;
     
 
     /**
@@ -61,20 +77,19 @@ class ClaudeService extends BaseService {
     static IMPLEMENTS = {
         ['puter-chat-completion']: {
             /**
-            * Implements the puter-chat-completion interface for Claude AI models
-            * @param {Object} options - Configuration options for the chat completion
-            * @param {Array} options.messages - Array of message objects containing the conversation history
-            * @param {boolean} options.stream - Whether to stream the response
-            * @param {string} [options.model] - The Claude model to use, defaults to claude-3-5-sonnet-latest
-            * @returns {TypedValue|Object} Returns either a TypedValue with streaming response or a completion object
-            */
+             * Returns a list of available models and their details.
+             * See AIChatService for more information.
+             * 
+             * @returns Promise<Array<Object>> Array of model details
+             */
             async models () {
                 return await this.models_();
             },
+
             /**
             * Returns a list of available model names including their aliases
             * @returns {Promise<string[]>} Array of model identifiers and their aliases
-            * @description Retrieves all available Claude model IDs and their aliases,
+            * @description Retrieves all available model IDs and their aliases,
             * flattening them into a single array of strings that can be used for model selection
             */
             async list () {
@@ -88,6 +103,7 @@ class ClaudeService extends BaseService {
                 }
                 return model_names;
             },
+
             /**
             * Completes a chat interaction with the Claude AI model
             * @param {Object} options - The completion options
@@ -95,60 +111,142 @@ class ClaudeService extends BaseService {
             * @param {boolean} options.stream - Whether to stream the response
             * @param {string} [options.model] - The Claude model to use, defaults to service default
             * @returns {TypedValue|Object} Returns either a TypedValue with streaming response or a completion object
+            * @this {ClaudeService}
             */
-            async complete ({ messages, stream, model }) {
-                const adapted_messages = [];
+            async complete ({ messages, stream, model, tools, max_tokens, temperature}) {
+                tools = FunctionCalling.make_claude_tools(tools);
                 
-                const system_prompts = [];
-                let previous_was_user = false;
-                for ( const message of messages ) {
-                    if ( typeof message.content === 'string' ) {
-                        message.content = {
-                            type: 'text',
-                            text: message.content,
+                let system_prompts;
+                [system_prompts, messages] = Messages.extract_and_remove_system_messages(messages);
+                
+                const sdk_params = {
+                    model: model ?? this.get_default_model(),
+                    max_tokens: Math.floor(max_tokens) ||
+                        ((
+                            model === 'claude-3-5-sonnet-20241022'
+                            || model === 'claude-3-5-sonnet-20240620'
+                        ) ? 8192 : 4096), //required
+                    temperature: temperature || 0, // required
+                    ...(system_prompts ? {
+                        system: system_prompts.length > 1
+                            ? JSON.stringify(system_prompts)
+                            : JSON.stringify(system_prompts[0])
+                    } : {}),
+                    messages,
+                    ...(tools ? { tools } : {}),
+                };
+                
+                console.log('\x1B[26;1m ===== SDK PARAMETERS', require('util').inspect(sdk_params, undefined, Infinity));
+                
+                let beta_mode = false;
+                
+                // Perform file uploads
+                const file_delete_tasks = [];
+                {
+                    const actor = Context.get('actor');
+                    const { user } = actor.type;
+
+                    const file_input_tasks = [];
+                    for ( const message of messages ) {
+                        // We can assume `message.content` is not undefined because
+                        // Messages.normalize_single_message ensures this.
+                        for ( const contentPart of message.content ) {
+                            if ( ! contentPart.puter_path ) continue;
+                            file_input_tasks.push({
+                                node: await (new FSNodeParam(contentPart.puter_path)).consolidate({
+                                    req: { user },
+                                    getParam: () => contentPart.puter_path,
+                                }),
+                                contentPart,
+                            });
+                        }
+                    }
+                    
+                    const promises = [];
+                    for ( const task of file_input_tasks ) promises.push((async () => {
+                        const ll_read = new LLRead();
+                        const stream = await ll_read.run({
+                            actor: Context.get('actor'),
+                            fsNode: task.node,
+                        });
+                        
+                        const require = this.require;
+                        const mime = require('mime-types');
+                        const mimeType = mime.contentType(await task.node.get('name'));
+
+                        beta_mode = true;
+                        const fileUpload = await this.anthropic.beta.files.upload({
+                            file: await toFile(stream, undefined, { type: mimeType })
+                        }, {
+                            betas: ['files-api-2025-04-14']
+                        });
+                        
+                        file_delete_tasks.push({ file_id: fileUpload.id });
+                        // We have to copy a table from the documentation here:
+                        // https://docs.anthropic.com/en/docs/build-with-claude/files
+                        const contentBlockTypeForFileBasedOnMime = (() => {
+                            if ( mimeType.startsWith('image/') ) {
+                                return 'image';
+                            }
+                            if ( mimeType.startsWith('text/') ) {
+                                return 'document';
+                            }
+                            if ( mimeType === 'application/pdf' || mimeType === 'application/x-pdf' ) {
+                                return 'document';
+                            }
+                            return 'container_upload';
+                        })();
+                        
+                        // {
+                        //     'application/pdf': 'document',
+                        //     'text/plain': 'document',
+                        //     'image/': 'image'
+                        // }[mimeType];
+
+                        
+                        delete task.contentPart.puter_path,
+                        task.contentPart.type = contentBlockTypeForFileBasedOnMime;
+                        task.contentPart.source = {
+                            type: 'file',
+                            file_id: fileUpload.id,
                         };
-                    }
-                    if ( whatis(message.content) !== 'array' ) {
-                        message.content = [message.content];
-                    }
-                    if ( ! message.role ) message.role = 'user';
-                    if ( message.role === 'user' && previous_was_user ) {
-                        const last_msg = adapted_messages[adapted_messages.length-1];
-                        last_msg.content.push(
-                            ...(Array.isArray ? message.content : [message.content])
-                        );
-                        continue;
-                    }
-                    if ( message.role === 'system' ) {
-                        system_prompts.push(...message.content);
-                        continue;
-                    }
-                    adapted_messages.push(message);
-                    if ( message.role === 'user' ) {
-                        previous_was_user = true;
-                    } else {
-                        previous_was_user = false;
-                    }
+                    })());
+                    await Promise.all(promises);
                 }
+                const cleanup_files = async () => {
+                    const promises = [];
+                    for ( const task of file_delete_tasks ) promises.push((async () => {
+                        try {
+                            await this.anthropic.beta.files.delete(
+                                task.file_id,
+                                { betas: ['files-api-2025-04-14'] }
+                            );
+                        }  catch (e) {
+                            this.errors.report('claude:file-delete-task', {
+                                source: e,
+                                trace: true,
+                                alarm: true,
+                                extra: { file_id: task.file_id },
+                            });
+                        }
+                    })());
+                    await Promise.all(promises);
+                };
+
+                
+                if ( beta_mode ) {
+                    Object.assign(sdk_params, { betas: ['files-api-2025-04-14'] });
+                }
+                const anthropic = (c => beta_mode ? c.beta : c)(this.anthropic);
 
                 if ( stream ) {
                     let usage_promise = new TeePromise();
 
-                    const stream = new PassThrough();
-                    const retval = new TypedValue({
-                        $: 'stream',
-                        content_type: 'application/x-ndjson',
-                        chunked: true,
-                    }, stream);
-                    (async () => {
-                        const completion = await this.anthropic.messages.stream({
-                            model: model ?? this.get_default_model(),
-                            max_tokens: (model === 'claude-3-5-sonnet-20241022' || model === 'claude-3-5-sonnet-20240620') ? 8192 : 4096,
-                            temperature: 0,
-                            system: PUTER_PROMPT + JSON.stringify(system_prompts),
-                            messages: adapted_messages,
-                        });
+                    const init_chat_stream = async ({ chatStream }) => {
+                        const completion = await anthropic.messages.stream(sdk_params);
                         const counts = { input_tokens: 0, output_tokens: 0 };
+
+                        let message, contentBlock;
                         for await ( const event of completion ) {
                             const input_tokens =
                                 (event?.usage ?? event?.message?.usage)?.input_tokens;
@@ -158,33 +256,63 @@ class ClaudeService extends BaseService {
                             if ( input_tokens ) counts.input_tokens += input_tokens;
                             if ( output_tokens ) counts.output_tokens += output_tokens;
 
-                            if (
-                                event.type !== 'content_block_delta' ||
-                                event.delta.type !== 'text_delta'
-                            ) continue;
-                            const str = JSON.stringify({
-                                text: event.delta.text,
-                            });
-                            stream.write(str + '\n');
+                            if ( event.type === 'message_start' ) {
+                                message = chatStream.message();
+                                continue;
+                            }
+                            if ( event.type === 'message_stop' ) {
+                                message.end();
+                                message = null;
+                                continue;
+                            }
+
+                            if ( event.type === 'content_block_start' ) {
+                                if ( event.content_block.type === 'tool_use' ) {
+                                    contentBlock = message.contentBlock({
+                                        type: event.content_block.type,
+                                        id: event.content_block.id,
+                                        name: event.content_block.name,
+                                    });
+                                    continue;
+                                }
+                                contentBlock = message.contentBlock({
+                                    type: event.content_block.type,
+                                });
+                                continue;
+                            }
+
+                            if ( event.type === 'content_block_stop' ) {
+                                contentBlock.end();
+                                contentBlock = null;
+                                continue;
+                            }
+
+                            if ( event.type === 'content_block_delta' ) {
+                                if ( event.delta.type === 'input_json_delta' ) {
+                                    contentBlock.addPartialJSON(event.delta.partial_json);
+                                    continue;
+                                }
+                                if ( event.delta.type === 'text_delta' ) {
+                                    contentBlock.addText(event.delta.text);
+                                    continue;
+                                }
+                            }
                         }
-                        stream.end();
+                        chatStream.end();
                         usage_promise.resolve(counts);
-                    })();
+                    };
 
                     return new TypedValue({ $: 'ai-chat-intermediate' }, {
+                        init_chat_stream,
                         stream: true,
-                        response: retval,
                         usage_promise: usage_promise,
+                        finally_fn: cleanup_files,
                     });
                 }
-
-                const msg = await this.anthropic.messages.create({
-                    model: model ?? this.get_default_model(),
-                    max_tokens: (model === 'claude-3-5-sonnet-20241022' || model === 'claude-3-5-sonnet-20240620') ? 8192 : 4096,
-                    temperature: 0,
-                    system: PUTER_PROMPT + JSON.stringify(system_prompts),
-                    messages: adapted_messages,
-                });
+                
+                const msg = await anthropic.messages.create(sdk_params);
+                await cleanup_files();
+                
                 return {
                     message: msg,
                     usage: msg.usage,
@@ -210,6 +338,58 @@ class ClaudeService extends BaseService {
     async models_ () {
         return [
             {
+                id: 'claude-opus-4-1-20250805',
+                aliases: ['claude-opus-4-1'],
+                name: 'Claude Opus 4.1',
+                context: 200000,
+                cost: {
+                    currency: 'usd-cents',
+                    tokens: 1_000_000,
+                    input: 1500,
+                    output: 7500,
+                },
+                max_tokens: 32000,
+            },
+            {
+                id: 'claude-opus-4-20250514',
+                aliases: ['claude-opus-4', 'claude-opus-4-latest'],
+                name: 'Claude Opus 4',
+                context: 200000,
+                cost: {
+                    currency: 'usd-cents',
+                    tokens: 1_000_000,
+                    input: 1500,
+                    output: 7500,
+                },
+                max_tokens: 32000,
+            },
+            {
+                id: 'claude-sonnet-4-20250514',
+                aliases: ['claude-sonnet-4', 'claude-sonnet-4-latest'],
+                name: 'Claude Sonnet 4',
+                context: 200000,
+                cost: {
+                    currency: 'usd-cents',
+                    tokens: 1_000_000,
+                    input: 300,
+                    output: 1500,
+                },
+                max_tokens: 64000,
+            },
+            {
+                id: 'claude-3-7-sonnet-20250219',
+                aliases: ['claude-3-7-sonnet-latest'],
+                succeeded_by: 'claude-sonnet-4-20250514',
+                context: 200000,
+                cost: {
+                    currency: 'usd-cents',
+                    tokens: 1_000_000,
+                    input: 300,
+                    output: 1500,
+                },
+                max_tokens: 8192,
+            },
+            {
                 id: 'claude-3-5-sonnet-20241022',
                 name: 'Claude 3.5 Sonnet',
                 aliases: ['claude-3-5-sonnet-latest'],
@@ -221,8 +401,8 @@ class ClaudeService extends BaseService {
                     output: 1500,
                 },
                 qualitative_speed: 'fast',
-                max_output: 8192,
                 training_cutoff: '2024-04',
+                max_tokens: 8192,
             },
             {
                 id: 'claude-3-5-sonnet-20240620',
@@ -234,6 +414,7 @@ class ClaudeService extends BaseService {
                     input: 300,
                     output: 1500,
                 },
+                max_tokens: 8192,
             },
             {
                 id: 'claude-3-haiku-20240307',
@@ -246,6 +427,7 @@ class ClaudeService extends BaseService {
                     output: 125,
                 },
                 qualitative_speed: 'fastest',
+                max_tokens: 4096,
             },
         ];
     }

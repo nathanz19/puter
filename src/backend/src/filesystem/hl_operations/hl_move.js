@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -24,12 +24,16 @@ const { HLFilesystemOperation } = require("./definitions");
 const { MkTree } = require("./hl_mkdir");
 const { HLRemove } = require("./hl_remove");
 const { TYPE_DIRECTORY } = require("../FSNodeContext");
-const config = require("../../config");
 
 class HLMove extends HLFilesystemOperation {
     static MODULES = {
         _path: require('path'),
     }
+
+    static PROPERTIES = {
+        parent_directories_created: () => [],
+    }
+
     async _run () {
         const { _path } = this.modules;
 
@@ -81,6 +85,8 @@ class HLMove extends HLFilesystemOperation {
                 parent: await fs.node(new RootNodeSelector()),
                 tree: [parent.path],
             });
+
+            this.parent_directories_created = tree_op.directories_created;
 
             parent = tree_op.leaves[0];
         }
@@ -141,7 +147,7 @@ class HLMove extends HLFilesystemOperation {
         if ( await dest.exists() ) {
             if ( ! values.overwrite && ! values.dedupe_name ) {
                 throw APIError.create('item_with_same_name_exists', null, {
-                    entry_name: target_name,
+                    entry_name: await dest.get('name'),
                 });
             }
 
@@ -187,11 +193,19 @@ class HLMove extends HLFilesystemOperation {
         await source_new.awaitStableEntry();
         await source_new.fetchSuggestedApps();
         await source_new.fetchOwner();
-        return {
+
+        const response = {
             moved: await source_new.getSafeEntry({ thumbnail: true }),
             overwritten,
             old_path,
         }
+
+        response.parent_dirs_created = [];
+        for ( const node of this.parent_directories_created ) {
+            response.parent_dirs_created.push(await node.getSafeEntry());
+        }
+
+        return response;
     }
 }
 

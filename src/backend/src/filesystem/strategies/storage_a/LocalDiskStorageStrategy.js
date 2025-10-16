@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -105,8 +105,8 @@ class LocalDiskStorageStrategy {
         return new LocalDiskDeleteStrategy(this);
     }
 
-    async create_read_stream (uid) {
-        return await this.svc_localDiskStorage.create_read_stream({ key: uid });
+    async create_read_stream (uid, options = {}) {
+        return await this.svc_localDiskStorage.create_read_stream(uid, options);
     }
 }
 

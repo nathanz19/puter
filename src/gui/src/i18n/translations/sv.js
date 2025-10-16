@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -162,10 +162,6 @@ const sv = {
         log_out: "Logga ut",
         looks_good: "Ser bra ut!",
         manage_sessions: "Hantera sessioner",
-        menubar_style: "Stil för menyraden",
-        menubar_style_desktop: "Skrivbord",
-        menubar_style_system: "System",
-        menubar_style_window: "Fönster",
         modified: "Ändrad",
         move: "Flytta",
         moving_file: "Flyttar %%",
@@ -226,6 +222,13 @@ const sv = {
         publish: "Publicera",
         publish_as_website: "Publicera som webbplats",
         puter_description: "Puter är ett integritetsvänligt personligt moln för alla dina filer, appar och spel på ett säkert ställe, tillgängligt varsomhelst och närsomhelst.",
+        // sv (Swedish / Svenska)
+        remove: "Ta bort",
+        'account.avatar.removeButton': 'Ta bort',
+        'account.avatar.removeConfirm': "Är du säker på att du vill ta bort din profilbild? Detta återställer din standardavatar.",
+        'account.avatar.removedToast': 'Profilbild borttagen.',
+        'confirm_remove_profile_picture': "Är du säker på att du vill ta bort din profilbild? Detta återställer din standardavatar.",
+        'confirm_remove_profile_picture_title': 'Ta bort profilbild?',
         reading_file: "Läser in %strong%",
         recent: "Senaste",
         recommended: "Rekommenderat",
@@ -380,6 +383,7 @@ const sv = {
         "billing.subscription_cancelled_description": "Du har fortfarande tillgång till din prenumeration fram till slutet av denna faktureringsperiod.", // In English: "You will still have access to your subscription until the end of this billing period."
         "billing.offering.free": "Gratis", // In English: "Free"
         "billing.offering.pro": "Professionell", // In English: "Professional"
+        "billing.offering.professional": "Professionell", // In English: "Professional"
         "billing.offering.business": "Företag", // In English: "Business"
         "billing.cloud_storage": "Molnlagring", // In English: "Cloud Storage"
         "billing.ai_access": "AI Tillgång", // In English: "AI Access"
@@ -411,6 +415,84 @@ const sv = {
         "billing.expanded": "Utökad", // In English: "Expanded"
         "billing.accelerated": "Accelererad", // In English: "Accelerated"
         "billing.enjoy_msg": "Njut av %% av Cloud Storage plus andra förmåner.", // In English: "Enjoy %% of Cloud Storage plus other benefits."
+        "choose_publishing_option": "Välj hur du vill publicera din webbplats:", // In English: "Choose how you want to publish your website:"
+        "create_desktop_shortcut": "Skapa genväg (skrivbord)", // In English: "Create Shortcut (Desktop)"
+        "create_desktop_shortcut_s": "Skapa genvägar (skrivbord)", // In English: "Create Shortcuts (Desktop)" 
+        "create_shortcut_s": "Skapa genvägar", // In English: "Create Shortcuts"
+        "minimize": "Minimera", // In English: "Minimize"
+        "reload_app": "Ladda om app", // In English: "Reload App"
+        "new_window": "Nytt fönster", // In English: "New Window"
+        "open_trash": "Öppna papperskorgen", // In English: "Open Trash"
+        "pick_name_for_worker": "Välj ett namn för din worker:", // In English: "Pick a name for your worker:"
+        "plural_suffix": "ar", // In English: "s"
+        "publish_as_serverless_worker": "Publicera som Worker", // In English: "Publish as Worker"
+        "toolbar.enter_fullscreen": "Aktivera helskärm", // In English: "Enter Full Screen"
+        "toolbar.github": "GitHub", // In English: "GitHub"
+        "toolbar.refer": "Rekommendera", // In English: "Refer"
+        "toolbar.save_account": "Spara konto", // In English: "Save Account"
+        "toolbar.search": "Sök", // In English: "Search"
+        "toolbar.qrcode": "QR-kod", // In English: "QR Code"
+        "used_of": "{{used}} använt av {{available}}", // In English: "{{used}} used of {{available}}"
+        "worker": "Worker", // In English: "Worker"
+        "billing.offering.basic": "Bas", // In English: "Basic"
+        "too_many_attempts": "För många försök. Försök igen senare.", // In English: "Too many attempts. Please try again later."
+        "server_timeout": "Servern tog för lång tid att svara. Försök igen.", // In English: "The server took too long to respond. Please try again."
+        "signup_error": "Ett fel uppstod vid registreringen. Försök igen.", // In English: "An error occurred during signup. Please try again."
+        "welcome_title": "Välkommen till din personliga internetdator", // In English: "Welcome to your Personal Internet Computer"
+        "welcome_description": "Lagra filer, spela spel, hitta fantastiska appar och mycket mer! Allt på ett ställe, tillgängligt var som helst och när som helst.", // In English: "Store files, play games, find awesome apps, and much more! All in one place, accessible from anywhere at any time."
+        "welcome_get_started": "Kom igång", // In English: "Get Started"
+        "welcome_terms": "Villkor", // In English: "Terms"
+        "welcome_privacy": "Integritet", // In English: "Privacy"
+        "welcome_developers": "Utvecklare", // In English: "Developers"
+        "welcome_open_source": "Öppen källkod", // In English: "Open Source"
+        "welcome_instant_login_title": "Direkt inloggning!", // In English: "Instant Login!"
+        "alert_error_title": "Fel!", // In English: "Error!"
+        "alert_warning_title": "Varning!", // In English: "Warning!"
+        "alert_info_title": "Information", // In English: "Info"
+        "alert_success_title": "Klart!", // In English: "Success!"
+        "alert_confirm_title": "Är du säker?", // In English: "Are you sure?"
+        "alert_yes": "Ja", // In English: "Yes"
+        "alert_no": "Nej", // In English: "No"
+        "alert_retry": "Försök igen", // In English: "Retry"
+        "alert_cancel": "Avbryt", // In English: "Cancel"
+        "signup_confirm_password": "Bekräfta lösenord", // In English: "Confirm Password"
+        "login_email_username_required": "E-post eller användarnamn krävs", // In English: "Email or username is required"
+        "login_password_required": "Lösenord krävs", // In English: "Password is required"
+        "window_title_open": "Öppna", // In English: "Open"
+        "window_title_change_password": "Ändra lösenord", // In English: "Change Password"
+        "window_title_select_font": "Välj typsnitt…", // In English: "Select font…"
+        "window_title_session_list": "Sessionslista!", // In English: "Session List!"
+        "window_title_set_new_password": "Ange nytt lösenord", // In English: "Set New Password"
+        "window_title_instant_login": "Direkt inloggning!", // In English: "Instant Login!"
+        "window_title_publish_website": "Publicera webbplats", // In English: "Publish Website"
+        "window_title_publish_worker": "Publicera Worker", // In English: "Publish Worker"
+        "window_title_authenticating": "Autentiserar...", // In English: "Authenticating..."
+        "window_title_refer_friend": "Rekommendera en vän!", // In English: "Refer a friend!"
+        "desktop_show_desktop": "Visa skrivbord", // In English: "Show Desktop"
+        "desktop_show_open_windows": "Visa öppna fönster", // In English: "Show Open Windows"
+        "desktop_exit_full_screen": "Avsluta helskärm", // In English: "Exit Full Screen"
+        "desktop_enter_full_screen": "Aktivera helskärm", // In English: "Enter Full Screen"
+        "desktop_position": "Position", // In English: "Position"
+        "desktop_position_left": "Vänster", // In English: "Left"
+        "desktop_position_bottom": "Botten", // In English: "Bottom"
+        "desktop_position_right": "Höger", // In English: "Right"
+        "item_shared_with_you": "En användare har delat detta objekt med dig.", // In English: "A user has shared this item with you."
+        "item_shared_by_you": "Du har delat detta objekt med minst en annan användare.", // In English: "You have shared this item with at least one other user."
+        "item_shortcut": "Genväg", // In English: "Shortcut"
+        "item_associated_websites": "Associerad webbplats", // In English: "Associated website"
+        "item_associated_websites_plural": "Associerade webbplatser", // In English: "Associated websites"
+        "no_suitable_apps_found": "Inga lämpliga appar hittades", // In English: "No suitable apps found"
+        "window_click_to_go_back": "Klicka för att gå tillbaka.", // In English: "Click to go back."
+        "window_click_to_go_forward": "Klicka för att gå framåt.", // In English: "Click to go forward."
+        "window_click_to_go_up": "Klicka för att gå upp en katalog.", // In English: "Click to go one directory up."
+        "window_title_public": "Offentligt", // In English: "Public"
+        "window_title_videos": "Videor", // In English: "Videos"
+        "window_title_pictures": "Bilder", // In English: "Pictures"
+        "window_title_puter": "Puter", // In English: "Puter"
+        "window_folder_empty": "Denna mapp är tom", // In English: "This folder is empty"
+        "manage_your_subdomains": "Hantera dina subdomäner", // In English: "Manage Your Subdomains"
+        "open_containing_folder": "Öppna innehållande mapp", // In English: "Open Containing Folder"
+
     }
 };
 

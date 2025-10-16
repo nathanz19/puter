@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -74,8 +74,6 @@ async function UIWindowItemProperties(item_name, item_path, item_uid, left, top,
         left: left,
         top: top,
         height: height,
-        onAppend: function(el_window){
-        },
         width: 450,
         window_class: 'window-item-properties',
         window_css:{
@@ -111,6 +109,7 @@ async function UIWindowItemProperties(item_name, item_path, item_uid, left, top,
         returnPermissions: true,
         returnVersions: true,
         returnSize: true,
+        consistency: 'eventual',
         success: function (fsentry){
             // hide versions tab if item is a directory
             if(fsentry.is_dir){

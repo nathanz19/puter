@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -22,6 +22,7 @@ const router = new express.Router();
 const { get_user, body_parser_error_handler } = require('../helpers');
 const config = require('../config');
 const { DB_WRITE } = require('../services/database/consts');
+const { requireCaptcha } = require('../modules/captcha/middleware/captcha-middleware');
 
 
 const complete_ = async ({ req, res, user }) => {
@@ -55,7 +56,20 @@ const complete_ = async ({ req, res, user }) => {
 // -----------------------------------------------------------------------//
 // POST /file
 // -----------------------------------------------------------------------//
-router.post('/login', express.json(), body_parser_error_handler, async (req, res, next)=>{
+router.post('/login', express.json(), body_parser_error_handler, 
+    // Add diagnostic middleware to log captcha data
+    (req, res, next) => {
+        console.log('====== LOGIN CAPTCHA DIAGNOSTIC ======');
+        console.log('LOGIN REQUEST RECEIVED with captcha data:', {
+            hasCaptchaToken: !!req.body.captchaToken,
+            hasCaptchaAnswer: !!req.body.captchaAnswer,
+            captchaToken: req.body.captchaToken ? req.body.captchaToken.substring(0, 8) + '...' : undefined,
+            captchaAnswer: req.body.captchaAnswer
+        });
+        next();
+    },
+    requireCaptcha({ strictMode: true, eventType: 'login' }), 
+    async (req, res, next)=>{
     // either api. subdomain or no subdomain
     if(require('../helpers').subdomain(req) !== 'api' && require('../helpers').subdomain(req) !== '')
         next();
@@ -108,6 +122,13 @@ router.post('/login', express.json(), body_parser_error_handler, async (req, res
             if(!user)
                 return res.status(400).send('Email not found.')
         }
+        if (user.username === 'system' && config.allow_system_login !== true) {
+            return res.status(400).send(
+                req.body.username
+                    ? 'Username not found.'
+                    : 'Email not found.'
+            )
+        }
         // is user suspended?
         if(user.suspended)
             return res.status(401).send('This account is suspended.')
@@ -144,7 +165,7 @@ router.post('/login', express.json(), body_parser_error_handler, async (req, res
 
 })
 
-router.post('/login/otp', express.json(), body_parser_error_handler, async (req, res, next) => {
+router.post('/login/otp', express.json(), body_parser_error_handler, requireCaptcha({ strictMode: true, eventType: 'login_otp' }), async (req, res, next) => {
     // either api. subdomain or no subdomain
     if(require('../helpers').subdomain(req) !== 'api' && require('../helpers').subdomain(req) !== '')
         next();
@@ -200,7 +221,7 @@ router.post('/login/otp', express.json(), body_parser_error_handler, async (req,
     return await complete_({ req, res, user });
 });
 
-router.post('/login/recovery-code', express.json(), body_parser_error_handler, async (req, res, next) => {
+router.post('/login/recovery-code', express.json(), body_parser_error_handler, requireCaptcha({ strictMode: true, eventType: 'login_recovery' }), async (req, res, next) => {
     // either api. subdomain or no subdomain
     if(require('../helpers').subdomain(req) !== 'api' && require('../helpers').subdomain(req) !== '')
         next();

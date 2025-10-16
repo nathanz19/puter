@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -88,6 +88,8 @@ class DefaultUserService extends BaseService {
             user.password
         );
         if ( ! is_default_password ) return;
+
+        console.log(`password for admin is: ${tmp_password}`);
 
         // show console widget
         this.default_user_widget = ({ is_docker }) => {

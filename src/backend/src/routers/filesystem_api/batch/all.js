@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -32,7 +32,6 @@ module.exports = eggspress('/batch', {
     subdomain: 'api',
     verified: true,
     auth2: true,
-    fs: true,
     // json: true,
     // files: ['file'],
     // multest: true,
@@ -85,7 +84,8 @@ module.exports = eggspress('/batch', {
     }
 
     // Make sure usage is cached
-    await req.fs.sizeService.get_usage(req.user.id);
+    const sizeService = x.get('services').get('sizeService');
+    await sizeService.get_usage(req.user.id);
 
     globalThis.average_chunk_size = new MovingMode({
         alpha: 0.7,
@@ -147,16 +147,14 @@ module.exports = eggspress('/batch', {
             if ( ! operation_requires_file(op_spec) ) {
                 indexes_to_remove.push(i);
                 log.info(`executing ${op_spec.op}`);
-                response_promises.push(
-                    batch_exe.exec_op(req, op_spec)
-                );
+                response_promises[i] = batch_exe.exec_op(req, op_spec);
+            } else {
             }
         }
 
         for ( let i=indexes_to_remove.length-1 ; i >= 0 ; i-- ) {
             const index = indexes_to_remove[i];
             pending_operations.splice(index, 1)[0];
-            response_promises.splice(index, 1);
         }
     });
 

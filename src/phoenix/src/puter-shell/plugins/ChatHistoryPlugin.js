@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -22,12 +22,6 @@ export const CreateChatHistoryPlugin = ctx => {
             role: 'system',
             content:
                 'You are running inside the Puter terminal via the `ai` command. Refer to yourself as Puter Terminal AI.',
-        },
-        {
-            role: 'system',
-            content:
-                // note: this really doesn't work at all; GPT is effectively incapable of following this instruction.
-                'You can provide commands to the user by prefixing a line in your response with %%%. The user will then be able to run the command by accepting confirmation.',
         },
         {
             role: 'system',

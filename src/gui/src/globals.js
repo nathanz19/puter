@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -103,7 +103,7 @@ if (window.user_preferences === null) {
 }
 
 window.window_stack = []
-window.toolbar_height = 30;
+window.toolbar_height = 0;
 window.default_taskbar_height = 50;
 window.taskbar_height = window.default_taskbar_height;
 window.upload_progress_hide_delay = 500;
@@ -163,16 +163,21 @@ window.desktop_width = window.innerWidth;
 // {id: {left: 0, top: 0}}
 window.original_window_position = {};
 window.a_window_is_resizing = false;
+window.a_window_sidebar_is_resizing = false;
 
 // recalculate desktop height and width on window resize
 $( window ).on( "resize", function() {
     if(window.is_fullpage_mode) return;
     if(window.a_window_is_resizing) return;
+    if(window.a_window_sidebar_is_resizing) return;
 
-    const new_desktop_height = window.innerHeight - window.toolbar_height - window.taskbar_height - 6;
+    const new_desktop_height = window.innerHeight - window.toolbar_height - window.taskbar_height;
     const new_desktop_width = window.innerWidth;
 
     $('.window').each((_, el) => {
+        // if window is maximized, do not resize
+        if($(el).attr('data-is_maximized') === "1") return;
+
         // if data-is_fullpage="1" then the window is in fullpage mode
         // and should not be resized
         if($(el).attr('data-is_fullpage') === "1") return;
@@ -187,11 +192,11 @@ $( window ).on( "resize", function() {
             }
         }
 
-        const leftRadio = pos.left / window.desktop_width;
-        const topRadio = pos.top / window.desktop_height;
+        const leftRatio = pos.left / window.desktop_width;
+        const topRatio = pos.top / window.desktop_height;
 
-        let left = new_desktop_width * leftRadio;
-        let top = new_desktop_height * topRadio;
+        let left = new_desktop_width * leftRatio;
+        let top = new_desktop_height * topRatio;
 
         const maxLeft = new_desktop_width - $(el).width();
         const maxTop = new_desktop_height - $(el).height();
@@ -253,9 +258,30 @@ window.file_templates = []
 // default language
 window.locale = 'en';
 
-/* Menubar style
- * 'window' - menubar is part of the window
- * 'desktop' - menubar is part of the desktop
- * 'system' - menubar is determined by the system (e.g. Windows, macOS)
- */
-// window.menubar_style = 'desktop';
+// the transaction class
+window.Transaction = class {
+    constructor(name) {
+        this.name = name;
+        this.id = uuidv4();
+    }
+
+    start() {
+        this.start_ts = Date.now();
+    }
+
+    getDuration() {
+        return Date.now() - this.start_ts;
+    }
+
+    end() {
+        this.end_ts = Date.now();
+        this.duration = this.end_ts - this.start_ts;
+
+        // emit an event
+        window.dispatchEvent(new CustomEvent('transaction-ended', {
+            detail: {
+                transaction: this
+            }
+        }));
+    }
+}

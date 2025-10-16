@@ -1,6 +1,6 @@
 {
   "name": "puter.com",
-  "version": "2.4.1",
+  "version": "2.5.1",
   "author": "Puter Technologies Inc.",
   "license": "AGPL-3.0-only",
   "description": "Desktop environment in the browser!",
@@ -11,15 +11,17 @@
     "lib": "lib"
   },
   "devDependencies": {
-    "@eslint/js": "^9.1.1",
+    "@eslint/js": "^9.35.0",
+    "@stylistic/eslint-plugin": "^5.3.1",
     "chalk": "^4.1.0",
     "clean-css": "^5.3.2",
     "dotenv": "^16.4.5",
-    "eslint": "^9.1.1",
+    "eslint": "^9.35.0",
     "express": "^4.18.2",
-    "globals": "^15.0.0",
+    "globals": "^15.15.0",
     "html-entities": "^2.3.3",
     "html-webpack-plugin": "^5.6.0",
+    "husky": "^9.1.7",
     "license-check-and-add": "^4.0.5",
     "mocha": "^10.6.0",
     "nodemon": "^3.1.0",
@@ -28,11 +30,12 @@
     "webpack-cli": "^5.1.1"
   },
   "scripts": {
-    "test": "npx mocha src/phoenix/test && node src/backend/tools/test",
+    "test": "npx mocha src/phoenix/test && npx vitest run src/backend && node src/backend/tools/test",
     "start=gui": "nodemon --exec \"node dev-server.js\" ",
     "start": "node ./tools/run-selfhosted.js",
     "build": "cd src/gui; node ./build.js",
-    "check-translations": "node tools/check-translations.js"
+    "check-translations": "node tools/check-translations.js",
+    "prepare": "husky"
   },
   "workspaces": [
     "src/*",
@@ -47,14 +50,28 @@
     ]
   },
   "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.879.0",
+    "@google/genai": "^1.19.0",
+    "@heyputer/putility": "^1.0.2",
+    "@paralleldrive/cuid2": "^2.2.2",
+    "@stylistic/eslint-plugin-js": "^4.4.1",
+    "dedent": "^1.5.3",
+    "express-xml-bodyparser": "^0.4.1",
+    "ioredis": "^5.6.0",
     "javascript-time-ago": "^2.5.11",
     "json-colorizer": "^3.0.1",
     "open": "^10.1.0",
-    "sharp": "^0.33.5",
-    "sharp-bmp": "^0.1.5",
-    "sharp-ico": "^0.1.5",
+    "parse-domain": "^8.2.2",
     "simple-git": "^3.25.0",
     "string-template": "^1.0.0",
     "uuid": "^9.0.1"
+  },
+  "optionalDependencies": {
+    "sharp": "^0.34.3",
+    "sharp-bmp": "^0.1.5",
+    "sharp-ico": "^0.1.5"
+  },
+  "engines": {
+    "node": ">=20.19.5"
   }
 }

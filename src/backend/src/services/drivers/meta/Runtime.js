@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"openai-completion","model":"gpt-4o-mini"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -24,7 +24,7 @@ const { TypeSpec } = require("./Construct");
 /**
 * Represents an entity in the runtime environment that extends the BasicBase class.
 * This class serves as a foundational type for creating various runtime constructs 
-* within the Puter framework, enabling the implementation of specialized behaviors 
+* within the drivers subsystem, enabling the implementation of specialized behaviors 
 * and properties.
 */
 class RuntimeEntity extends BasicBase {

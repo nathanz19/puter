@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"mistral","model":"mistral-large-latest"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -47,7 +47,8 @@ class OperationFrame {
         this.id = require('uuid').v4();
 
         this.log = (x ?? Context).get('services').get('log-service').create(
-            `frame:${this.id}`
+            `frame:${this.id}`,
+            { concern: 'filesystem' },
         );
     }
 
@@ -232,8 +233,12 @@ class OperationFrame {
 * This service is essential for monitoring and logging the lifecycle of operations within the system.
 */
 class OperationTraceService {
+    static CONCERN = 'filesystem';
+
     constructor ({ services }) {
-        this.log = services.get('log-service').create('operation-trace');
+        this.log = services.get('log-service').create('operation-trace', {
+            concern: this.constructor.CONCERN,
+        });
 
         // TODO: replace with kv.js set
         this.ongoing = {};
@@ -317,6 +322,9 @@ class BaseOperation extends AdvancedBase {
     async run (values) {
         this.values = values;
 
+        values.user = values.user ??
+            (values.actor ? values.actor.type.user : undefined);
+
         // getting context with a new operation frame
         let x, frame; {
             x = Context.get();
@@ -331,21 +339,16 @@ class BaseOperation extends AdvancedBase {
 
         // let's make the logger for it too
         this.log = x.get('services').get('log-service').create(
-            this.constructor.name, { operation: frame.id });
+            this.constructor.name, {
+                operation: frame.id,
+                ...(this.constructor.CONCERN ? {
+                    concern: this.constructor.CONCERN,
+                } : {})
+            });
 
         // Run operation in new context
         try {
-            /**
-            * Runs an operation within a new context.
-            *
-            * This method sets up a new operation frame, updates the context, and runs the
-            * operation. It handles the operation's lifecycle, logging, and error handling.
-            *
-            * @async
-            * @function run
-            * @param {Object} values - The values to be passed to the operation.
-            * @returns {Promise<*>} The result of the operation.
-            */
+            // Actual delegate call (this._run) with context and checkpoints
             return await x.arun(async () => {
                 const x = Context.get();
                 const operationTraceSvc = x.get('services').get('operationTrace');
@@ -384,11 +387,12 @@ class BaseOperation extends AdvancedBase {
 
 
     /**
-    * Updates the checkpoint for the current operation frame.
-    *
-    * @param {string} name - The name of the checkpoint to set.
-    * @returns {void}
-    */
+     * Actions to perform after running.
+     * 
+     * If child operation frames think they're still pending, mark them as stuck;
+     * all child frames at least reach working state before the parent operation
+     * completes. 
+     */
     _post_run () {
         let any_async = false;
         for ( const child of this.frame.children ) {

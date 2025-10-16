@@ -1,3 +1,22 @@
+/*
+ * Copyright (C) 2024-present Puter Technologies Inc.
+ * 
+ * This file is part of Puter.
+ * 
+ * Puter is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 // METADATA // {"ai-commented":{"service":"claude"}}
 const configurable_auth = require("../middleware/configurable_auth");
 const { Context } = require("../util/context");
@@ -19,24 +38,16 @@ const PERM_SEE_DRIVERS = 'kernel-info:see-all-drivers';
 * @extends BaseService
 */
 class KernelInfoService extends BaseService {
-    /**
-    * Service for providing kernel and service information
-    * Extends BaseService to provide system-level information about services, interfaces and drivers
-    * Handles permissions and access control for viewing service information
-    * Exposes endpoints for listing modules and service information
-    */
-    async _init () {
-        //
-    }
+    async _init () {}
 
+    /**
+    * Installs routes for the kernel info service
+    * @param {*} _ Unused parameter
+    * @param {Object} param1 Object containing Express app instance
+    * @param {Express} param1.app Express application instance
+    * @private
+    */
     ['__on_install.routes'] (_, { app }) {
-        /**
-        * Installs routes for the kernel info service
-        * @param {*} _ Unused parameter
-        * @param {Object} param1 Object containing Express app instance
-        * @param {Express} param1.app Express application instance
-        * @private
-        */
         const router = (() => {
             const require = this.require;
             const express = require('express');

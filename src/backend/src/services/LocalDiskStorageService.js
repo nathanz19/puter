@@ -1,6 +1,6 @@
 // METADATA // {"ai-commented":{"service":"mistral","model":"mistral-large-latest"}}
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -18,6 +18,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 const { LocalDiskStorageStrategy } = require("../filesystem/strategies/storage_a/LocalDiskStorageStrategy");
+const { PuterFSProvider } = require("../modules/puterfs/lib/PuterFSProvider");
 const { TeePromise } = require('@heyputer/putility').libs.promise;
 const { progress_stream, size_limit_stream } = require("../util/streamutil");
 const BaseService = require("./BaseService");
@@ -52,7 +53,7 @@ class LocalDiskStorageService extends BaseService {
         svc_contextInit.register_value('storage', storage);
         
         const svc_mountpoint = this.services.get('mountpoint');
-        svc_mountpoint.set_storage(storage);
+        svc_mountpoint.set_storage(PuterFSProvider.name, storage);
     }
 
 
@@ -144,15 +145,37 @@ class LocalDiskStorageService extends BaseService {
     /**
     * Creates a read stream for a given key.
     *
+    * @param {string} uid - The unique identifier for the file.
     * @param {Object} options - The options object.
-    * @param {string} options.key - The key for which to create the read stream.
+    * @param {string} [options.range] - Optional range header (e.g., "bytes=0-1023").
     * @returns {stream.Readable} The read stream for the given key.
     */
-    async create_read_stream ({ key }) {
+    async create_read_stream (uid, options = {}) {
         const require = this.require;
         const fs = require('fs');
 
-        const path = this._get_path(key);
+        const path = this._get_path(uid);
+        
+        // Handle range requests for partial content
+        const { range } = options;
+        if (range) {
+            const rangeMatch = range.match(/bytes=(\d+)-(\d*)/);
+            if (rangeMatch) {
+                const start = parseInt(rangeMatch[1], 10);
+                const endStr = rangeMatch[2];
+                
+                const streamOptions = { start };
+                
+                // If end is specified, set it (fs.createReadStream end is inclusive)
+                if (endStr) {
+                    streamOptions.end = parseInt(endStr, 10);
+                }
+                
+                return fs.createReadStream(path, streamOptions);
+            }
+        }
+        
+        // Default: create stream for entire file
         return fs.createReadStream(path);
     }
 

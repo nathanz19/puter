@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Puter Technologies Inc.
+ * Copyright (C) 2024-present Puter Technologies Inc.
  *
  * This file is part of Puter.
  *
@@ -46,7 +46,7 @@ router.post('/send-confirm-email', auth, express.json(), async (req, res, next)=
         `UPDATE user SET email_confirm_code = ? WHERE id = ?`,
         [
             // email_confirm_code
-            email_confirm_code,
+            '' + email_confirm_code,
             // id
             req.user.id,
         ]);
