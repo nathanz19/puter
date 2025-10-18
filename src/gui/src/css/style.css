@@ -112,6 +112,14 @@ pre {
     --select-saturation: 74.22%;
     --select-lightness: 55.88%;
     --select-color: hsl(var(--select-hue), var(--select-saturation), var(--select-lightness));
+
+    /* Dynamic foreground for sidebar titles: prefers the color (white or black)
+       that has best contrast against the computed sidebar background. Falls
+       back to the original grey when `color-contrast()` isn't supported. */
+    --window-sidebar-title-color: color-contrast(
+        hsla(var(--window-sidebar-hue), var(--window-sidebar-saturation), var(--window-sidebar-lightness), var(--window-sidebar-alpha))
+        vs rgb(255 255 255), rgb(0 0 0)
+    );
 }
 
 html, body {
@@ -465,7 +473,7 @@ span.header-sort-icon img {
     line-height: 25px;
     margin-left: 15px;
     color: #555c61;
-    display: inline-block;
+    display: inline-block;  
 }
 
 .explore-table-headers-th-active {
@@ -1218,8 +1226,12 @@ span.header-sort-icon img {
     margin: 0;
     font-weight: bold;
     font-size: 13px;
-    color: #8f96a3;
-    text-shadow: 1px 1px rgb(247 247 247 / 15%);
+     /* Use a dynamic foreground color determined by contrast; keep the
+         original grey as a fallback for older browsers. */
+     color: var(--window-sidebar-title-color, #8f96a3);
+     /* Stronger multi-layer text-shadow gives a subtle outline making the
+         text readable on both light and dark sidebar backgrounds. */
+     text-shadow: 0 1px 0 rgba(255,255,255,0.22), 0 0 6px rgba(0,0,0,0.32);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     padding-left: 6px;
@@ -1234,7 +1246,9 @@ span.header-sort-icon img {
 }
 
 .window-sidebar-item:hover, .window-sidebar-item.has-open-contextmenu {
-    background-color: rgba(243, 243, 243, 0.8);
+    /* Hover background adapts to theme via --window-sidebar-hover-bg. Fallback
+       matches previous light hover used before theming. */
+    background-color: var(--window-sidebar-hover-bg, rgba(243, 243, 243, 0.8));
     cursor: pointer;
 }
 
@@ -1243,7 +1257,8 @@ span.header-sort-icon img {
     margin-top: 2px;
     padding: 4px;
     border-radius: 3px;
-    color: #444444;
+    /* Use contrast-aware color so text adapts to sidebar background. */
+    color: var(--window-sidebar-title-color, #8f96a3);
     font-size: 13px;
     cursor: pointer;
     transition: 0.15s background-color;
@@ -1255,7 +1270,13 @@ span.header-sort-icon img {
 }
 
 .window-sidebar-item-active, .window-sidebar-item-drag-active, .window-sidebar-item-active:hover {
-    background-color: #fefeff;
+    /* Active background should contrast with the title color. Modern
+       browsers will use the color-contrast() produced variable; fallback
+       to the previous light background for older browsers. */
+    background-color: var(--window-sidebar-active-bg, #fefeff);
+    /* Active item's text should use the title color (the computed contrast
+       foreground) so it remains readable against the active background. */
+    color: var(--window-sidebar-title-color, #8f96a3) !important;
 }
 
 .window-sidebar-item-placeholder {
@@ -1276,13 +1297,15 @@ span.header-sort-icon img {
 }
 
 .window-sidebar-item-dragging {
-    background-color: #f5f5f5 !important;
+    /* Drag background adapts to theme via `--window-sidebar-drag-bg`. */
+    background-color: var(--window-sidebar-drag-bg, #f5f5f5) !important;
     opacity: 0.8;
     cursor: grabbing;
 }
 
 .ui-sortable-helper {
-    background: white !important;
+    /* Sortable helper background should also adapt slightly. */
+    background: var(--window-sidebar-drag-helper-bg, white) !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
 }
 
@@ -2865,6 +2888,7 @@ fieldset[name=number-code] {
     text-align: center;
     border-radius: 0.5rem;
     -moz-appearance: textfield;
+    appearance: textfield;
     border: 2px solid #9b9b9b;
     color: #485660;
 }
@@ -3238,7 +3262,7 @@ fieldset[name=number-code] {
     opacity: 1;
 }
 
-.launch-app-selected {}
+
 
 
 .website-badge-popover-title {

@@ -49,6 +49,8 @@ import { IPCService } from './services/IPCService.js';
 import { ExecService } from './services/ExecService.js';
 import { DebugService } from './services/DebugService.js';
 import { privacy_aware_path } from './util/desktop.js';
+// runtime contrast fallback for sidebar titles (sets --window-sidebar-title-color)
+import './js/sidebar-contrast.js';
 
 const launch_services = async function (options) {
     // === Services Data Structures ===
