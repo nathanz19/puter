@@ -1145,6 +1145,93 @@ async function UIDesktop(options){
     // prepend toolbar to desktop
     $(ht).insertBefore(el_desktop);
 
+    // ---------------------------------------------------------------
+    // Auto-hide toolbar after inactivity (2s)
+    // Enabled only for non-mobile devices. Hides toolbar visually and
+    // adjusts window-container / desktop heights so space is reclaimed.
+    // ---------------------------------------------------------------
+    try{
+        if(!isMobile.phone && !isMobile.tablet){
+            const AUTO_HIDE_MS = 2000;
+            let toolbarHideTimeout = null;
+            const $toolbar = $('.toolbar');
+            // honor user preference; default to true
+            window.toolbar_auto_hide_enabled = (window.user_preferences?.toolbar_auto_hide === undefined) ? true : !!window.user_preferences.toolbar_auto_hide;
+
+            const applyShowToolbar = () => {
+                if($toolbar.hasClass('toolbar--hidden')){
+                    $toolbar.removeClass('toolbar--hidden');
+                    $('.window-container').css('top', window.toolbar_height);
+                    $('.desktop').css('height', `calc(100vh - ${window.taskbar_height + window.toolbar_height}px)`);
+                }
+            }
+
+            const applyHideToolbar = () => {
+                if(!$toolbar.hasClass('toolbar--hidden')){
+                    $toolbar.addClass('toolbar--hidden');
+                    // reclaim space used by toolbar
+                    $('.window-container').css('top', 0);
+                    $('.desktop').css('height', `calc(100vh - ${window.taskbar_height}px)`);
+                }
+            }
+
+            // Show toolbar only when mouse/touch is near the top of the viewport
+            const SHOW_THRESHOLD_PX = 48; // distance from top in px to trigger show
+
+            const resetToolbarTimer = (e) => {
+                if(!window.toolbar_auto_hide_enabled)
+                    return;
+                // if a context menu is open, keep toolbar visible
+                if($('.context-menu:visible').length > 0) {
+                    applyShowToolbar();
+                    clearTimeout(toolbarHideTimeout);
+                    return;
+                }
+
+                let clientY = undefined;
+                if(e.touches && e.touches[0])
+                    clientY = e.touches[0].clientY;
+                else if(typeof e.clientY === 'number')
+                    clientY = e.clientY;
+
+                // only show/reset timer when pointer is near top of screen
+                if(typeof clientY === 'number' && clientY <= SHOW_THRESHOLD_PX){
+                    applyShowToolbar();
+                    clearTimeout(toolbarHideTimeout);
+                    toolbarHideTimeout = setTimeout(() => { applyHideToolbar(); }, AUTO_HIDE_MS);
+                }
+                // if the pointer is away from the top, do not immediately hide (let the timer run out)
+            }
+
+            document.addEventListener('mousemove', resetToolbarTimer, {passive:true});
+            document.addEventListener('touchstart', resetToolbarTimer, {passive:true});
+
+            // expose a small control API so settings can enable/disable at runtime
+            window.toolbarAutoHide = {
+                setEnabled: (enabled) => {
+                    window.toolbar_auto_hide_enabled = !!enabled;
+                    if(!window.toolbar_auto_hide_enabled){
+                        clearTimeout(toolbarHideTimeout);
+                        applyShowToolbar();
+                    }else{
+                        // start timer to hide
+                        clearTimeout(toolbarHideTimeout);
+                        toolbarHideTimeout = setTimeout(() => { applyHideToolbar(); }, AUTO_HIDE_MS);
+                    }
+                },
+                isEnabled: () => !!window.toolbar_auto_hide_enabled,
+                show: applyShowToolbar,
+                hide: applyHideToolbar,
+            };
+
+            // start the initial timer so toolbar hides automatically after load
+            if(window.toolbar_auto_hide_enabled)
+                toolbarHideTimeout = setTimeout(() => { applyHideToolbar(); }, AUTO_HIDE_MS);
+        }
+    }catch(e){
+        console.error('toolbar auto-hide init error', e);
+    }
+
     // notification container
     $('body').append(`<div class="notification-container"><div class="notifications-close-all">${i18n('close_all')}</div></div>`);
 

@@ -1751,6 +1751,20 @@ label {
     padding-right: 10px
 }
 
+/* Auto-hide state for toolbar */
+.toolbar.toolbar--hidden {
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 220ms ease-in-out, opacity 220ms ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .toolbar.toolbar--hidden {
+        transition: none;
+    }
+}
+
 .show-desktop-btn {
     color: white;
     font-size: 11px !important;
