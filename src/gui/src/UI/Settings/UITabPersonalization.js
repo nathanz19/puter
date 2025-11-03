@@ -74,6 +74,15 @@ export default {
                         </label>
                     </div>
                 </div>
+            </div>
+            <div class="settings-card">
+                <strong style="display:block; margin-bottom:20px;">${i18n('Autohide Toolbar') ?? 'Auto-hide toolbar'}</strong>
+                <div style="flex-grow:1;">
+                    <label style="display:flex; align-items:center; gap:10px; margin-top:8px;">
+                        <input type="checkbox" id="toolbar_auto_hide_checkbox">
+                        <span style="max-width:600px;"></span>
+                    </label>
+                </div>
             </div>`;
     },
     init: ($el_window) => {
@@ -151,5 +160,33 @@ export default {
                 console.error('Invalid menubar style value');
             }
         })
+
+        // Initialize the checkbox state from KV
+        puter.kv.get('user_preferences.toolbar_auto_hide').then(val => {
+            // default to true if not set
+            const enabled = (val === null || val === undefined) ? true : (val === true || val === 'true');
+            $el_window.find('#toolbar_auto_hide_checkbox').prop('checked', enabled);
+        });
+
+        $el_window.on('change', '#toolbar_auto_hide_checkbox', function(e){
+            const enabled = $(this).prop('checked');
+            // persist preference
+            window.mutate_user_preferences({ toolbar_auto_hide: enabled });
+            // apply immediately if the toolbar auto-hide module is initialized
+            try{
+                if(window.toolbarAutoHide && typeof window.toolbarAutoHide.setEnabled === 'function'){
+                    window.toolbarAutoHide.setEnabled(enabled);
+                }else{
+                    // ensure toolbar visible if disabled
+                    if(!enabled){
+                        $('.toolbar').removeClass('toolbar--hidden');
+                        $('.window-container').css('top', window.toolbar_height);
+                        $('.desktop').css('height', `calc(100vh - ${window.taskbar_height + window.toolbar_height}px)`);
+                    }
+                }
+            }catch(err){
+                console.error('Applying toolbar auto-hide preference failed', err);
+            }
+        });
     },
 };
