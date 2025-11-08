@@ -2498,6 +2498,36 @@ window.save_desktop_item_positions = ()=>{
     puter.kv.set('desktop_item_positions', window.desktop_item_positions);
 }
 
+/**
+ * Toggle visibility of desktop icons. Stores preference when called with explicit value.
+ * @param {boolean} [show] - If provided, set visibility to this value and persist to user preferences.
+ */
+window.toggle_desktop_icons = function(show){
+    const el_desktop = document.querySelector('.desktop');
+    // if desktop not present, nothing to do
+    if(!el_desktop) return;
+
+    // If show is undefined, just toggle
+    if(typeof show === 'undefined')
+        show = !window.user_preferences?.show_desktop_icons;
+
+    if(show){
+        $(el_desktop).removeClass('desktop-icons-hidden');
+        // reapply saved positions (if any)
+        window.set_desktop_item_positions(el_desktop);
+    }
+    else{
+        $(el_desktop).addClass('desktop-icons-hidden');
+    }
+
+    // persist preference
+    try{
+        window.mutate_user_preferences({ show_desktop_icons: show });
+    }catch(e){
+        // ignore
+    }
+}
+
 window.delete_desktop_item_positions = ()=>{
     window.desktop_item_positions = {}
     puter.kv.del('desktop_item_positions');

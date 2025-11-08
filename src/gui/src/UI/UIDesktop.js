@@ -708,6 +708,8 @@ async function UIDesktop(options){
     // update local user preferences
     const user_preferences = {
         show_hidden_files: JSON.parse(await puter.kv.get('user_preferences.show_hidden_files')),
+        // whether desktop icons should be visible. Default to true when unset.
+        show_desktop_icons: (await puter.kv.get('user_preferences.show_desktop_icons')) === null ? true : JSON.parse(await puter.kv.get('user_preferences.show_desktop_icons')),
         language: await puter.kv.get('user_preferences.language'),
         clock_visible: await puter.kv.get('user_preferences.clock_visible'),
     };
@@ -719,6 +721,12 @@ async function UIDesktop(options){
         }
 
         window.update_user_preferences(user_preferences);
+        // Apply desktop icons visibility preference immediately
+        try{
+            window.toggle_desktop_icons(window.user_preferences.show_desktop_icons);
+        }catch(e){
+            // ignore if toggle function not available yet
+        }
     });
 
     // Append to <body>
@@ -941,6 +949,16 @@ async function UIDesktop(options){
                                 show_hidden_files : !window.user_preferences.show_hidden_files,
                             });
                             window.show_or_hide_files(document.querySelectorAll('.item-container'));
+                        }
+                    },
+                    // -------------------------------------------
+                    // Show/Hide Desktop Icons
+                    // -------------------------------------------
+                    {
+                        html: window.user_preferences.show_desktop_icons ? 'Hide Desktop Icons' : 'Show Desktop Icons',
+                        onClick: function(){
+                            // toggle via helper which persists preference
+                            window.toggle_desktop_icons(!window.user_preferences.show_desktop_icons);
                         }
                     },
                     // -------------------------------------------
