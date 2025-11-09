@@ -1765,6 +1765,18 @@ label {
     font-weight: 500;
 }
 
+/* Hide desktop icons when the desktop has the class .desktop-icons-hidden */
+.desktop.item-container.desktop-icons-hidden > .item,
+.desktop.item-container.desktop-icons-hidden .item {
+    display: none !important;
+}
+
+/* When icons are hidden, also hide selected/cloned helpers to avoid visual artifacts */
+.desktop.item-container.desktop-icons-hidden .item-selected,
+.desktop.item-container.desktop-icons-hidden .item-selected-clone {
+    display: none !important;
+}
+
 .device-phone .toolbar {
     z-index: 1;
 }
