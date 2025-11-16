@@ -278,6 +278,12 @@ class HLMkdir extends HLFilesystemOperation {
             : await this._get_existing_top_parent({ top_parent: parent_node })
             ;
 
+        if (top_parent.isRoot) {
+            throw APIError.create('forbidden', null, {
+                message: 'Cannot create directories in root folder'
+            });
+        }
+
         // `parent_node` becomes the parent of the last directory name
         // specified under `path`.
         parent_node = await this._create_parents({
