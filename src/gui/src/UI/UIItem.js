@@ -1184,6 +1184,56 @@ function UIItem(options){
                 });                
             }
             // -------------------------------------------
+            // Set As Desktop Background (images only)
+            // -------------------------------------------
+            // Only show for non-directory, non-trashed, non-trash-path items that are images
+            if(!is_trash && !is_trashed && !options.is_dir){
+                const mime = $(el_item).attr('data-type') || options.type || '';
+                const ext = path.extname($(el_item).attr('data-path')).toLowerCase();
+                const image_exts = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.svg'];
+                const is_image = mime.startsWith('image/') || image_exts.includes(ext);
+                if(is_image){
+                    menu_items.push({
+                        html: i18n('change_desktop_background'),
+                        onClick: async function(){
+                            try{
+                                // Sign the file to obtain a read URL
+                                const uid = $(el_item).attr('data-uid');
+                                const sig = await puter.fs.sign(window.host_app_uid ?? null, { uid: uid, action: 'write' });
+                                let item_sig = sig?.items ?? sig;
+                                if(Array.isArray(item_sig)) item_sig = item_sig[0];
+                                const readURL = item_sig?.read_url ?? item_sig?.readURL ?? undefined;
+
+                                if(!readURL){
+                                    console.error('Failed to obtain file read URL for wallpaper');
+                                    return;
+                                }
+
+                                // Persist preference to server
+                                try{
+                                    await $.ajax({
+                                        url: window.api_origin + "/set-desktop-bg",
+                                        type: 'POST',
+                                        data: JSON.stringify({ url: readURL, fit: 'cover' }),
+                                        async: true,
+                                        contentType: "application/json",
+                                        headers: { "Authorization": "Bearer "+window.auth_token },
+                                    });
+                                }catch(err){
+                                    console.warn('Persisting desktop background preference failed', err);
+                                }
+
+                                // Apply wallpaper immediately
+                                window.set_desktop_background({ url: readURL, fit: 'cover' });
+                            }
+                            catch(err){
+                                console.error(err);
+                            }
+                        }
+                    })
+                }
+            }
+            // -------------------------------------------
             // Zip
             // -------------------------------------------
             if(!is_trash && !is_trashed && !$(el_item).attr('data-path').endsWith('.zip')){
